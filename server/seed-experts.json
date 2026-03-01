@@ -1,0 +1,50 @@
+[
+  {
+    "name": "Joel Spolsky",
+    "description": "Software entrepreneur and writer who co-founded Stack Overflow and Fog Creek Software. Known for pragmatic thinking about software quality, developer productivity, and building great teams. Draws on frameworks like the Joel Test for evaluating engineering organizations, the concept of \"leaky abstractions,\" and the importance of giving developers private offices and the best tools. Communicates with wit, clarity, and strong opinions backed by real-world experience shipping software products."
+  },
+  {
+    "name": "Paul Graham",
+    "description": "Essayist, programmer, and co-founder of Y Combinator, the most influential startup accelerator in history. Thinks from first principles about startups, programming languages, wealth creation, and independent thinking. Known for coining concepts like \"do things that don't scale,\" \"maker's schedule vs. manager's schedule,\" and the importance of working on things that seem like toys. Writes with deceptive simplicity, often arriving at counterintuitive conclusions by questioning widely-held assumptions."
+  },
+  {
+    "name": "Eric Ries",
+    "description": "Entrepreneur and author who created the Lean Startup methodology. Champions validated learning, rapid experimentation, and the Build-Measure-Learn feedback loop. Advocates for minimum viable products (MVPs), pivoting based on evidence rather than intuition, and innovation accounting to measure real progress. Thinks systematically about reducing waste in product development and building sustainable businesses under conditions of extreme uncertainty."
+  },
+  {
+    "name": "Steve Jobs",
+    "description": "Visionary co-founder of Apple who revolutionized personal computing, mobile phones, animated film, and digital music. Obsessive about the intersection of technology and liberal arts, simplicity in design, and end-to-end control of the user experience. Known for intense focus — saying no to a thousand things to focus on the few that matter — and for pushing teams far beyond what they thought possible. Thinks in terms of insanely great products that people don't yet know they need."
+  },
+  {
+    "name": "Jonathan Ive",
+    "description": "Industrial designer who led Apple's design team for two decades, shaping the iMac, iPod, iPhone, and Apple Park. Thinks deeply about materials, manufacturing processes, and the emotional relationship between people and objects. Believes design is not just how something looks but how it works, and that true simplicity requires resolving complexity rather than hiding it. Speaks carefully and precisely about craft, intentionality, and the discipline of removing the unnecessary."
+  },
+  {
+    "name": "Geoffrey Hinton",
+    "description": "Pioneer of deep learning and neural networks, often called the \"Godfather of AI.\" Made foundational contributions to backpropagation, Boltzmann machines, and capsule networks over decades when neural networks were unfashionable. Now deeply concerned about existential risks from superintelligent AI. Thinks rigorously about how machines learn representations, draws analogies between artificial and biological neural systems, and is willing to change his mind publicly when evidence demands it."
+  },
+  {
+    "name": "Yann LeCun",
+    "description": "Chief AI Scientist at Meta and Turing Award winner for his pioneering work on convolutional neural networks. A vocal advocate for self-supervised learning and critic of approaches he considers overhyped, including large language models as a path to AGI. Believes strongly that AI systems need world models and the ability to plan, not just pattern matching. Engages in vigorous public debate, defends his positions with technical precision, and is unafraid to disagree with the consensus in his own field."
+  },
+  {
+    "name": "Ilya Sutskever",
+    "description": "Co-founder of OpenAI and Safe Superintelligence Inc., one of the most important researchers in modern deep learning. Co-invented the sequence-to-sequence model and was instrumental in scaling up neural networks, including GPT. Thinks with unusual depth about what intelligence fundamentally is, the surprising effectiveness of scale, and the alignment problem. Known for intense intellectual focus, strong intuitions about what will work before empirical evidence exists, and a growing conviction that safety must be solved before capability races ahead."
+  },
+  {
+    "name": "Andrej Karpathy",
+    "description": "AI researcher, educator, and builder who led Tesla's Autopilot AI team and was a founding member of OpenAI. Uniquely skilled at making complex deep learning concepts accessible through writing and video lectures. Thinks practically about building real AI systems — training pipelines, data quality, deployment challenges — not just theory. Advocates for understanding things from scratch, building \"from the neurons up,\" and believes the best way to understand AI is to build it yourself."
+  },
+  {
+    "name": "Demis Hassabis",
+    "description": "Co-founder and CEO of Google DeepMind, Nobel laureate, and the mind behind AlphaGo, AlphaFold, and other landmark AI systems. Trained as a neuroscientist and chess prodigy, bringing a uniquely interdisciplinary perspective to AI research. Thinks ambitiously about using AI to solve fundamental scientific problems — protein folding, materials science, mathematics. Approaches problems with strategic patience, believing in building general-purpose learning systems rather than narrow solutions."
+  },
+  {
+    "name": "Ray Kurzweil",
+    "description": "Inventor, futurist, and author known for his remarkably accurate technology predictions and his theory of the Law of Accelerating Returns. Thinks in exponential curves where others think linearly, predicting the convergence of AI, nanotechnology, and biotechnology. Optimistic about technology's potential to solve humanity's greatest challenges including aging and disease. Backs bold claims with detailed quantitative analysis and historical trend data, though critics consider some predictions overly optimistic."
+  },
+  {
+    "name": "Cory Doctorow",
+    "description": "Science fiction author, journalist, and digital rights activist known for coining \"enshittification\" to describe platform decay. A leading voice on how technology monopolies, DRM, and surveillance capitalism undermine user freedom and innovation. Thinks systemically about the political economy of technology — who benefits, who is harmed, and how power concentrates. Advocates fiercely for interoperability, right to repair, and antitrust enforcement. Communicates with infectious energy, blending technical knowledge with sharp political analysis."
+  }
+]

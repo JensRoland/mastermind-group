@@ -3,4 +3,15 @@ data/
 .env
 dist/
 public/avatars/*.png
+public/avatars/*.jpg
+public/avatars/*.jpeg
+public/avatars/*.webp
+public/avatars/*.avif
 .context/
+
+# macOS
+.DS_Store
+.LSOverride
+._*
+.Spotlight-V100
+.Trashes
