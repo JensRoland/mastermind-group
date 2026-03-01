@@ -1,0 +1,213 @@
+import { Router } from 'express';
+import db from '../db.js';
+import { broadcast, broadcastGlobal } from '../ws.js';
+
+const router = Router();
+
+// GET /api/threads
+router.get('/', (req, res) => {
+  const { status } = req.query;
+  let threads;
+  if (status) {
+    threads = db.prepare('SELECT * FROM threads WHERE status = ? ORDER BY created_at DESC').all(status);
+  } else {
+    threads = db.prepare('SELECT * FROM threads ORDER BY created_at DESC').all();
+  }
+
+  // Attach expert info to each thread
+  const getExperts = db.prepare(
+    `SELECT e.id, e.name, e.avatar_url FROM thread_experts te
+     JOIN experts e ON e.id = te.expert_id
+     WHERE te.thread_id = ? ORDER BY te.sort_order`
+  );
+
+  threads = threads.map(t => ({
+    ...t,
+    experts: getExperts.all(t.id),
+  }));
+
+  res.json(threads);
+});
+
+// GET /api/threads/:id
+router.get('/:id', (req, res) => {
+  const thread = db.prepare('SELECT * FROM threads WHERE id = ?').get(req.params.id);
+  if (!thread) return res.status(404).json({ error: 'Thread not found' });
+
+  const experts = db.prepare(
+    `SELECT e.*, te.sort_order FROM thread_experts te
+     JOIN experts e ON e.id = te.expert_id
+     WHERE te.thread_id = ? ORDER BY te.sort_order`
+  ).all(thread.id);
+
+  const messages = db.prepare(
+    `SELECT m.*, e.name as expert_name, e.avatar_url as expert_avatar
+     FROM messages m LEFT JOIN experts e ON m.expert_id = e.id
+     WHERE m.thread_id = ?
+     ORDER BY m.created_at ASC`
+  ).all(thread.id);
+
+  res.json({ thread, experts, messages });
+});
+
+// POST /api/threads
+router.post('/', (req, res) => {
+  const { title, topic, expertIds, maxTurns } = req.body;
+  if (!title || !topic || !expertIds?.length || expertIds.length < 2) {
+    return res.status(400).json({ error: 'Title, topic, and at least 2 experts are required' });
+  }
+
+  const insertThread = db.prepare(
+    'INSERT INTO threads (title, topic, max_turns) VALUES (?, ?, ?)'
+  );
+  const insertExpert = db.prepare(
+    'INSERT INTO thread_experts (thread_id, expert_id, sort_order) VALUES (?, ?, ?)'
+  );
+  const insertMsg = db.prepare(
+    "INSERT INTO messages (thread_id, expert_id, role, content) VALUES (?, NULL, 'user', ?)"
+  );
+
+  const createThread = db.transaction(() => {
+    const result = insertThread.run(title, topic, maxTurns || 20);
+    const threadId = Number(result.lastInsertRowid);
+
+    expertIds.forEach((eid, i) => {
+      insertExpert.run(threadId, eid, i);
+    });
+
+    // Seed with the topic as the first message
+    insertMsg.run(threadId, topic);
+
+    return threadId;
+  });
+
+  const threadId = createThread();
+  broadcastGlobal({ type: 'thread_list_update' });
+  res.status(201).json({ id: threadId });
+});
+
+// POST /api/threads/:id/message — user interruption
+router.post('/:id/message', (req, res) => {
+  const thread = db.prepare('SELECT * FROM threads WHERE id = ?').get(req.params.id);
+  if (!thread) return res.status(404).json({ error: 'Thread not found' });
+  if (thread.status !== 'active') {
+    return res.status(400).json({ error: 'Thread is not active' });
+  }
+
+  const { content } = req.body;
+  if (!content) return res.status(400).json({ error: 'Content is required' });
+
+  const result = db.prepare(
+    "INSERT INTO messages (thread_id, expert_id, role, content) VALUES (?, NULL, 'user', ?)"
+  ).run(thread.id, content);
+
+  const message = {
+    id: Number(result.lastInsertRowid),
+    thread_id: thread.id,
+    expert_id: null,
+    expert_name: null,
+    expert_avatar: null,
+    role: 'user',
+    content,
+    created_at: new Date().toISOString(),
+  };
+
+  broadcast(thread.id, { type: 'new_message', message });
+  res.json(message);
+});
+
+// POST /api/threads/:id/wrapup
+router.post('/:id/wrapup', (req, res) => {
+  const thread = db.prepare('SELECT * FROM threads WHERE id = ?').get(req.params.id);
+  if (!thread) return res.status(404).json({ error: 'Thread not found' });
+
+  const experts = db.prepare(
+    'SELECT COUNT(*) as count FROM thread_experts WHERE thread_id = ?'
+  ).get(thread.id);
+
+  const wrapupMessage = 'The moderator has asked the group to wrap up. Each participant should provide their concluding thoughts, key takeaways, and any actionable recommendations. Be concise and direct.';
+
+  db.prepare(
+    "INSERT INTO messages (thread_id, expert_id, role, content) VALUES (?, NULL, 'system', ?)"
+  ).run(thread.id, wrapupMessage);
+
+  // Set max_turns so everyone speaks once more, then conclude
+  const newMaxTurns = thread.current_turn + experts.count + 1;
+  db.prepare('UPDATE threads SET max_turns = ?, status = ? WHERE id = ?')
+    .run(newMaxTurns, 'active', thread.id);
+
+  broadcast(thread.id, {
+    type: 'new_message',
+    message: {
+      id: null,
+      thread_id: thread.id,
+      expert_id: null,
+      role: 'system',
+      content: wrapupMessage,
+      created_at: new Date().toISOString(),
+    },
+  });
+
+  broadcast(thread.id, {
+    type: 'thread_status',
+    threadId: thread.id,
+    status: 'active',
+    max_turns: newMaxTurns,
+    current_turn: thread.current_turn,
+  });
+
+  res.json({ ok: true, max_turns: newMaxTurns });
+});
+
+// POST /api/threads/:id/extend
+router.post('/:id/extend', (req, res) => {
+  const thread = db.prepare('SELECT * FROM threads WHERE id = ?').get(req.params.id);
+  if (!thread) return res.status(404).json({ error: 'Thread not found' });
+
+  const { turns } = req.body;
+  const extraTurns = turns || 10;
+  const newMaxTurns = thread.max_turns + extraTurns;
+
+  // If the thread was paused due to max turns, resume it
+  const newStatus = thread.status === 'paused' ? 'active' : thread.status;
+
+  db.prepare('UPDATE threads SET max_turns = ?, status = ? WHERE id = ?')
+    .run(newMaxTurns, newStatus, thread.id);
+
+  broadcast(thread.id, {
+    type: 'thread_status',
+    threadId: thread.id,
+    status: newStatus,
+    max_turns: newMaxTurns,
+    current_turn: thread.current_turn,
+  });
+
+  broadcastGlobal({ type: 'thread_list_update' });
+
+  res.json({ ok: true, max_turns: newMaxTurns, status: newStatus });
+});
+
+// PUT /api/threads/:id/status
+router.put('/:id/status', (req, res) => {
+  const thread = db.prepare('SELECT * FROM threads WHERE id = ?').get(req.params.id);
+  if (!thread) return res.status(404).json({ error: 'Thread not found' });
+
+  const { status } = req.body;
+  if (!['active', 'paused', 'concluded'].includes(status)) {
+    return res.status(400).json({ error: 'Invalid status' });
+  }
+
+  db.prepare('UPDATE threads SET status = ? WHERE id = ?').run(status, thread.id);
+
+  broadcast(thread.id, {
+    type: 'thread_status',
+    threadId: thread.id,
+    status,
+  });
+
+  broadcastGlobal({ type: 'thread_list_update' });
+
+  res.json({ ok: true, status });
+});
+
+export default router;
