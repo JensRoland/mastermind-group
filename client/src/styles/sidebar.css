@@ -45,7 +45,7 @@ mix-blend-mode: plus-lighter;
 .sidebar-section-header {
   display: flex;
   justify-content: flex-end;
-  padding: var(--spacing-sm) var(--spacing-sm) 0;
+  padding: var(--spacing-sm) var(--spacing-sm);
 }
 
 .sidebar-nav {

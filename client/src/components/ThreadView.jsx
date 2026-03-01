@@ -4,13 +4,20 @@ import { subscribe, unsubscribe, onMessage } from '../ws.js';
 import MessageBubble from './MessageBubble.jsx';
 import '../styles/thread.css';
 
+function formatDateTime(dateStr) {
+  if (!dateStr) return '';
+  const d = new Date(dateStr);
+  return d.toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' })
+    + ' ' + d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+}
+
 export default function ThreadView(props) {
   const [thread, setThread] = createSignal(null);
   const [messages, setMessages] = createSignal([]);
   const [experts, setExperts] = createSignal([]);
   const [inputText, setInputText] = createSignal('');
   const [sending, setSending] = createSignal(false);
-  const [waitingForReply, setWaitingForReply] = createSignal(false);
+  const [thinkingExpert, setThinkingExpert] = createSignal(null);
   let messagesEnd;
 
   function scrollToBottom() {
@@ -29,6 +36,7 @@ export default function ThreadView(props) {
       setThread(data.thread);
       setMessages(data.messages);
       setExperts(data.experts);
+      setThinkingExpert(data.thinkingExpert || null);
       subscribe(id);
       scrollToBottom();
     } catch (err) {
@@ -39,9 +47,13 @@ export default function ThreadView(props) {
   // Listen for WebSocket messages
   onMount(() => {
     const removeListener = onMessage((data) => {
+      if (data.type === 'thinking' && data.expert) {
+        setThinkingExpert(data.expert);
+        scrollToBottom();
+      }
       if (data.type === 'new_message' && data.message.thread_id === props.threadId) {
         setMessages(prev => [...prev, data.message]);
-        setWaitingForReply(false);
+        setThinkingExpert(null);
         scrollToBottom();
       }
       if (data.type === 'thread_status' && data.threadId === props.threadId) {
@@ -68,7 +80,6 @@ export default function ThreadView(props) {
     try {
       await api.sendMessage(props.threadId, content);
       setInputText('');
-      setWaitingForReply(true);
     } catch (err) {
       console.error('Failed to send message:', err);
     } finally {
@@ -115,6 +126,8 @@ export default function ThreadView(props) {
         <header class="thread-header">
           <h2>{thread().title}</h2>
           <div class="thread-meta">
+            <span class="thread-created">{formatDateTime(thread().created_at)}</span>
+            <span class="meta-separator">·</span>
             Turn {thread().current_turn} / {thread().max_turns}
             <span class={`status-badge ${thread().status}`}>{thread().status}</span>
           </div>
@@ -127,7 +140,7 @@ export default function ThreadView(props) {
             <button onClick={handleExtend} disabled={thread().status === 'concluded'}>
               +10 Turns
             </button>
-            <button class="danger" onClick={handleWrapUp} disabled={!isActive()}>
+            <button class="danger" onClick={handleWrapUp} disabled={!canInteract()}>
               Wrap It Up
             </button>
           </div>
@@ -138,15 +151,27 @@ export default function ThreadView(props) {
             <For each={messages()}>
               {(msg) => <MessageBubble message={msg} />}
             </For>
-            <Show when={waitingForReply()}>
-              <div class="message-bubble thinking">
-                <div class="message-avatar">
-                  <div class="avatar-placeholder thinking-avatar">...</div>
+            <Show when={thinkingExpert()}>
+              {(expert) => (
+                <div class="message-bubble thinking">
+                  <div class="message-avatar">
+                    {expert().avatar_url ? (
+                      <img src={expert().avatar_url} alt={expert().name} />
+                    ) : (
+                      <div class="avatar-placeholder">
+                        {expert().name?.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase()}
+                      </div>
+                    )}
+                  </div>
+                  <div class="message-body">
+                    <div class="thinking-text">
+                      {expert().id === null
+                        ? 'Moderator is summarizing the discussion...'
+                        : `${expert().name} is thinking...`}
+                    </div>
+                  </div>
                 </div>
-                <div class="message-body">
-                  <div class="thinking-text">Thinking</div>
-                </div>
-              </div>
+              )}
             </Show>
             <div ref={messagesEnd} />
           </div>

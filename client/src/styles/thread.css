@@ -35,6 +35,10 @@
   flex-shrink: 0;
 }
 
+.meta-separator {
+  color: var(--color-text-muted);
+}
+
 .status-badge {
   padding: 2px var(--spacing-sm);
   border-radius: var(--radius-sm);

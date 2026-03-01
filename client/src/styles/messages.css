@@ -167,6 +167,48 @@
   color: var(--color-text-bright);
 }
 
+.message-footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--spacing-sm);
+  margin-top: var(--spacing-xs);
+}
+
+.message-model {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  opacity: 0.6;
+}
+
+.copy-btn {
+  background: none;
+  border: none;
+  padding: 2px;
+  cursor: pointer;
+  color: var(--color-text-muted);
+  opacity: 0;
+  transition: opacity 0.15s, color 0.15s;
+  display: flex;
+  align-items: center;
+  line-height: 1;
+}
+
+.message-bubble:hover .copy-btn,
+.summary-message:hover .copy-btn {
+  opacity: 0.6;
+}
+
+.copy-btn:hover {
+  opacity: 1 !important;
+  color: var(--color-text-bright);
+}
+
+.copy-btn.copied {
+  opacity: 1 !important;
+  color: #4ade80;
+}
+
 /* System messages */
 .message-bubble.system {
   justify-content: center;
@@ -184,6 +226,26 @@
   max-width: 600px;
 }
 
+/* Summary messages */
+.message-bubble.summary {
+  justify-content: center;
+  padding: var(--spacing-lg) 0;
+}
+
+.summary-message {
+  width: 100%;
+  max-width: 720px;
+  margin: 0 auto;
+  padding: var(--spacing-lg);
+  background: rgba(255, 255, 255, 0.03);
+  border-left: 3px solid var(--color-accent);
+  border-radius: var(--radius);
+}
+
+.summary-message .message-content h2:first-child {
+  margin-top: 0;
+}
+
 /* User (moderator) messages */
 .message-bubble.user .message-author {
   color: var(--color-yellow);
@@ -199,17 +261,9 @@
   align-items: center;
 }
 
-.thinking-avatar {
-  background: var(--color-bg-hover) !important;
-  color: var(--color-text-muted) !important;
-  font-size: var(--font-size-base) !important;
-  letter-spacing: 2px;
-  animation: thinking-pulse 1.5s ease-in-out infinite;
-}
-
 .thinking-text {
-  color: var(--color-text-muted);
   font-size: var(--font-size-base);
+  font-weight: 500;
   background: linear-gradient(
     90deg,
     var(--color-text-muted) 0%,
@@ -220,17 +274,12 @@
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  animation: shimmer 2s ease-in-out infinite;
+  animation: shimmer 4s linear infinite;
 }
 
 @keyframes shimmer {
   0% { background-position: 200% 0; }
   100% { background-position: -200% 0; }
-}
-
-@keyframes thinking-pulse {
-  0%, 100% { opacity: 0.5; }
-  50% { opacity: 1; }
 }
 
 @media (max-width: 768px) {

@@ -26,6 +26,65 @@ DISCUSSION RULES:
 12. When you notice emerging consensus, name it explicitly and help refine it.`;
 }
 
+export function buildWrapUpSystemPrompt(expert, thread, allExperts) {
+  const base = buildSystemPrompt(expert, thread, allExperts);
+  return `${base}
+
+WRAP-UP INSTRUCTIONS (OVERRIDE ALL OTHER RULES):
+The moderator has called for the discussion to wrap up. This is your FINAL contribution — no further turns will be given.
+You MUST:
+- State your final position on the topic clearly and concisely.
+- Note where you agree or disagree with the other participants.
+- Offer your single most important actionable recommendation or takeaway.
+- Keep your response to 1-2 short paragraphs.
+You MUST NOT:
+- Raise new topics, questions, or tangents.
+- Continue the debate or respond to other participants' points at length.
+- Use phrases like "I'd love to continue this discussion" or "there's so much more to explore".
+This is a closing statement, not a continuation.`;
+}
+
+export function buildSummaryPrompt(thread, allExperts) {
+  const participants = allExperts.map(e => `- ${e.name}: ${e.description}`).join('\n');
+  return `You are the moderator of a Mastermind Group discussion. Your job is to write a concise, structured summary of the discussion that just concluded.
+
+Topic: "${thread.topic}"
+
+Participants:
+${participants}
+
+Write a summary with the following sections (use markdown headers):
+## Key Consensus
+What the group agreed on. Be specific — name which participants aligned and on what.
+
+## Areas of Disagreement
+Where opinions diverged and the core reasoning on each side.
+
+## Key Insights
+The 2-3 most valuable or surprising ideas that emerged from the discussion.
+
+## Actionable Recommendations
+Concrete next steps or recommendations that emerged. Prioritize by impact.
+
+Guidelines:
+- Be concise and objective. Total length should be 3-5 short paragraphs across all sections.
+- Attribute ideas to specific participants by name.
+- Do not editorialize or add your own opinions.
+- Do not use preamble like "Here is the summary" — start directly with the first section header.`;
+}
+
+export function buildSummaryHistory(messages) {
+  return messages.map(msg => {
+    if (msg.role === 'system') {
+      return { role: 'user', content: `[System]: ${msg.content}` };
+    }
+    if (msg.role === 'user') {
+      return { role: 'user', content: `[Moderator]: ${msg.content}` };
+    }
+    return { role: 'user', content: `[${msg.expert_name}]: ${msg.content}` };
+  });
+}
+
 export function buildMessageHistory(messages, currentExpertId) {
   return messages.map(msg => {
     if (msg.role === 'user') {

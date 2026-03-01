@@ -28,10 +28,6 @@ export default function Sidebar(props) {
     onCleanup(removeListener);
   });
 
-  const activeThreads = () => threads().filter(t => t.status === 'active');
-  const pausedThreads = () => threads().filter(t => t.status === 'paused');
-  const concludedThreads = () => threads().filter(t => t.status === 'concluded');
-
   function ThreadItem(threadProps) {
     const t = () => threadProps.thread;
     const isSelected = () => props.selectedThreadId() === t().id && props.activeView() === 'threads';
@@ -93,26 +89,9 @@ export default function Sidebar(props) {
             <button class="sidebar-add-btn" onClick={() => props.onNewThread()} title="New session">+</button>
           </div>
         </Show>
-        <Show when={activeThreads().length > 0}>
-          <div class="sidebar-section-label">Active</div>
-          <For each={activeThreads()}>
-            {(thread) => <ThreadItem thread={thread} />}
-          </For>
-        </Show>
-
-        <Show when={pausedThreads().length > 0}>
-          <div class="sidebar-section-label">Paused</div>
-          <For each={pausedThreads()}>
-            {(thread) => <ThreadItem thread={thread} />}
-          </For>
-        </Show>
-
-        <Show when={concludedThreads().length > 0}>
-          <div class="sidebar-section-label">Concluded</div>
-          <For each={concludedThreads()}>
-            {(thread) => <ThreadItem thread={thread} />}
-          </For>
-        </Show>
+        <For each={threads()}>
+          {(thread) => <ThreadItem thread={thread} />}
+        </For>
 
         <Show when={threads().length === 0}>
           <div class="empty-experts">No threads yet. Start a new discussion!</div>

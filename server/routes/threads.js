@@ -1,6 +1,8 @@
 import { Router } from 'express';
 import db from '../db.js';
 import { broadcast, broadcastGlobal } from '../ws.js';
+import { getThinkingExpert } from '../orchestrator.js';
+import { DEFAULT_MAX_TURNS } from '../config.js';
 
 const router = Router();
 
@@ -52,7 +54,8 @@ router.get('/:id', (req, res) => {
      ORDER BY m.created_at ASC`
   ).all(thread.id);
 
-  res.json({ thread, experts, messages });
+  const thinkingExpert = getThinkingExpert(thread.id);
+  res.json({ thread, experts, messages, thinkingExpert });
 });
 
 // POST /api/threads
@@ -73,7 +76,7 @@ router.post('/', (req, res) => {
   );
 
   const createThread = db.transaction(() => {
-    const result = insertThread.run(title, topic, maxTurns || 50);
+    const result = insertThread.run(title, topic, maxTurns || DEFAULT_MAX_TURNS);
     const threadId = Number(result.lastInsertRowid);
 
     expertIds.forEach((eid, i) => {
@@ -87,7 +90,7 @@ router.post('/', (req, res) => {
   });
 
   const threadId = createThread();
-  console.log(`[${title.length > 32 ? title.slice(0, 32) + '…' : title}] New thread started with ${expertIds.length} experts (max ${maxTurns || 50} turns)`);
+  console.log(`[${title.length > 32 ? title.slice(0, 32) + '…' : title}] New thread started with ${expertIds.length} experts (max ${maxTurns || DEFAULT_MAX_TURNS} turns)`);
   broadcastGlobal({ type: 'thread_list_update' });
   res.status(201).json({ id: threadId });
 });
@@ -149,9 +152,9 @@ router.post('/:id/wrapup', (req, res) => {
     "INSERT INTO messages (thread_id, expert_id, role, content) VALUES (?, NULL, 'system', ?)"
   ).run(thread.id, wrapupMessage);
 
-  // Set max_turns so everyone speaks once more, then conclude
-  const newMaxTurns = thread.current_turn + experts.count + 1;
-  db.prepare('UPDATE threads SET max_turns = ?, status = ? WHERE id = ?')
+  // Set max_turns so everyone speaks exactly once more
+  const newMaxTurns = thread.current_turn + experts.count;
+  db.prepare('UPDATE threads SET max_turns = ?, status = ?, wrapping_up = 1 WHERE id = ?')
     .run(newMaxTurns, 'active', thread.id);
 
   broadcast(thread.id, {

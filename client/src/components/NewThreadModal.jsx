@@ -1,11 +1,12 @@
 import { createSignal, onMount, For, Show } from 'solid-js';
 import { api } from '../api.js';
+import { DEFAULT_MAX_TURNS } from '../config.js';
 import '../styles/modals.css';
 
 export default function NewThreadModal(props) {
   const [title, setTitle] = createSignal('');
   const [topic, setTopic] = createSignal('');
-  const [maxTurns, setMaxTurns] = createSignal(50);
+  const [maxTurns, setMaxTurns] = createSignal(DEFAULT_MAX_TURNS);
   const [selectedExperts, setSelectedExperts] = createSignal(new Set());
   const [experts, setExperts] = createSignal([]);
   const [creating, setCreating] = createSignal(false);
@@ -122,7 +123,7 @@ export default function NewThreadModal(props) {
               min="4"
               max="200"
               value={maxTurns()}
-              onInput={(e) => setMaxTurns(parseInt(e.target.value) || 50)}
+              onInput={(e) => setMaxTurns(parseInt(e.target.value) || DEFAULT_MAX_TURNS)}
             />
             <div class="form-hint">The discussion pauses after this many turns. You can extend it later.</div>
           </div>

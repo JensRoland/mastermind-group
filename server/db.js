@@ -2,6 +2,7 @@ import Database from 'better-sqlite3';
 import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
+import { DEFAULT_MAX_TURNS } from './config.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const dbPath = path.join(__dirname, '..', 'data', 'mastermind.db');
@@ -33,7 +34,7 @@ db.exec(`
     title TEXT NOT NULL,
     topic TEXT NOT NULL,
     status TEXT NOT NULL DEFAULT 'active' CHECK(status IN ('active','paused','concluded')),
-    max_turns INTEGER NOT NULL DEFAULT 50,
+    max_turns INTEGER NOT NULL DEFAULT ${DEFAULT_MAX_TURNS},
     current_turn INTEGER NOT NULL DEFAULT 0,
     created_at TEXT DEFAULT (datetime('now'))
   );
@@ -62,5 +63,18 @@ db.exec(`
     expires_at INTEGER NOT NULL
   );
 `);
+
+// Migrations — add columns that may not exist yet
+try {
+  db.exec('ALTER TABLE threads ADD COLUMN wrapping_up INTEGER NOT NULL DEFAULT 0');
+} catch {
+  // Column already exists
+}
+
+try {
+  db.exec("ALTER TABLE messages ADD COLUMN llm_model TEXT DEFAULT NULL");
+} catch {
+  // Column already exists
+}
 
 export default db;
