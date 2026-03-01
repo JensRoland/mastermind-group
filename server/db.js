@@ -33,7 +33,7 @@ db.exec(`
     title TEXT NOT NULL,
     topic TEXT NOT NULL,
     status TEXT NOT NULL DEFAULT 'active' CHECK(status IN ('active','paused','concluded')),
-    max_turns INTEGER NOT NULL DEFAULT 20,
+    max_turns INTEGER NOT NULL DEFAULT 50,
     current_turn INTEGER NOT NULL DEFAULT 0,
     created_at TEXT DEFAULT (datetime('now'))
   );
@@ -55,6 +55,12 @@ db.exec(`
   );
 
   CREATE INDEX IF NOT EXISTS idx_messages_thread ON messages(thread_id, created_at);
+
+  CREATE TABLE IF NOT EXISTS sessions (
+    token TEXT PRIMARY KEY,
+    created_at INTEGER NOT NULL,
+    expires_at INTEGER NOT NULL
+  );
 `);
 
 export default db;

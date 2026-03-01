@@ -1,4 +1,13 @@
+import { marked } from 'marked';
+import DOMPurify from 'dompurify';
 import '../styles/messages.css';
+
+marked.setOptions({ breaks: true, gfm: true });
+
+function renderMarkdown(content) {
+  if (!content) return '';
+  return DOMPurify.sanitize(marked.parse(content));
+}
 
 function formatTime(dateStr) {
   if (!dateStr) return '';
@@ -40,7 +49,7 @@ export default function MessageBubble(props) {
           <span class="message-author">{authorName()}</span>
           <span class="message-time">{formatTime(msg().created_at)}</span>
         </div>
-        <div class="message-content">{msg().content}</div>
+        <div class="message-content" innerHTML={renderMarkdown(msg().content)} />
       </div>
     </div>
   );

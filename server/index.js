@@ -6,7 +6,8 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { setupWebSocket } from './ws.js';
 import { startOrchestrator } from './orchestrator.js';
-import { requireAuth, loginRoute, checkAuthRoute } from './auth.js';
+import { runStartupChecks } from './startup-check.js';
+import { requireAuth, loginRoute, logoutRoute, checkAuthRoute, cleanupExpiredSessions } from './auth.js';
 import expertRoutes from './routes/experts.js';
 import threadRoutes from './routes/threads.js';
 
@@ -21,7 +22,12 @@ app.use('/avatars', express.static(path.join(__dirname, '..', 'public', 'avatars
 
 // Auth routes (no auth required)
 app.post('/api/login', loginRoute);
+app.post('/api/logout', logoutRoute);
 app.get('/api/auth/check', checkAuthRoute);
+
+// Clean up expired sessions every hour
+cleanupExpiredSessions();
+setInterval(cleanupExpiredSessions, 60 * 60 * 1000);
 
 // Protected routes
 app.use('/api/experts', requireAuth, expertRoutes);
@@ -37,9 +43,10 @@ app.get('*', (req, res, next) => {
 
 const server = http.createServer(app);
 setupWebSocket(server);
+runStartupChecks();
 startOrchestrator();
 
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 4240;
 server.listen(PORT, () => {
   console.log(`Mastermind Group server running on port ${PORT}`);
 });

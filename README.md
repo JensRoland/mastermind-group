@@ -16,19 +16,19 @@ Configure AI "expert" personas — each backed by a different LLM via OpenRouter
 
 ## Tech Stack
 
-| Layer | Technology |
-|---|---|
-| Frontend | SolidJS, Vite, vanilla CSS |
-| Backend | Node.js, Express |
-| Database | SQLite (better-sqlite3, WAL mode) |
-| LLM gateway | OpenRouter API |
-| Real-time | WebSockets (ws) |
-| Image processing | sharp |
-| Package manager | pnpm (workspaces monorepo) |
+| Layer            | Technology                        |
+| ---------------- | --------------------------------- |
+| Frontend         | SolidJS, Vite, vanilla CSS        |
+| Backend          | Node.js, Express                  |
+| Database         | SQLite (better-sqlite3, WAL mode) |
+| LLM gateway      | OpenRouter API                    |
+| Real-time        | WebSockets (ws)                   |
+| Image processing | sharp                             |
+| Package manager  | pnpm (workspaces monorepo)        |
 
 ## Project Structure
 
-```
+```sh
 ├── server/
 │   ├── index.js             # Express app entry point
 │   ├── auth.js              # Password auth + session management
@@ -56,40 +56,48 @@ Configure AI "expert" personas — each backed by a different LLM via OpenRouter
 
 ### 1. Install dependencies
 
-```bash
+```sh
 pnpm install
 ```
 
 ### 2. Configure environment
 
-```bash
+```sh
 cp .env.example .env  # or create .env manually
 ```
 
 ```env
 OPENROUTER_API_KEY=sk-or-...
-PORT=3000
+PORT=8242
 ```
 
 ### 3. Set the login password
 
-```bash
+```sh
 node server/setup-password.js
 ```
 
 This interactive CLI prompt hashes your password and stores it in the SQLite database.
 
-### 4. Run in development
+### 4. Seed expert personas (optional)
 
-```bash
+```sh
+pnpm run seed
+```
+
+Loads 12 pre-built expert personas into the database. Existing experts with the same name are skipped.
+
+### 5. Run in development
+
+```sh
 pnpm run dev
 ```
 
-This starts both the API server (port 3000) and the Vite dev server (port 3001) with hot reload.
+This starts both the API server (port 8240) and the Vite dev server (port 8243) with hot reload.
 
-### 5. Production
+### 6. Production
 
-```bash
+```sh
 cd client && pnpm exec vite build
 pnpm run start
 ```

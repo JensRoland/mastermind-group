@@ -4,6 +4,11 @@ import { broadcast, broadcastGlobal } from '../ws.js';
 
 const router = Router();
 
+function threadTag(thread) {
+  const t = thread.title.length > 32 ? thread.title.slice(0, 32) + '…' : thread.title;
+  return `[${t}]`;
+}
+
 // GET /api/threads
 router.get('/', (req, res) => {
   const { status } = req.query;
@@ -68,7 +73,7 @@ router.post('/', (req, res) => {
   );
 
   const createThread = db.transaction(() => {
-    const result = insertThread.run(title, topic, maxTurns || 20);
+    const result = insertThread.run(title, topic, maxTurns || 50);
     const threadId = Number(result.lastInsertRowid);
 
     expertIds.forEach((eid, i) => {
@@ -82,6 +87,7 @@ router.post('/', (req, res) => {
   });
 
   const threadId = createThread();
+  console.log(`[${title.length > 32 ? title.slice(0, 32) + '…' : title}] New thread started with ${expertIds.length} experts (max ${maxTurns || 50} turns)`);
   broadcastGlobal({ type: 'thread_list_update' });
   res.status(201).json({ id: threadId });
 });
@@ -90,12 +96,24 @@ router.post('/', (req, res) => {
 router.post('/:id/message', (req, res) => {
   const thread = db.prepare('SELECT * FROM threads WHERE id = ?').get(req.params.id);
   if (!thread) return res.status(404).json({ error: 'Thread not found' });
-  if (thread.status !== 'active') {
-    return res.status(400).json({ error: 'Thread is not active' });
+  if (thread.status === 'concluded') {
+    return res.status(400).json({ error: 'Thread is concluded' });
   }
 
   const { content } = req.body;
   if (!content) return res.status(400).json({ error: 'Content is required' });
+
+  // If paused, resume the thread
+  if (thread.status === 'paused') {
+    db.prepare('UPDATE threads SET status = ? WHERE id = ?').run('active', thread.id);
+    console.log(`${threadTag(thread)} Resumed via user message`);
+    broadcast(thread.id, {
+      type: 'thread_status',
+      threadId: thread.id,
+      status: 'active',
+    });
+    broadcastGlobal({ type: 'thread_list_update' });
+  }
 
   const result = db.prepare(
     "INSERT INTO messages (thread_id, expert_id, role, content) VALUES (?, NULL, 'user', ?)"
@@ -174,6 +192,12 @@ router.post('/:id/extend', (req, res) => {
   db.prepare('UPDATE threads SET max_turns = ?, status = ? WHERE id = ?')
     .run(newMaxTurns, newStatus, thread.id);
 
+  if (newStatus === 'active' && thread.status === 'paused') {
+    console.log(`${threadTag(thread)} Resumed (extended to ${newMaxTurns} turns)`);
+  } else {
+    console.log(`${threadTag(thread)} Extended to ${newMaxTurns} turns`);
+  }
+
   broadcast(thread.id, {
     type: 'thread_status',
     threadId: thread.id,
@@ -198,6 +222,9 @@ router.put('/:id/status', (req, res) => {
   }
 
   db.prepare('UPDATE threads SET status = ? WHERE id = ?').run(status, thread.id);
+
+  const labels = { active: 'Resumed', paused: 'Paused', concluded: 'Concluded' };
+  console.log(`${threadTag(thread)} ${labels[status]}`);
 
   broadcast(thread.id, {
     type: 'thread_status',

@@ -1,7 +1,8 @@
 .thread-view {
   display: flex;
   flex-direction: column;
-  height: 100%;
+  flex: 1;
+  min-height: 0;
 }
 
 .thread-header {
@@ -96,14 +97,29 @@
   flex: 1;
   overflow-y: auto;
   padding: var(--spacing-lg) var(--spacing-xl);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.messages-inner {
+  width: 100%;
+  max-width: 768px;
 }
 
 .message-input {
-  display: flex;
-  gap: var(--spacing-sm);
   padding: var(--spacing-md) var(--spacing-xl);
   border-top: 1px solid var(--color-border);
   background: var(--color-bg-secondary);
+  display: flex;
+  justify-content: center;
+}
+
+.message-input-inner {
+  display: flex;
+  gap: var(--spacing-sm);
+  width: 100%;
+  max-width: 768px;
 }
 
 .message-input input {
@@ -147,4 +163,47 @@
 .message-input button:disabled {
   opacity: 0.4;
   cursor: not-allowed;
+}
+
+@media (max-width: 768px) {
+  .thread-header {
+    flex-wrap: wrap;
+    gap: var(--spacing-sm);
+    padding: var(--spacing-sm) var(--spacing-md);
+    min-height: auto;
+  }
+
+  .thread-header h2 {
+    font-size: var(--font-size-base);
+    flex-basis: 100%;
+  }
+
+  .thread-meta {
+    font-size: var(--font-size-xs);
+  }
+
+  .thread-actions {
+    gap: var(--spacing-xs);
+  }
+
+  .thread-actions button {
+    padding: var(--spacing-xs) var(--spacing-sm);
+    font-size: var(--font-size-xs);
+  }
+
+  .messages-container {
+    padding: var(--spacing-sm) var(--spacing-md);
+  }
+
+  .messages-inner {
+    max-width: none;
+  }
+
+  .message-input {
+    padding: var(--spacing-sm) var(--spacing-md);
+  }
+
+  .message-input-inner {
+    max-width: none;
+  }
 }

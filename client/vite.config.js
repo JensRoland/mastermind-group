@@ -1,17 +1,20 @@
 import { defineConfig } from 'vite';
 import solidPlugin from 'vite-plugin-solid';
 
+const API_PORT = process.env.VITE_API_PORT || '8240';
+
 export default defineConfig({
   plugins: [solidPlugin()],
+  appType: 'spa',
   server: {
-    port: 3001,
+    port: parseInt(process.env.VITE_PORT || '8242'),
     proxy: {
-      '/api': 'http://localhost:3000',
+      '/api': `http://localhost:${API_PORT}`,
       '/ws': {
-        target: 'ws://localhost:3000',
+        target: `ws://localhost:${API_PORT}`,
         ws: true,
       },
-      '/avatars': 'http://localhost:3000',
+      '/avatars': `http://localhost:${API_PORT}`,
     },
   },
 });

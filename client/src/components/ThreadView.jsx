@@ -10,6 +10,7 @@ export default function ThreadView(props) {
   const [experts, setExperts] = createSignal([]);
   const [inputText, setInputText] = createSignal('');
   const [sending, setSending] = createSignal(false);
+  const [waitingForReply, setWaitingForReply] = createSignal(false);
   let messagesEnd;
 
   function scrollToBottom() {
@@ -40,6 +41,7 @@ export default function ThreadView(props) {
     const removeListener = onMessage((data) => {
       if (data.type === 'new_message' && data.message.thread_id === props.threadId) {
         setMessages(prev => [...prev, data.message]);
+        setWaitingForReply(false);
         scrollToBottom();
       }
       if (data.type === 'thread_status' && data.threadId === props.threadId) {
@@ -66,6 +68,7 @@ export default function ThreadView(props) {
     try {
       await api.sendMessage(props.threadId, content);
       setInputText('');
+      setWaitingForReply(true);
     } catch (err) {
       console.error('Failed to send message:', err);
     } finally {
@@ -131,24 +134,38 @@ export default function ThreadView(props) {
         </header>
 
         <div class="messages-container">
-          <For each={messages()}>
-            {(msg) => <MessageBubble message={msg} />}
-          </For>
-          <div ref={messagesEnd} />
+          <div class="messages-inner">
+            <For each={messages()}>
+              {(msg) => <MessageBubble message={msg} />}
+            </For>
+            <Show when={waitingForReply()}>
+              <div class="message-bubble thinking">
+                <div class="message-avatar">
+                  <div class="avatar-placeholder thinking-avatar">...</div>
+                </div>
+                <div class="message-body">
+                  <div class="thinking-text">Thinking</div>
+                </div>
+              </div>
+            </Show>
+            <div ref={messagesEnd} />
+          </div>
         </div>
 
         <footer class="message-input">
-          <input
-            type="text"
-            placeholder={isActive() ? "Interrupt with a question or comment..." : "Thread is " + thread().status}
-            value={inputText()}
-            onInput={(e) => setInputText(e.target.value)}
-            onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
-            disabled={!isActive() || sending()}
-          />
-          <button onClick={sendMessage} disabled={!isActive() || sending() || !inputText().trim()}>
-            Send
-          </button>
+          <div class="message-input-inner">
+            <input
+              type="text"
+              placeholder={canInteract() ? "Interrupt with a question or comment..." : "Thread is concluded"}
+              value={inputText()}
+              onInput={(e) => setInputText(e.target.value)}
+              onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
+              disabled={!canInteract() || sending()}
+            />
+            <button onClick={sendMessage} disabled={!canInteract() || sending() || !inputText().trim()}>
+              Send
+            </button>
+          </div>
         </footer>
       </div>
     </Show>

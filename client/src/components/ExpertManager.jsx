@@ -49,7 +49,7 @@ export default function ExpertManager() {
     <div class="expert-manager">
       <div class="expert-manager-header">
         <h2>Experts</h2>
-        <button class="btn-primary" onClick={handleCreate}>+ New Expert</button>
+        <button class="sidebar-add-btn" onClick={handleCreate} title="New expert">+</button>
       </div>
 
       <Show when={experts().length > 0} fallback={
@@ -62,9 +62,9 @@ export default function ExpertManager() {
             {(expert) => (
               <div class="expert-card">
                 <img
-                  src={expert.avatar_url}
+                  src={expert.avatar_url || '/avatars/default.png'}
                   alt={expert.name}
-                  onError={(e) => { e.target.style.display = 'none'; }}
+                  onError={(e) => { e.target.src = '/avatars/default.png'; e.target.onerror = null; }}
                 />
                 <div class="expert-card-info">
                   <div class="expert-card-name">{expert.name}</div>

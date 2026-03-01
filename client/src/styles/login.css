@@ -16,9 +16,9 @@
   text-align: center;
 }
 
-.login-card h1 {
-  font-size: var(--font-size-xl);
-  color: var(--color-text-bright);
+.login-logo {
+  height: 80px;
+  width: auto;
   margin-bottom: var(--spacing-xs);
 }
 

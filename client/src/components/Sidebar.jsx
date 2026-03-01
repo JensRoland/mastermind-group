@@ -1,4 +1,5 @@
 import { createSignal, createEffect, onMount, onCleanup, For, Show } from 'solid-js';
+import { navigate } from '../App.jsx';
 import { api } from '../api.js';
 import { onMessage } from '../ws.js';
 import '../styles/sidebar.css';
@@ -38,10 +39,7 @@ export default function Sidebar(props) {
     return (
       <div
         class={`thread-item ${isSelected() ? 'selected' : ''}`}
-        onClick={() => {
-          props.setActiveView('threads');
-          props.setSelectedThreadId(t().id);
-        }}
+        onClick={() => nav('threads', t().id)}
       >
         <div class="thread-item-title">
           <span class={`status-dot ${t().status}`} />
@@ -61,20 +59,28 @@ export default function Sidebar(props) {
     );
   }
 
+  function nav(view, threadId) {
+    if (props.onNavigate) {
+      props.onNavigate(view, threadId);
+    } else {
+      navigate(view, threadId);
+    }
+  }
+
   return (
-    <div class="sidebar">
+    <div class={`sidebar ${props.open?.() ? 'open' : ''}`}>
       <div class="sidebar-header">
-        <h1>Mastermind Group</h1>
+        <img src="/logotype.png" alt="Mastermind Group" class="sidebar-logo" />
         <div class="sidebar-nav">
           <button
             class={props.activeView() === 'threads' ? 'active' : ''}
-            onClick={() => props.setActiveView('threads')}
+            onClick={() => nav('threads')}
           >
-            Threads
+            Sessions
           </button>
           <button
             class={props.activeView() === 'experts' ? 'active' : ''}
-            onClick={() => props.setActiveView('experts')}
+            onClick={() => nav('experts')}
           >
             Experts
           </button>
@@ -82,6 +88,11 @@ export default function Sidebar(props) {
       </div>
 
       <div class="sidebar-content">
+        <Show when={props.activeView() === 'threads'}>
+          <div class="sidebar-section-header">
+            <button class="sidebar-add-btn" onClick={() => props.onNewThread()} title="New session">+</button>
+          </div>
+        </Show>
         <Show when={activeThreads().length > 0}>
           <div class="sidebar-section-label">Active</div>
           <For each={activeThreads()}>
@@ -108,11 +119,6 @@ export default function Sidebar(props) {
         </Show>
       </div>
 
-      <div class="sidebar-footer">
-        <button class="new-thread-btn" onClick={() => props.onNewThread()}>
-          + New Discussion
-        </button>
-      </div>
     </div>
   );
 }

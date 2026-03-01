@@ -7,6 +7,12 @@ const TICK_INTERVAL = 5000;
 const MESSAGE_HISTORY_LIMIT = 50;
 
 let isProcessing = false;
+let firstTick = true;
+
+function threadTag(thread) {
+  const t = thread.title.length > 32 ? thread.title.slice(0, 32) + '…' : thread.title;
+  return `[${t}]`;
+}
 
 export function startOrchestrator() {
   setInterval(tick, TICK_INTERVAL);
@@ -21,6 +27,13 @@ async function tick() {
     const activeThreads = db
       .prepare("SELECT * FROM threads WHERE status = 'active'")
       .all();
+
+    if (firstTick && activeThreads.length > 0) {
+      for (const t of activeThreads) {
+        console.log(`${threadTag(t)} Resuming active thread (turn ${t.current_turn}/${t.max_turns})`);
+      }
+    }
+    firstTick = false;
 
     for (const thread of activeThreads) {
       await processThread(thread);
@@ -41,6 +54,8 @@ async function processThread(thread) {
     db.prepare(
       "INSERT INTO messages (thread_id, expert_id, role, content) VALUES (?, NULL, 'system', ?)"
     ).run(thread.id, 'The discussion has been paused after reaching the maximum number of turns. The moderator can extend the discussion or wrap it up.');
+
+    console.log(`${threadTag(thread)} Paused (reached ${thread.max_turns} turns)`);
 
     broadcast(thread.id, {
       type: 'thread_status',
@@ -84,16 +99,19 @@ async function processThread(thread) {
   ];
 
   try {
+    console.log(`${threadTag(thread)} Requesting response from ${currentExpert.name} (${currentExpert.llm_model})...`);
     const responseContent = await callLLM(currentExpert.llm_model, llmMessages);
 
-    // Save the message
-    const result = db.prepare(
-      "INSERT INTO messages (thread_id, expert_id, role, content) VALUES (?, ?, 'expert', ?)"
-    ).run(thread.id, currentExpert.id, responseContent);
-
-    // Increment turn counter
-    db.prepare('UPDATE threads SET current_turn = current_turn + 1 WHERE id = ?')
-      .run(thread.id);
+    // Save the message and increment turn counter atomically
+    const saveMessage = db.transaction(() => {
+      const result = db.prepare(
+        "INSERT INTO messages (thread_id, expert_id, role, content) VALUES (?, ?, 'expert', ?)"
+      ).run(thread.id, currentExpert.id, responseContent);
+      db.prepare('UPDATE threads SET current_turn = current_turn + 1 WHERE id = ?')
+        .run(thread.id);
+      return result;
+    });
+    const result = saveMessage();
 
     // Broadcast to connected clients
     broadcast(thread.id, {
@@ -114,9 +132,9 @@ async function processThread(thread) {
       type: 'thread_list_update',
     });
 
-    console.log(`[Thread ${thread.id}] ${currentExpert.name} responded (turn ${thread.current_turn + 1}/${thread.max_turns})`);
+    console.log(`${threadTag(thread)} ${currentExpert.name} responded (turn ${thread.current_turn + 1}/${thread.max_turns})`);
   } catch (err) {
-    console.error(`[Thread ${thread.id}] LLM error for ${currentExpert.name}:`, err.message);
+    console.error(`${threadTag(thread)} LLM error for ${currentExpert.name}:`, err.message);
     // Skip this turn on error — will retry next tick
   }
 }

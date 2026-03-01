@@ -12,7 +12,7 @@ export async function callLLM(model, messages) {
     body: JSON.stringify({
       model,
       messages,
-      max_tokens: 1024,
+      max_tokens: 4096,
     }),
   });
 
@@ -22,5 +22,11 @@ export async function callLLM(model, messages) {
   }
 
   const data = await response.json();
-  return data.choices[0].message.content;
+  const choice = data.choices[0];
+
+  if (choice.finish_reason === 'length') {
+    throw new Error('LLM response truncated (hit max_tokens limit)');
+  }
+
+  return choice.message.content;
 }

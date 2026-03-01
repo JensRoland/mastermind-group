@@ -1,10 +1,22 @@
 import crypto from 'crypto';
 import db from './db.js';
 
-// In-memory session store (sessions don't survive server restart)
-const sessions = new Map();
-
+const SESSION_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
 const THROTTLE_MS = 5 * 60 * 1000; // 5 minutes
+
+// Prepared statements for session management (initialized lazily)
+let _stmts;
+function stmts() {
+  if (!_stmts) {
+    _stmts = {
+      insert: db.prepare('INSERT INTO sessions (token, created_at, expires_at) VALUES (?, ?, ?)'),
+      find: db.prepare('SELECT token FROM sessions WHERE token = ? AND expires_at > ?'),
+      remove: db.prepare('DELETE FROM sessions WHERE token = ?'),
+      cleanup: db.prepare('DELETE FROM sessions WHERE expires_at <= ?'),
+    };
+  }
+  return _stmts;
+}
 
 function hashPassword(password, salt) {
   return new Promise((resolve, reject) => {
@@ -70,7 +82,8 @@ function getThrottleRemaining() {
 
 function createSession() {
   const token = crypto.randomBytes(32).toString('hex');
-  sessions.set(token, { createdAt: Date.now() });
+  const now = Date.now();
+  stmts().insert.run(token, now, now + SESSION_MAX_AGE_MS);
   return token;
 }
 
@@ -82,7 +95,15 @@ function parseSessionCookie(cookieHeader) {
 }
 
 export function isValidSession(token) {
-  return sessions.has(token);
+  return !!stmts().find.get(token, Date.now());
+}
+
+export function removeSession(token) {
+  stmts().remove.run(token);
+}
+
+export function cleanupExpiredSessions() {
+  stmts().cleanup.run(Date.now());
 }
 
 export function loginRoute(req, res) {
@@ -134,6 +155,13 @@ export function requireAuth(req, res, next) {
 export function authenticateWs(req) {
   const token = parseSessionCookie(req.headers.cookie);
   return token && isValidSession(token);
+}
+
+export function logoutRoute(req, res) {
+  const token = parseSessionCookie(req.headers.cookie);
+  if (token) removeSession(token);
+  res.clearCookie('session');
+  res.json({ ok: true });
 }
 
 export function checkAuthRoute(req, res) {

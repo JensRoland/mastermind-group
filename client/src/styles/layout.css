@@ -1,10 +1,37 @@
+body {
+  font-family: var(--font-family);
+  font-size: var(--font-size-base);
+  color: var(--color-text-primary);
+}
+
+/* Scrollbar */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-border) transparent;
+}
+
+*::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: 3px;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: var(--color-border-light);
+}
+
 .app-shell {
   display: flex;
   height: 100vh;
   background: var(--color-bg-primary);
-  color: var(--color-text-primary);
-  font-family: var(--font-family);
-  font-size: var(--font-size-base);
 }
 
 .main-panel {
@@ -22,4 +49,60 @@
   justify-content: center;
   color: var(--color-text-muted);
   font-size: var(--font-size-large);
+}
+
+/* Mobile top bar (mobile-first: visible by default, hidden on desktop) */
+.mobile-topbar {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  padding: var(--spacing-sm) var(--spacing-md);
+  background: var(--color-bg-sidebar);
+  border-bottom: 1px solid var(--color-border);
+  min-height: 44px;
+}
+
+.mobile-topbar-logo {
+  height: 36px;
+  width: auto;
+  flex: 1;
+  min-width: 0;
+  mix-blend-mode: plus-lighter;
+  object-fit: contain;
+  object-position: left;
+}
+
+.hamburger-btn {
+  background: none;
+  border: none;
+  color: var(--color-text-bright);
+  font-size: 22px;
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  border-radius: var(--radius);
+}
+
+.hamburger-btn:active {
+  background: var(--color-bg-hover);
+}
+
+@media (min-width: 769px) {
+  .mobile-topbar {
+    display: none;
+  }
+}
+
+@media (max-width: 768px) {
+  .app-shell {
+    position: relative;
+  }
+
+  .main-panel {
+    width: 100%;
+  }
 }

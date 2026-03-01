@@ -12,7 +12,9 @@ function question(prompt) {
 }
 
 async function main() {
-  if (hasPassword()) {
+  const argPassword = process.argv[2];
+
+  if (hasPassword() && !argPassword) {
     const answer = await question('A password already exists. Overwrite? (y/N): ');
     if (answer.toLowerCase() !== 'y') {
       console.log('Aborted.');
@@ -21,7 +23,7 @@ async function main() {
     }
   }
 
-  const password = await question('Set login password: ');
+  const password = argPassword || await question('Set login password: ');
   if (!password || password.length < 4) {
     console.log('Password must be at least 4 characters.');
     rl.close();

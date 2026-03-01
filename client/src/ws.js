@@ -24,7 +24,7 @@ export function connectWebSocket() {
   socket.onclose = () => {
     console.log('WebSocket disconnected, reconnecting...');
     clearTimeout(reconnectTimer);
-    reconnectTimer = setTimeout(connectWebSocket, 3000);
+    reconnectTimer = setTimeout(connectWebSocket, 8240);
   };
 
   socket.onerror = () => {
