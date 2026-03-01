@@ -1,0 +1,76 @@
+.login-screen {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  background: var(--color-bg-primary);
+  font-family: var(--font-family);
+}
+
+.login-card {
+  background: var(--color-bg-secondary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-xl) 32px;
+  width: 360px;
+  text-align: center;
+}
+
+.login-card h1 {
+  font-size: var(--font-size-xl);
+  color: var(--color-text-bright);
+  margin-bottom: var(--spacing-xs);
+}
+
+.login-card .subtitle {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-small);
+  margin-bottom: var(--spacing-xl);
+}
+
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.login-form input {
+  padding: var(--spacing-sm) var(--spacing-md);
+  background: var(--color-bg-input);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  color: var(--color-text-primary);
+  font-size: var(--font-size-base);
+  text-align: center;
+}
+
+.login-form input:focus {
+  outline: none;
+  border-color: var(--color-accent);
+}
+
+.login-form button {
+  padding: var(--spacing-sm) var(--spacing-lg);
+  background: var(--color-accent);
+  border: none;
+  border-radius: var(--radius);
+  color: var(--color-text-bright);
+  font-weight: 600;
+  font-size: var(--font-size-base);
+  transition: background 0.15s;
+}
+
+.login-form button:hover:not(:disabled) {
+  background: var(--color-accent-hover);
+}
+
+.login-form button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.login-error {
+  color: var(--color-red);
+  font-size: var(--font-size-small);
+  min-height: 20px;
+}

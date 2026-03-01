@@ -1,0 +1,13 @@
+{
+  "name": "mastermind-client",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "solid-js": "^1.9.0"
+  },
+  "devDependencies": {
+    "vite": "^6.0.0",
+    "vite-plugin-solid": "^2.10.0",
+    "babel-preset-solid": "^1.9.0"
+  }
+}

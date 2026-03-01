@@ -1,0 +1,102 @@
+.message-bubble {
+  display: flex;
+  gap: var(--spacing-md);
+  padding: var(--spacing-sm) 0;
+  margin-bottom: var(--spacing-sm);
+}
+
+.message-bubble + .message-bubble {
+  border-top: 1px solid rgba(255, 255, 255, 0.04);
+  padding-top: var(--spacing-md);
+}
+
+.message-avatar {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+}
+
+.message-avatar img {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius);
+  object-fit: cover;
+}
+
+.message-avatar .avatar-placeholder {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius);
+  background: var(--color-accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--font-size-small);
+  font-weight: 700;
+  color: var(--color-text-bright);
+}
+
+.message-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.message-header {
+  display: flex;
+  align-items: baseline;
+  gap: var(--spacing-sm);
+  margin-bottom: var(--spacing-xs);
+}
+
+.message-author {
+  font-weight: 700;
+  color: var(--color-text-bright);
+  font-size: var(--font-size-base);
+}
+
+.message-time {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+}
+
+.message-content {
+  color: var(--color-text-primary);
+  line-height: 1.6;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.message-content p {
+  margin-bottom: var(--spacing-sm);
+}
+
+.message-content p:last-child {
+  margin-bottom: 0;
+}
+
+/* System messages */
+.message-bubble.system {
+  justify-content: center;
+  padding: var(--spacing-md) 0;
+}
+
+.system-message {
+  text-align: center;
+  font-size: var(--font-size-small);
+  color: var(--color-text-muted);
+  font-style: italic;
+  padding: var(--spacing-sm) var(--spacing-lg);
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: var(--radius);
+  max-width: 600px;
+}
+
+/* User (moderator) messages */
+.message-bubble.user .message-author {
+  color: var(--color-yellow);
+}
+
+.message-bubble.user .avatar-placeholder {
+  background: var(--color-yellow);
+  color: var(--color-bg-primary);
+}
