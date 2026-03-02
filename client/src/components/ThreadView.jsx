@@ -18,11 +18,13 @@ export default function ThreadView(props) {
   const [inputText, setInputText] = createSignal('');
   const [sending, setSending] = createSignal(false);
   const [thinkingExpert, setThinkingExpert] = createSignal(null);
-  let messagesEnd;
+  let messagesContainer;
 
   function scrollToBottom() {
     requestAnimationFrame(() => {
-      messagesEnd?.scrollIntoView({ behavior: 'smooth' });
+      if (messagesContainer) {
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+      }
     });
   }
 
@@ -146,7 +148,7 @@ export default function ThreadView(props) {
           </div>
         </header>
 
-        <div class="messages-container">
+        <div class="messages-container" ref={messagesContainer}>
           <div class="messages-inner">
             <For each={messages()}>
               {(msg) => <MessageBubble message={msg} />}
@@ -173,7 +175,7 @@ export default function ThreadView(props) {
                 </div>
               )}
             </Show>
-            <div ref={messagesEnd} />
+            <div />
           </div>
         </div>
 
