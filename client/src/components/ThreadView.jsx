@@ -20,7 +20,14 @@ export default function ThreadView(props) {
   const [thinkingExpert, setThinkingExpert] = createSignal(null);
   let messagesContainer;
 
-  function scrollToBottom() {
+  function isNearBottom() {
+    if (!messagesContainer) return true;
+    const { scrollTop, scrollHeight, clientHeight } = messagesContainer;
+    return scrollHeight - scrollTop - clientHeight < 150;
+  }
+
+  function scrollToBottom(force = false) {
+    if (!force && !isNearBottom()) return;
     requestAnimationFrame(() => {
       if (messagesContainer) {
         messagesContainer.scrollTop = messagesContainer.scrollHeight;
@@ -40,7 +47,7 @@ export default function ThreadView(props) {
       setExperts(data.experts);
       setThinkingExpert(data.thinkingExpert || null);
       subscribe(id);
-      scrollToBottom();
+      scrollToBottom(true);
     } catch (err) {
       console.error('Failed to load thread:', err);
     }
