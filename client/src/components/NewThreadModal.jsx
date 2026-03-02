@@ -158,7 +158,17 @@ export default function NewThreadModal(props) {
                                 onError={(e) => { e.target.src = '/avatars/default.png'; e.target.onerror = null; }}
                               />
                               <div class="expert-select-card-name">{expert.name}</div>
-                              <div class="expert-select-card-specialty">{expert.specialty}</div>
+                              <div class="expert-select-card-specialty">
+                                {expert.specialty}
+                                <Show when={expert.total_likes > 0}>
+                                  <span class="expert-select-card-likes">
+                                    <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor" stroke="none">
+                                      <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3H14zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3" />
+                                    </svg>
+                                    {expert.total_likes}
+                                  </span>
+                                </Show>
+                              </div>
                             </div>
                           )}
                         </For>

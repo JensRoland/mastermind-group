@@ -260,6 +260,17 @@
 .expert-select-card-specialty {
   font-size: var(--font-size-xs);
   color: var(--color-text-muted);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+}
+
+.expert-select-card-likes {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  color: var(--color-orange);
+  font-weight: 600;
 }
 
 .modal-actions {
