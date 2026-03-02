@@ -82,4 +82,10 @@ try {
   // Column already exists
 }
 
+try {
+  db.exec("ALTER TABLE experts ADD COLUMN specialty TEXT NOT NULL DEFAULT 'General'");
+} catch {
+  // Column already exists
+}
+
 export default db;

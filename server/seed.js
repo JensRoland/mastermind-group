@@ -13,8 +13,8 @@ fs.mkdirSync(avatarDir, { recursive: true });
 const experts = JSON.parse(fs.readFileSync(seedPath, 'utf-8'));
 
 const findByName = db.prepare('SELECT id FROM experts WHERE name = ?');
-const insert = db.prepare('INSERT INTO experts (name, description, llm_model) VALUES (?, ?, ?)');
-const update = db.prepare('UPDATE experts SET description = ?, llm_model = ?, avatar_url = ? WHERE id = ?');
+const insert = db.prepare('INSERT INTO experts (name, description, llm_model, specialty) VALUES (?, ?, ?, ?)');
+const update = db.prepare('UPDATE experts SET description = ?, llm_model = ?, avatar_url = ?, specialty = ? WHERE id = ?');
 const updateAvatar = db.prepare('UPDATE experts SET avatar_url = ? WHERE id = ?');
 
 let added = 0;
@@ -26,11 +26,11 @@ for (const expert of experts) {
 
   if (existing) {
     expertId = existing.id;
-    update.run(expert.description, expert.llm_model || 'anthropic/claude-sonnet-4', `/avatars/${expertId}.png`, expertId);
+    update.run(expert.description, expert.llm_model || 'anthropic/claude-sonnet-4', `/avatars/${expertId}.png`, expert.specialty || 'General', expertId);
     console.log(`  updated: ${expert.name}`);
     updated++;
   } else {
-    const result = insert.run(expert.name, expert.description, expert.llm_model || 'anthropic/claude-sonnet-4');
+    const result = insert.run(expert.name, expert.description, expert.llm_model || 'anthropic/claude-sonnet-4', expert.specialty || 'General');
     expertId = Number(result.lastInsertRowid);
     updateAvatar.run(`/avatars/${expertId}.png`, expertId);
     console.log(`  added: ${expert.name}`);

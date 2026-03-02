@@ -1,4 +1,4 @@
-import { createSignal, onMount, For, Show } from 'solid-js';
+import { createSignal, createMemo, onMount, For, Show } from 'solid-js';
 import { api } from '../api.js';
 import { DEFAULT_MAX_TURNS } from '../config.js';
 import '../styles/modals.css';
@@ -21,6 +21,29 @@ export default function NewThreadModal(props) {
     }
   });
 
+  const specialties = createMemo(() => {
+    const seen = new Set();
+    const result = [];
+    for (const expert of experts()) {
+      const s = expert.specialty || 'General';
+      if (!seen.has(s)) {
+        seen.add(s);
+        result.push(s);
+      }
+    }
+    return result;
+  });
+
+  const expertsBySpecialty = createMemo(() => {
+    const groups = {};
+    for (const expert of experts()) {
+      const s = expert.specialty || 'General';
+      if (!groups[s]) groups[s] = [];
+      groups[s].push(expert);
+    }
+    return groups;
+  });
+
   function toggleExpert(id) {
     setSelectedExperts(prev => {
       const next = new Set(prev);
@@ -31,6 +54,11 @@ export default function NewThreadModal(props) {
       }
       return next;
     });
+  }
+
+  function selectSpecialty(specialty) {
+    const ids = (expertsBySpecialty()[specialty] || []).map(e => e.id);
+    setSelectedExperts(new Set(ids));
   }
 
   async function handleSubmit(e) {
@@ -64,7 +92,7 @@ export default function NewThreadModal(props) {
 
   return (
     <div class="modal-overlay" onClick={(e) => e.target === e.currentTarget && props.onClose()}>
-      <div class="modal">
+      <div class="modal modal-wide">
         <h2>New Discussion</h2>
 
         <form onSubmit={handleSubmit}>
@@ -94,22 +122,48 @@ export default function NewThreadModal(props) {
             <Show when={experts().length > 0} fallback={
               <div class="form-hint">No experts created yet. Go to Experts to create some first.</div>
             }>
-              <div class="expert-checkboxes">
-                <For each={experts()}>
-                  {(expert) => (
-                    <label class="expert-checkbox">
-                      <input
-                        type="checkbox"
-                        checked={selectedExperts().has(expert.id)}
-                        onChange={() => toggleExpert(expert.id)}
-                      />
-                      <img
-                        src={expert.avatar_url}
-                        alt={expert.name}
-                        onError={(e) => { e.target.style.display = 'none'; }}
-                      />
-                      <span class="expert-checkbox-name">{expert.name}</span>
-                    </label>
+              <Show when={specialties().length > 1}>
+                <div class="specialty-filters">
+                  <For each={specialties()}>
+                    {(specialty) => (
+                      <button
+                        type="button"
+                        class="specialty-filter-btn"
+                        onClick={() => selectSpecialty(specialty)}
+                      >
+                        {specialty}
+                      </button>
+                    )}
+                  </For>
+                </div>
+              </Show>
+
+              <div class="expert-selector-grid">
+                <For each={specialties()}>
+                  {(specialty) => (
+                    <>
+                      <Show when={specialties().length > 1}>
+                        <div class="expert-group-label">{specialty}</div>
+                      </Show>
+                      <div class="expert-group-cards">
+                        <For each={expertsBySpecialty()[specialty]}>
+                          {(expert) => (
+                            <div
+                              class={`expert-select-card ${selectedExperts().has(expert.id) ? 'selected' : ''}`}
+                              onClick={() => toggleExpert(expert.id)}
+                            >
+                              <img
+                                src={expert.avatar_url}
+                                alt={expert.name}
+                                onError={(e) => { e.target.src = '/avatars/default.png'; e.target.onerror = null; }}
+                              />
+                              <div class="expert-select-card-name">{expert.name}</div>
+                              <div class="expert-select-card-specialty">{expert.specialty}</div>
+                            </div>
+                          )}
+                        </For>
+                      </div>
+                    </>
                   )}
                 </For>
               </div>

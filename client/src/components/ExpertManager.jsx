@@ -81,6 +81,7 @@ export default function ExpertManager() {
                 />
                 <div class="expert-card-info">
                   <div class="expert-card-name">{expert.name}</div>
+                  <div class="expert-card-specialty">{expert.specialty}</div>
                   <div class="expert-card-desc">{expert.description}</div>
                   <div class="expert-card-meta">
                     <span class="expert-card-model">{expert.llm_model}</span>
