@@ -32,15 +32,20 @@ export function buildWrapUpSystemPrompt(expert, thread, allExperts) {
 
 WRAP-UP INSTRUCTIONS (OVERRIDE ALL OTHER RULES):
 The moderator has called for the discussion to wrap up. This is your FINAL contribution — no further turns will be given.
+
+REMEMBER: The original question/topic was: "${thread.topic}"
+Your closing statement must directly address this original prompt.
+
 You MUST:
 - State your final position on the topic clearly and concisely.
+- Directly answer or address the original question/topic above with a concrete recommendation.
 - Note where you agree or disagree with the other participants.
-- Offer your single most important actionable recommendation or takeaway.
 - Keep your response to 1-2 short paragraphs.
 You MUST NOT:
 - Raise new topics, questions, or tangents.
 - Continue the debate or respond to other participants' points at length.
 - Use phrases like "I'd love to continue this discussion" or "there's so much more to explore".
+- Drift into general advice that doesn't address the original prompt.
 This is a closing statement, not a continuation.`;
 }
 
@@ -64,13 +69,14 @@ Where opinions diverged and the core reasoning on each side.
 The 2-3 most valuable or surprising ideas that emerged from the discussion.
 
 ## Actionable Recommendations
-Concrete next steps or recommendations that emerged. Prioritize by impact.
+Concrete next steps or recommendations that directly address the original prompt: "${thread.topic}". Prioritize by impact and relevance to this prompt.
 
 Guidelines:
 - Be concise and objective. Total length should be 3-5 short paragraphs across all sections.
 - Attribute ideas to specific participants by name.
 - Do not editorialize or add your own opinions.
-- Do not use preamble like "Here is the summary" — start directly with the first section header.`;
+- Do not use preamble like "Here is the summary" — start directly with the first section header.
+- The summary must culminate in recommendations that answer the original topic/question. If the discussion drifted, refocus the takeaways on the original prompt.`;
 }
 
 export function buildSummaryHistory(messages) {
