@@ -1,7 +1,9 @@
 import { createSignal, createEffect, onMount, onCleanup, For, Show } from 'solid-js';
+import { navigate } from '../App.jsx';
 import { api } from '../api.js';
 import { subscribe, unsubscribe, onMessage } from '../ws.js';
 import MessageBubble from './MessageBubble.jsx';
+import SlashCommandMenu from './SlashCommandMenu.jsx';
 import '../styles/thread.css';
 
 function formatDateTime(dateStr) {
@@ -18,7 +20,17 @@ export default function ThreadView(props) {
   const [inputText, setInputText] = createSignal('');
   const [sending, setSending] = createSignal(false);
   const [thinkingExpert, setThinkingExpert] = createSignal(null);
+  const [slashMenuStage, setSlashMenuStage] = createSignal(null); // tracks argument stage
+  const [inputFocused, setInputFocused] = createSignal(false);
   let messagesContainer;
+  let inputRef;
+
+  const showSlashMenu = () => {
+    if (!inputFocused()) return false;
+    const text = inputText();
+    // Show when input starts with "/" OR when we're in an argument stage
+    return slashMenuStage() !== null || text.startsWith('/');
+  };
 
   function isNearBottom() {
     if (!messagesContainer) return true;
@@ -78,6 +90,9 @@ export default function ThreadView(props) {
           ...(data.current_turn !== undefined ? { current_turn: data.current_turn } : {}),
         } : prev);
       }
+      if (data.type === 'thread_archived' && data.threadId === props.threadId) {
+        navigate('threads');
+      }
     });
 
     onCleanup(() => {
@@ -89,6 +104,8 @@ export default function ThreadView(props) {
   async function sendMessage() {
     const content = inputText().trim();
     if (!content || sending()) return;
+    // Don't send slash commands as messages
+    if (content.startsWith('/')) return;
 
     setSending(true);
     try {
@@ -110,9 +127,9 @@ export default function ThreadView(props) {
     }
   }
 
-  async function handleExtend() {
+  async function handleExtend(turns = 10) {
     try {
-      const result = await api.extendTurns(props.threadId, 10);
+      const result = await api.extendTurns(props.threadId, turns);
       setThread(prev => prev ? { ...prev, max_turns: result.max_turns, status: result.status } : prev);
     } catch (err) {
       console.error('Failed to extend:', err);
@@ -129,6 +146,78 @@ export default function ThreadView(props) {
     } catch (err) {
       console.error('Failed to change status:', err);
     }
+  }
+
+  async function handleInvite(expert) {
+    try {
+      await api.addExpertToThread(props.threadId, expert.id);
+      setExperts(prev => [...prev, expert]);
+    } catch (err) {
+      console.error('Failed to invite expert:', err);
+    }
+  }
+
+  async function handleKick(expert) {
+    try {
+      await api.removeExpertFromThread(props.threadId, expert.id);
+      setExperts(prev => prev.filter(e => e.id !== expert.id));
+    } catch (err) {
+      console.error('Failed to remove expert:', err);
+    }
+  }
+
+  function handleSlashCommand(command, arg) {
+    setInputText('');
+    setSlashMenuStage(null);
+
+    switch (command) {
+      case 'pause':
+      case 'resume':
+        handlePauseResume();
+        break;
+      case 'wrap-it-up':
+        handleWrapUp();
+        break;
+      case 'extend':
+        handleExtend(arg);
+        break;
+      case 'invite':
+        handleInvite(arg);
+        break;
+      case 'kick':
+        handleKick(arg);
+        break;
+      case 'archive':
+        handleArchive();
+        break;
+    }
+  }
+
+  async function handleArchive() {
+    try {
+      await api.archiveThread(props.threadId);
+      navigate('threads');
+    } catch (err) {
+      console.error('Failed to archive:', err);
+    }
+  }
+
+  function handleSlashMenuStageChange(stage, commandName) {
+    if (stage === 'commands') {
+      setSlashMenuStage(null);
+      setInputText('/');
+      inputRef?.focus();
+    } else {
+      setSlashMenuStage(stage);
+      setInputText('');
+      inputRef?.focus();
+    }
+  }
+
+  function dismissSlashMenu() {
+    setInputText('');
+    setSlashMenuStage(null);
+    inputRef?.focus();
   }
 
   const isActive = () => thread()?.status === 'active';
@@ -151,7 +240,7 @@ export default function ThreadView(props) {
                 {isActive() ? 'Pause' : 'Resume'}
               </button>
             </Show>
-            <button onClick={handleExtend} disabled={thread().status === 'concluded'}>
+            <button onClick={() => handleExtend(10)} disabled={thread().status === 'concluded'}>
               +10 Turns
             </button>
             <button class="danger" onClick={handleWrapUp} disabled={!canInteract()}>
@@ -192,16 +281,33 @@ export default function ThreadView(props) {
         </div>
 
         <footer class="message-input">
-          <div class="message-input-inner">
+          <div class="message-input-inner slash-menu-wrapper">
+            <SlashCommandMenu
+              visible={showSlashMenu()}
+              inputText={inputText()}
+              threadId={props.threadId}
+              threadExperts={experts()}
+              threadStatus={thread()?.status}
+              onExecute={handleSlashCommand}
+              onStageChange={handleSlashMenuStageChange}
+              onDismiss={dismissSlashMenu}
+            />
             <input
+              ref={inputRef}
               type="text"
-              placeholder={canInteract() ? "Interrupt with a question or comment..." : "Thread is concluded"}
+              placeholder={canInteract()
+                ? (slashMenuStage()
+                  ? "Type to filter..."
+                  : "Type / for commands, or send a message...")
+                : "Thread is concluded"}
               value={inputText()}
               onInput={(e) => setInputText(e.target.value)}
+              onFocus={() => setInputFocused(true)}
+              onBlur={() => setInputFocused(false)}
               onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
               disabled={!canInteract() || sending()}
             />
-            <button onClick={sendMessage} disabled={!canInteract() || sending() || !inputText().trim()}>
+            <button onClick={sendMessage} disabled={!canInteract() || sending() || !inputText().trim() || inputText().startsWith('/')}>
               Send
             </button>
           </div>

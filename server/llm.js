@@ -22,11 +22,24 @@ export async function callLLM(model, messages) {
   }
 
   const data = await response.json();
-  const choice = data.choices[0];
+  const choice = data.choices?.[0];
+
+  if (!choice) {
+    throw new Error(`OpenRouter returned no choices: ${JSON.stringify(data)}`);
+  }
 
   if (choice.finish_reason === 'length') {
     throw new Error('LLM response truncated (hit max_tokens limit)');
   }
 
-  return choice.message.content;
+  if (choice.finish_reason === 'content_filter') {
+    throw new Error('LLM response blocked by content filter');
+  }
+
+  const content = choice.message?.content;
+  if (!content || content.trim().length === 0) {
+    throw new Error(`LLM returned empty response (finish_reason: ${choice.finish_reason}, message: ${JSON.stringify(choice.message)})`);
+  }
+
+  return content;
 }
