@@ -93,7 +93,7 @@ export default function NewThreadModal(props) {
   return (
     <div class="modal-overlay" onClick={(e) => e.target === e.currentTarget && props.onClose()}>
       <div class="modal modal-wide">
-        <h2>New Discussion</h2>
+        <h2>New Session</h2>
 
         <form onSubmit={handleSubmit}>
           <div class="form-group">
