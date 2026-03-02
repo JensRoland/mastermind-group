@@ -68,18 +68,20 @@ export default function Sidebar(props) {
       <div class="sidebar-header">
         <a href="/"><img src="/logotype.png" alt="Mastermind Group" class="sidebar-logo" /></a>
         <div class="sidebar-nav">
-          <button
+          <a
+            href="/"
             class={props.activeView() === 'threads' ? 'active' : ''}
-            onClick={() => nav('threads')}
+            onClick={(e) => { e.preventDefault(); nav('threads'); }}
           >
             Sessions
-          </button>
-          <button
+          </a>
+          <a
+            href="/experts"
             class={props.activeView() === 'experts' ? 'active' : ''}
-            onClick={() => nav('experts')}
+            onClick={(e) => { e.preventDefault(); nav('experts'); }}
           >
             Experts
-          </button>
+          </a>
         </div>
       </div>
 
