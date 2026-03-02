@@ -27,6 +27,7 @@ export default function ExpertForm(props) {
   const [llmModel, setLlmModel] = createSignal(editing()?.llm_model || MODELS[0].id);
   const [avatarUrl, setAvatarUrl] = createSignal('');
   const [saving, setSaving] = createSignal(false);
+  const [generating, setGenerating] = createSignal(false);
   const [error, setError] = createSignal('');
 
   async function handleSubmit(e) {
@@ -64,6 +65,23 @@ export default function ExpertForm(props) {
     }
   }
 
+  async function handleGenerateDescription() {
+    if (!name().trim()) {
+      setError('Enter a name first to generate a description');
+      return;
+    }
+    setGenerating(true);
+    setError('');
+    try {
+      const result = await api.generateDescription(name().trim());
+      setDescription(result.description);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setGenerating(false);
+    }
+  }
+
   return (
     <div class="modal-overlay" onClick={(e) => e.target === e.currentTarget && props.onClose()}>
       <div class="modal">
@@ -82,7 +100,17 @@ export default function ExpertForm(props) {
           </div>
 
           <div class="form-group">
-            <label>Description</label>
+            <div class="form-label-row">
+              <label>Description</label>
+              <button
+                type="button"
+                class="btn-generate"
+                onClick={handleGenerateDescription}
+                disabled={generating()}
+              >
+                {generating() ? 'Generating...' : 'Generate with AI'}
+              </button>
+            </div>
             <textarea
               placeholder="Brief description of who this person is and their key ideas/philosophy. This becomes part of the AI's persona prompt."
               value={description()}
