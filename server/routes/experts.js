@@ -4,6 +4,7 @@ import fs from 'fs';
 import sharp from 'sharp';
 import { fileURLToPath } from 'url';
 import db from '../db.js';
+import { generateExpertDescription } from '../anthropic.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const avatarDir = path.join(__dirname, '..', '..', 'public', 'avatars');
@@ -11,6 +12,22 @@ const avatarDir = path.join(__dirname, '..', '..', 'public', 'avatars');
 fs.mkdirSync(avatarDir, { recursive: true });
 
 const router = Router();
+
+// POST /api/experts/generate-description
+router.post('/generate-description', async (req, res) => {
+  const { name } = req.body;
+  if (!name || !name.trim()) {
+    return res.status(400).json({ error: 'Expert name is required' });
+  }
+
+  try {
+    const description = await generateExpertDescription(name.trim());
+    res.json({ description });
+  } catch (err) {
+    console.error('Description generation error:', err.message);
+    res.status(500).json({ error: 'Failed to generate description. Check that ANTHROPIC_API_KEY is set.' });
+  }
+});
 
 async function processAvatar(imageUrl, expertId) {
   try {
