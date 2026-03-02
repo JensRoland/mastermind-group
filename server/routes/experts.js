@@ -83,7 +83,7 @@ router.get('/', (req, res) => {
              JOIN messages m ON m.id = ml.message_id
              WHERE m.expert_id = e.id) as total_likes
      FROM experts e
-     ORDER BY e.created_at DESC`
+     ORDER BY e.specialty, e.name`
   ).all();
   res.json(experts);
 });
@@ -104,14 +104,14 @@ router.get('/:id', (req, res) => {
 
 // POST /api/experts
 router.post('/', async (req, res) => {
-  const { name, description, llm_model, avatar_url } = req.body;
+  const { name, description, llm_model, avatar_url, specialty } = req.body;
   if (!name || !description) {
     return res.status(400).json({ error: 'Name and description are required' });
   }
 
   const result = db.prepare(
-    'INSERT INTO experts (name, description, llm_model) VALUES (?, ?, ?)'
-  ).run(name, description, llm_model || 'anthropic/claude-sonnet-4');
+    'INSERT INTO experts (name, description, llm_model, specialty) VALUES (?, ?, ?, ?)'
+  ).run(name, description, llm_model || 'anthropic/claude-sonnet-4', specialty || 'General');
 
   const expertId = Number(result.lastInsertRowid);
 
@@ -132,14 +132,15 @@ router.put('/:id', async (req, res) => {
   const expert = db.prepare('SELECT * FROM experts WHERE id = ?').get(req.params.id);
   if (!expert) return res.status(404).json({ error: 'Expert not found' });
 
-  const { name, description, llm_model, avatar_url } = req.body;
+  const { name, description, llm_model, avatar_url, specialty } = req.body;
 
   db.prepare(
-    'UPDATE experts SET name = ?, description = ?, llm_model = ? WHERE id = ?'
+    'UPDATE experts SET name = ?, description = ?, llm_model = ?, specialty = ? WHERE id = ?'
   ).run(
     name || expert.name,
     description || expert.description,
     llm_model || expert.llm_model,
+    specialty || expert.specialty,
     expert.id
   );
 
@@ -152,6 +153,30 @@ router.put('/:id', async (req, res) => {
   }
 
   const updated = db.prepare('SELECT * FROM experts WHERE id = ?').get(expert.id);
+  res.json(updated);
+});
+
+// PATCH /api/experts/bulk-specialty
+router.patch('/bulk-specialty', (req, res) => {
+  const { ids, specialty } = req.body;
+  if (!Array.isArray(ids) || ids.length === 0 || !specialty?.trim()) {
+    return res.status(400).json({ error: 'ids (array) and specialty (string) are required' });
+  }
+
+  const placeholders = ids.map(() => '?').join(',');
+  db.prepare(
+    `UPDATE experts SET specialty = ? WHERE id IN (${placeholders})`
+  ).run(specialty.trim(), ...ids);
+
+  const updated = db.prepare(
+    `SELECT e.*,
+            (SELECT COUNT(*) FROM message_likes ml
+             JOIN messages m ON m.id = ml.message_id
+             WHERE m.expert_id = e.id) as total_likes
+     FROM experts e
+     WHERE e.id IN (${placeholders})`
+  ).all(...ids);
+
   res.json(updated);
 });
 

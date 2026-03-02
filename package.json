@@ -3,7 +3,7 @@
   "private": true,
   "scripts": {
     "dev": "concurrently \"pnpm run dev:server\" \"pnpm run dev:client\"",
-    "dev:server": "cd server && node --watch index.js",
+    "dev:server": "cd server && PORT=8240 node --watch index.js",
     "dev:client": "cd client && pnpm exec vite",
     "build": "cd client && pnpm exec vite build",
     "start": "cd server && node index.js",

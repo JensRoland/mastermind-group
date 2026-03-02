@@ -35,6 +35,7 @@ export const api = {
   updateExpert: (id, data) => request(`/experts/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
   deleteExpert: (id) => request(`/experts/${id}`, { method: 'DELETE' }),
   generateDescription: (name, disambiguator) => request('/experts/generate-description', { method: 'POST', body: JSON.stringify({ name, disambiguator }) }),
+  bulkUpdateSpecialty: (ids, specialty) => request('/experts/bulk-specialty', { method: 'PATCH', body: JSON.stringify({ ids, specialty }) }),
 
   // Threads
   getThreads: (status) => request(`/threads${status ? `?status=${status}` : ''}`),

@@ -1,4 +1,4 @@
-import { createSignal, Show } from 'solid-js';
+import { createSignal, createMemo, onMount, Show, For } from 'solid-js';
 import { api } from '../api.js';
 
 const MODELS = [
@@ -22,7 +22,35 @@ const MODELS = [
 export default function ExpertForm(props) {
   const editing = () => props.expert;
 
+  const [allExperts, setAllExperts] = createSignal([]);
   const [name, setName] = createSignal(editing()?.name || '');
+  const [specialty, setSpecialty] = createSignal(editing()?.specialty || '');
+
+  onMount(async () => {
+    try {
+      const data = await api.getExperts();
+      setAllExperts(data);
+    } catch (err) {
+      console.error('Failed to load experts:', err);
+    }
+  });
+
+  const existingSpecialties = createMemo(() => {
+    const seen = new Set();
+    for (const expert of allExperts()) {
+      if (expert.specialty) seen.add(expert.specialty);
+    }
+    return [...seen].sort();
+  });
+
+  const filteredSpecialties = createMemo(() => {
+    const val = specialty().trim().toLowerCase();
+    if (!val) return existingSpecialties();
+    return existingSpecialties().filter(s => s.toLowerCase().includes(val) && s.toLowerCase() !== val);
+  });
+
+  const [specialtyFocused, setSpecialtyFocused] = createSignal(false);
+
   const [description, setDescription] = createSignal(editing()?.description || '');
   const [llmModel, setLlmModel] = createSignal(editing()?.llm_model || MODELS[0].id);
   const [disambiguator, setDisambiguator] = createSignal('');
@@ -46,6 +74,7 @@ export default function ExpertForm(props) {
         name: name().trim(),
         description: description().trim(),
         llm_model: llmModel(),
+        specialty: specialty().trim() || 'General',
       };
 
       if (avatarUrl().trim()) {
@@ -112,6 +141,35 @@ export default function ExpertForm(props) {
               <div class="form-hint">Helps the AI identify the right person when generating a description. Not stored.</div>
             </div>
           </Show>
+
+          <div class="form-group">
+            <label>Specialty</label>
+            <div class="combobox">
+              <input
+                type="text"
+                placeholder="e.g. AI & Machine Learning"
+                value={specialty()}
+                onInput={(e) => setSpecialty(e.target.value)}
+                onFocus={() => setSpecialtyFocused(true)}
+                onBlur={() => setTimeout(() => setSpecialtyFocused(false), 150)}
+              />
+              <Show when={specialtyFocused() && filteredSpecialties().length > 0}>
+                <div class="combobox-dropdown">
+                  <For each={filteredSpecialties()}>
+                    {(s) => (
+                      <div
+                        class="combobox-option"
+                        onMouseDown={() => { setSpecialty(s); setSpecialtyFocused(false); }}
+                      >
+                        {s}
+                      </div>
+                    )}
+                  </For>
+                </div>
+              </Show>
+            </div>
+            <div class="form-hint">Used to group experts in the session creator.</div>
+          </div>
 
           <div class="form-group">
             <div class="form-label-row">
