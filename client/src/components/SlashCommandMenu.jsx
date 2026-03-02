@@ -1,4 +1,4 @@
-import { createSignal, createEffect, For, Show } from 'solid-js';
+import { createSignal, createEffect, onCleanup, For, Show } from 'solid-js';
 import { api } from '../api.js';
 import '../styles/slash-commands.css';
 
@@ -18,7 +18,7 @@ const TURN_OPTIONS = [
 ];
 
 export default function SlashCommandMenu(props) {
-  const [stage, setStage] = createSignal('commands'); // 'commands' | 'expert-invite' | 'expert-kick' | 'turns'
+  const [stage, setStage] = createSignal('commands');
   const [selectedIndex, setSelectedIndex] = createSignal(0);
   const [allExperts, setAllExperts] = createSignal([]);
   const [filterText, setFilterText] = createSignal('');
@@ -112,29 +112,24 @@ export default function SlashCommandMenu(props) {
     }
   }
 
-  function handleKeyDown(e) {
-    if (!props.visible) return false;
+  // Listen for keyboard events directly on window (capture phase)
+  function onKeyDown(e) {
+    if (!props.visible) return;
 
     const items = currentItems();
 
     if (e.key === 'ArrowDown') {
       e.preventDefault();
       setSelectedIndex(i => Math.min(i + 1, items.length - 1));
-      return true;
-    }
-    if (e.key === 'ArrowUp') {
+    } else if (e.key === 'ArrowUp') {
       e.preventDefault();
       setSelectedIndex(i => Math.max(i - 1, 0));
-      return true;
-    }
-    if (e.key === 'Enter' || e.key === 'Tab') {
+    } else if (e.key === 'Enter' || e.key === 'Tab') {
       if (items.length > 0) {
         e.preventDefault();
         selectItem(selectedIndex());
-        return true;
       }
-    }
-    if (e.key === 'Escape') {
+    } else if (e.key === 'Escape') {
       e.preventDefault();
       if (stage() !== 'commands') {
         setStage('commands');
@@ -144,13 +139,11 @@ export default function SlashCommandMenu(props) {
       } else {
         props.onDismiss();
       }
-      return true;
     }
-    return false;
   }
 
-  // Expose handleKeyDown via the shared ref object
-  if (props.menuRef) props.menuRef.handleKeyDown = handleKeyDown;
+  window.addEventListener('keydown', onKeyDown, true);
+  onCleanup(() => window.removeEventListener('keydown', onKeyDown, true));
 
   return (
     <Show when={props.visible}>

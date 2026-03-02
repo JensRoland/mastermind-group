@@ -22,7 +22,6 @@ export default function ThreadView(props) {
   const [thinkingExpert, setThinkingExpert] = createSignal(null);
   const [slashMenuStage, setSlashMenuStage] = createSignal(null); // tracks argument stage
   let messagesContainer;
-  let menuRef = {};
   let inputRef;
 
   const showSlashMenu = () => {
@@ -215,16 +214,6 @@ export default function ThreadView(props) {
     inputRef?.focus();
   }
 
-  function handleKeyDown(e) {
-    if (showSlashMenu() && menuRef.handleKeyDown) {
-      const handled = menuRef.handleKeyDown(e);
-      if (handled) return;
-    }
-    if (e.key === 'Enter') {
-      sendMessage();
-    }
-  }
-
   const isActive = () => thread()?.status === 'active';
   const canInteract = () => thread()?.status === 'active' || thread()?.status === 'paused';
 
@@ -296,7 +285,6 @@ export default function ThreadView(props) {
               onExecute={handleSlashCommand}
               onStageChange={handleSlashMenuStageChange}
               onDismiss={dismissSlashMenu}
-              menuRef={menuRef}
             />
             <input
               ref={inputRef}
@@ -308,7 +296,7 @@ export default function ThreadView(props) {
                 : "Thread is concluded"}
               value={inputText()}
               onInput={(e) => setInputText(e.target.value)}
-              onKeyDown={handleKeyDown}
+              onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
               disabled={!canInteract() || sending()}
             />
             <button onClick={sendMessage} disabled={!canInteract() || sending() || !inputText().trim() || inputText().startsWith('/')}>
