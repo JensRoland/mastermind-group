@@ -73,13 +73,27 @@ async function processAvatar(imageUrl, expertId) {
 
 // GET /api/experts
 router.get('/', (req, res) => {
-  const experts = db.prepare('SELECT * FROM experts ORDER BY created_at DESC').all();
+  const experts = db.prepare(
+    `SELECT e.*,
+            (SELECT COUNT(*) FROM message_likes ml
+             JOIN messages m ON m.id = ml.message_id
+             WHERE m.expert_id = e.id) as total_likes
+     FROM experts e
+     ORDER BY e.created_at DESC`
+  ).all();
   res.json(experts);
 });
 
 // GET /api/experts/:id
 router.get('/:id', (req, res) => {
-  const expert = db.prepare('SELECT * FROM experts WHERE id = ?').get(req.params.id);
+  const expert = db.prepare(
+    `SELECT e.*,
+            (SELECT COUNT(*) FROM message_likes ml
+             JOIN messages m ON m.id = ml.message_id
+             WHERE m.expert_id = e.id) as total_likes
+     FROM experts e
+     WHERE e.id = ?`
+  ).get(req.params.id);
   if (!expert) return res.status(404).json({ error: 'Expert not found' });
   res.json(expert);
 });

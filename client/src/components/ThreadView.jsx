@@ -65,6 +65,11 @@ export default function ThreadView(props) {
         setThinkingExpert(null);
         scrollToBottom();
       }
+      if (data.type === 'message_liked' && data.messageId) {
+        setMessages(prev => prev.map(m =>
+          m.id === data.messageId ? { ...m, liked: data.liked ? 1 : 0 } : m
+        ));
+      }
       if (data.type === 'thread_status' && data.threadId === props.threadId) {
         setThread(prev => prev ? {
           ...prev,

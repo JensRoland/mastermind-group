@@ -150,6 +150,7 @@ async function processThread(thread) {
         content: responseContent,
         llm_model: currentExpert.llm_model,
         created_at: new Date().toISOString(),
+        liked: 0,
       },
     });
 

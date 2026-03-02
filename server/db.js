@@ -62,6 +62,11 @@ db.exec(`
     created_at INTEGER NOT NULL,
     expires_at INTEGER NOT NULL
   );
+
+  CREATE TABLE IF NOT EXISTS message_likes (
+    message_id INTEGER PRIMARY KEY REFERENCES messages(id) ON DELETE CASCADE,
+    created_at TEXT DEFAULT (datetime('now'))
+  );
 `);
 
 // Migrations — add columns that may not exist yet

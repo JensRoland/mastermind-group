@@ -44,4 +44,7 @@ export const api = {
   wrapUp: (id) => request(`/threads/${id}/wrapup`, { method: 'POST' }),
   extendTurns: (id, turns) => request(`/threads/${id}/extend`, { method: 'POST', body: JSON.stringify({ turns }) }),
   setStatus: (id, status) => request(`/threads/${id}/status`, { method: 'PUT', body: JSON.stringify({ status }) }),
+
+  // Likes
+  toggleLike: (messageId) => request(`/messages/${messageId}/like`, { method: 'POST' }),
 };
