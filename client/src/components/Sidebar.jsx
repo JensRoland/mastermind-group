@@ -95,7 +95,7 @@ export default function Sidebar(props) {
   return (
     <div class={`sidebar ${props.open?.() ? 'open' : ''}`}>
       <div class="sidebar-header">
-        <a href="/"><img src="/logotype.png" alt="Mastermind Group" class="sidebar-logo" /></a>
+        <a href="/"><img src="/logomark.png" alt="Mastermind Group" class="sidebar-logo" /></a>
         <div class="sidebar-nav">
           <a
             href="/"

@@ -14,10 +14,10 @@
 
 .sidebar-logo {
   display: block;
-  height: auto;
-  width: 227px;
-mix-blend-mode: plus-lighter;
-  margin-bottom: var(--spacing-md);
+  height: 128px;
+  width: 144px;
+  mix-blend-mode: plus-lighter;
+  margin: var(--spacing-md) auto;
 }
 
 .sidebar-add-btn {
