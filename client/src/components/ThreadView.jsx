@@ -130,7 +130,7 @@ export default function ThreadView(props) {
           <div class="thread-meta">
             <span class="thread-created">{formatDateTime(thread().created_at)}</span>
             <span class="meta-separator">·</span>
-            Turn {thread().current_turn} / {thread().max_turns}
+            <span class="thread-turns">Turn {thread().current_turn} / {thread().max_turns}</span>
             <span class={`status-badge ${thread().status}`}>{thread().status}</span>
           </div>
           <div class="thread-actions">
