@@ -58,7 +58,7 @@ export default function Sidebar(props) {
       >
         <div class="thread-item-title">
           <span class={`status-dot ${t().status}`} />
-          {' '}{t().title}
+          {t().title}
           <button
             class="thread-item-archive"
             onClick={handleArchiveClick}
