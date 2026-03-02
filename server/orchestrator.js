@@ -153,6 +153,13 @@ async function processThread(thread) {
       },
     });
 
+    broadcast(thread.id, {
+      type: 'thread_status',
+      threadId: thread.id,
+      status: thread.status,
+      current_turn: thread.current_turn + 1,
+    });
+
     broadcastGlobal({
       type: 'thread_list_update',
     });
