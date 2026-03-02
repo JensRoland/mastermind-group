@@ -8,6 +8,7 @@ const COMMANDS = [
   { name: 'pause', description: 'Pause the session', hasArg: false },
   { name: 'wrap-it-up', description: 'Wrap up and conclude the session', hasArg: false },
   { name: 'extend', description: 'Extend the session by more turns', hasArg: 'turns' },
+  { name: 'archive', description: 'Archive this session', hasArg: false },
 ];
 
 const TURN_OPTIONS = [

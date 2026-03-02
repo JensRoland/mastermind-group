@@ -1,4 +1,5 @@
 import { createSignal, createEffect, onMount, onCleanup, For, Show } from 'solid-js';
+import { navigate } from '../App.jsx';
 import { api } from '../api.js';
 import { subscribe, unsubscribe, onMessage } from '../ws.js';
 import MessageBubble from './MessageBubble.jsx';
@@ -181,6 +182,18 @@ export default function ThreadView(props) {
       case 'kick':
         handleKick(arg);
         break;
+      case 'archive':
+        handleArchive();
+        break;
+    }
+  }
+
+  async function handleArchive() {
+    try {
+      await api.archiveThread(props.threadId);
+      navigate('threads');
+    } catch (err) {
+      console.error('Failed to archive:', err);
     }
   }
 
