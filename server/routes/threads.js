@@ -264,4 +264,115 @@ router.patch('/:id/archive', (req, res) => {
   res.json({ ok: true });
 });
 
+// POST /api/threads/:id/experts — add expert to thread
+router.post('/:id/experts', (req, res) => {
+  const thread = db.prepare('SELECT * FROM threads WHERE id = ?').get(req.params.id);
+  if (!thread) return res.status(404).json({ error: 'Thread not found' });
+  if (thread.status === 'concluded') {
+    return res.status(400).json({ error: 'Thread is concluded' });
+  }
+
+  const { expertId } = req.body;
+  if (!expertId) return res.status(400).json({ error: 'expertId is required' });
+
+  const expert = db.prepare('SELECT * FROM experts WHERE id = ?').get(expertId);
+  if (!expert) return res.status(404).json({ error: 'Expert not found' });
+
+  const existing = db.prepare(
+    'SELECT 1 FROM thread_experts WHERE thread_id = ? AND expert_id = ?'
+  ).get(thread.id, expertId);
+  if (existing) return res.status(400).json({ error: 'Expert is already in this thread' });
+
+  const maxOrder = db.prepare(
+    'SELECT MAX(sort_order) as max_order FROM thread_experts WHERE thread_id = ?'
+  ).get(thread.id);
+  const nextOrder = (maxOrder?.max_order ?? -1) + 1;
+
+  const addExpert = db.transaction(() => {
+    db.prepare('INSERT INTO thread_experts (thread_id, expert_id, sort_order) VALUES (?, ?, ?)')
+      .run(thread.id, expertId, nextOrder);
+
+    const msgResult = db.prepare(
+      "INSERT INTO messages (thread_id, expert_id, role, content) VALUES (?, NULL, 'system', ?)"
+    ).run(thread.id, `${expert.name} has joined the discussion.`);
+
+    return Number(msgResult.lastInsertRowid);
+  });
+
+  const msgId = addExpert();
+
+  console.log(`${threadTag(thread)} ${expert.name} joined`);
+
+  broadcast(thread.id, {
+    type: 'new_message',
+    message: {
+      id: msgId,
+      thread_id: thread.id,
+      expert_id: null,
+      role: 'system',
+      content: `${expert.name} has joined the discussion.`,
+      created_at: new Date().toISOString(),
+    },
+  });
+
+  broadcastGlobal({ type: 'thread_list_update' });
+
+  res.json({ ok: true, expert: { id: expert.id, name: expert.name, avatar_url: expert.avatar_url } });
+});
+
+// DELETE /api/threads/:id/experts/:expertId — remove expert from thread
+router.delete('/:id/experts/:expertId', (req, res) => {
+  const thread = db.prepare('SELECT * FROM threads WHERE id = ?').get(req.params.id);
+  if (!thread) return res.status(404).json({ error: 'Thread not found' });
+  if (thread.status === 'concluded') {
+    return res.status(400).json({ error: 'Thread is concluded' });
+  }
+
+  const expertId = Number(req.params.expertId);
+  const existing = db.prepare(
+    'SELECT 1 FROM thread_experts WHERE thread_id = ? AND expert_id = ?'
+  ).get(thread.id, expertId);
+  if (!existing) return res.status(400).json({ error: 'Expert is not in this thread' });
+
+  const expertCount = db.prepare(
+    'SELECT COUNT(*) as count FROM thread_experts WHERE thread_id = ?'
+  ).get(thread.id);
+  if (expertCount.count <= 1) {
+    return res.status(400).json({ error: 'Cannot remove the last expert from a thread' });
+  }
+
+  const expert = db.prepare('SELECT * FROM experts WHERE id = ?').get(expertId);
+
+  const removeExpert = db.transaction(() => {
+    db.prepare('DELETE FROM thread_experts WHERE thread_id = ? AND expert_id = ?')
+      .run(thread.id, expertId);
+
+    const msgResult = db.prepare(
+      "INSERT INTO messages (thread_id, expert_id, role, content) VALUES (?, NULL, 'system', ?)"
+    ).run(thread.id, `${expert.name} has left the discussion.`);
+
+    return Number(msgResult.lastInsertRowid);
+  });
+
+  const msgId = removeExpert();
+
+  console.log(`${threadTag(thread)} ${expert.name} removed`);
+
+  broadcast(thread.id, {
+    type: 'new_message',
+    message: {
+      id: msgId,
+      thread_id: thread.id,
+      expert_id: null,
+      role: 'system',
+      content: `${expert.name} has left the discussion.`,
+      created_at: new Date().toISOString(),
+    },
+  });
+
+  broadcastGlobal({ type: 'thread_list_update' });
+
+  res.json({ ok: true });
+});
+
 export default router;
