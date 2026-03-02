@@ -88,4 +88,10 @@ try {
   // Column already exists
 }
 
+try {
+  db.exec('ALTER TABLE threads ADD COLUMN archived INTEGER NOT NULL DEFAULT 0');
+} catch {
+  // Column already exists
+}
+
 export default db;

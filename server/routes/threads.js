@@ -16,9 +16,9 @@ router.get('/', (req, res) => {
   const { status } = req.query;
   let threads;
   if (status) {
-    threads = db.prepare('SELECT * FROM threads WHERE status = ? ORDER BY created_at DESC').all(status);
+    threads = db.prepare('SELECT * FROM threads WHERE status = ? AND archived = 0 ORDER BY created_at DESC').all(status);
   } else {
-    threads = db.prepare('SELECT * FROM threads ORDER BY created_at DESC').all();
+    threads = db.prepare('SELECT * FROM threads WHERE archived = 0 ORDER BY created_at DESC').all();
   }
 
   // Attach expert info to each thread
@@ -250,6 +250,18 @@ router.put('/:id/status', (req, res) => {
   broadcastGlobal({ type: 'thread_list_update' });
 
   res.json({ ok: true, status });
+});
+
+// PATCH /api/threads/:id/archive
+router.patch('/:id/archive', (req, res) => {
+  const thread = db.prepare('SELECT * FROM threads WHERE id = ?').get(req.params.id);
+  if (!thread) return res.status(404).json({ error: 'Thread not found' });
+
+  db.prepare('UPDATE threads SET archived = 1 WHERE id = ?').run(thread.id);
+  console.log(`${threadTag(thread)} Archived`);
+
+  broadcastGlobal({ type: 'thread_list_update' });
+  res.json({ ok: true });
 });
 
 export default router;
