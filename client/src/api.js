@@ -34,7 +34,7 @@ export const api = {
   createExpert: (data) => request('/experts', { method: 'POST', body: JSON.stringify(data) }),
   updateExpert: (id, data) => request(`/experts/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
   deleteExpert: (id) => request(`/experts/${id}`, { method: 'DELETE' }),
-  generateDescription: (name) => request('/experts/generate-description', { method: 'POST', body: JSON.stringify({ name }) }),
+  generateDescription: (name, disambiguator) => request('/experts/generate-description', { method: 'POST', body: JSON.stringify({ name, disambiguator }) }),
 
   // Threads
   getThreads: (status) => request(`/threads${status ? `?status=${status}` : ''}`),

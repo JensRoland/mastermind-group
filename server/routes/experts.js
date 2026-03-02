@@ -15,17 +15,21 @@ const router = Router();
 
 // POST /api/experts/generate-description
 router.post('/generate-description', async (req, res) => {
-  const { name } = req.body;
+  const { name, disambiguator } = req.body;
   if (!name || !name.trim()) {
     return res.status(400).json({ error: 'Expert name is required' });
   }
+
+  const disambiguatorLine = disambiguator?.trim()
+    ? `\nNote: "${name.trim()}" refers to: ${disambiguator.trim()}\n`
+    : '';
 
   try {
     const description = await callLLM('anthropic/claude-opus-4.6', [
       {
         role: 'user',
         content: `Write a persona description for an AI roundtable expert named "${name.trim()}".
-
+${disambiguatorLine}
 The description should be 3-5 sentences that capture:
 - Who this person is (their role, accomplishments, domain expertise)
 - Their key ideas, frameworks, or intellectual contributions
