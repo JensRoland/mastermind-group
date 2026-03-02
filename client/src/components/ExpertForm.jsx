@@ -25,6 +25,7 @@ export default function ExpertForm(props) {
   const [name, setName] = createSignal(editing()?.name || '');
   const [description, setDescription] = createSignal(editing()?.description || '');
   const [llmModel, setLlmModel] = createSignal(editing()?.llm_model || MODELS[0].id);
+  const [disambiguator, setDisambiguator] = createSignal('');
   const [avatarUrl, setAvatarUrl] = createSignal('');
   const [saving, setSaving] = createSignal(false);
   const [generating, setGenerating] = createSignal(false);
@@ -73,7 +74,7 @@ export default function ExpertForm(props) {
     setGenerating(true);
     setError('');
     try {
-      const result = await api.generateDescription(name().trim());
+      const result = await api.generateDescription(name().trim(), disambiguator().trim() || undefined);
       setDescription(result.description);
     } catch (err) {
       setError(err.message);
@@ -98,6 +99,19 @@ export default function ExpertForm(props) {
               autofocus
             />
           </div>
+
+          <Show when={!editing()}>
+            <div class="form-group">
+              <label>Disambiguation hint <span class="form-optional">(optional)</span></label>
+              <input
+                type="text"
+                placeholder="e.g. the Die Hard movie villain, not the Canadian conductor"
+                value={disambiguator()}
+                onInput={(e) => setDisambiguator(e.target.value)}
+              />
+              <div class="form-hint">Helps the AI identify the right person when generating a description. Not stored.</div>
+            </div>
+          </Show>
 
           <div class="form-group">
             <div class="form-label-row">
