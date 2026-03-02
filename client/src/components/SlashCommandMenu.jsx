@@ -4,11 +4,11 @@ import '../styles/slash-commands.css';
 
 const COMMANDS = [
   { name: 'invite', description: 'Add an expert to this session', hasArg: 'expert-invite' },
-  { name: 'kick', description: 'Remove an expert from this session', hasArg: 'expert-kick' },
+  { name: 'kick', description: 'Remove an expert from this session', hasArg: 'expert-kick', confirm: true },
   { name: 'pause', description: 'Pause the session', hasArg: false },
-  { name: 'wrap-it-up', description: 'Wrap up and conclude the session', hasArg: false },
+  { name: 'wrap-it-up', description: 'Wrap up and conclude the session', hasArg: false, confirm: true },
   { name: 'extend', description: 'Extend the session by more turns', hasArg: 'turns' },
-  { name: 'archive', description: 'Archive this session', hasArg: false },
+  { name: 'archive', description: 'Archive this session', hasArg: false, confirm: true },
 ];
 
 const TURN_OPTIONS = [
@@ -22,6 +22,13 @@ export default function SlashCommandMenu(props) {
   const [selectedIndex, setSelectedIndex] = createSignal(0);
   const [allExperts, setAllExperts] = createSignal([]);
   const [filterText, setFilterText] = createSignal('');
+  const [pendingConfirm, setPendingConfirm] = createSignal(null); // command name awaiting confirmation
+  const [pendingArg, setPendingArg] = createSignal(null); // argument awaiting confirmation
+
+  const CONFIRM_OPTIONS = [
+    { label: 'Yes', value: true },
+    { label: 'Cancel', value: false },
+  ];
 
   // Reset state when menu becomes visible
   createEffect((prev) => {
@@ -30,6 +37,8 @@ export default function SlashCommandMenu(props) {
       setStage('commands');
       setSelectedIndex(0);
       setFilterText('');
+      setPendingConfirm(null);
+      setPendingArg(null);
     }
     return vis;
   }, false);
@@ -85,7 +94,13 @@ export default function SlashCommandMenu(props) {
     if (s === 'commands') return filteredCommands();
     if (s === 'expert-invite' || s === 'expert-kick') return filteredExperts();
     if (s === 'turns') return TURN_OPTIONS;
+    if (s === 'confirm') return CONFIRM_OPTIONS;
     return [];
+  }
+
+  // Look up the COMMANDS entry for the pending confirm command
+  function pendingCommand() {
+    return COMMANDS.find(c => c.name === pendingConfirm());
   }
 
   function selectItem(index) {
@@ -95,20 +110,49 @@ export default function SlashCommandMenu(props) {
 
     const s = stage();
     if (s === 'commands') {
-      if (!item.hasArg) {
-        props.onExecute(item.name, null);
-      } else {
+      if (item.hasArg) {
+        // Has argument stage — go there first (confirm comes after if needed)
+        setPendingConfirm(item.confirm ? item.name : null);
         setStage(item.hasArg);
         setSelectedIndex(0);
         setFilterText('');
         props.onStageChange(item.hasArg, item.name);
+      } else if (item.confirm) {
+        // No arg, but needs confirmation
+        setPendingConfirm(item.name);
+        setPendingArg(null);
+        setStage('confirm');
+        setSelectedIndex(0);
+        setFilterText('');
+        props.onStageChange('confirm', item.name);
+      } else {
+        props.onExecute(item.name, null);
       }
     } else if (s === 'expert-invite') {
       props.onExecute('invite', item);
     } else if (s === 'expert-kick') {
-      props.onExecute('kick', item);
+      if (pendingConfirm()) {
+        // Kick needs confirmation — store the selected expert and move to confirm
+        setPendingArg(item);
+        setStage('confirm');
+        setSelectedIndex(0);
+        setFilterText('');
+        props.onStageChange('confirm', 'kick');
+      } else {
+        props.onExecute('kick', item);
+      }
     } else if (s === 'turns') {
       props.onExecute('extend', item.value);
+    } else if (s === 'confirm') {
+      if (item.value) {
+        props.onExecute(pendingConfirm(), pendingArg());
+      } else {
+        setStage('commands');
+        setSelectedIndex(0);
+        setPendingConfirm(null);
+        setPendingArg(null);
+        props.onStageChange('commands', null);
+      }
     }
   }
 
@@ -135,6 +179,8 @@ export default function SlashCommandMenu(props) {
         setStage('commands');
         setSelectedIndex(0);
         setFilterText('');
+        setPendingConfirm(null);
+        setPendingArg(null);
         props.onStageChange('commands', null);
       } else {
         props.onDismiss();
@@ -147,7 +193,7 @@ export default function SlashCommandMenu(props) {
 
   return (
     <Show when={props.visible}>
-      <div class="slash-menu">
+      <div class="slash-menu" onMouseDown={(e) => e.preventDefault()}>
         <Show when={stage() === 'commands'}>
           <div class="slash-menu-header">Commands</div>
           <Show when={filteredCommands().length === 0}>
@@ -206,6 +252,23 @@ export default function SlashCommandMenu(props) {
                 onClick={() => selectItem(i())}
               >
                 <span class="slash-menu-item-name">{opt.label}</span>
+              </div>
+            )}
+          </For>
+        </Show>
+
+        <Show when={stage() === 'confirm'}>
+          <div class="slash-menu-header">
+            /{pendingConfirm()}{pendingArg()?.name ? ` ${pendingArg().name}` : ''} — are you sure?
+          </div>
+          <For each={CONFIRM_OPTIONS}>
+            {(opt, i) => (
+              <div
+                class={`slash-menu-item ${i() === selectedIndex() ? 'selected' : ''}`}
+                onMouseEnter={() => setSelectedIndex(i())}
+                onClick={() => selectItem(i())}
+              >
+                <span class={`slash-menu-item-name ${opt.value ? 'confirm-yes' : ''}`}>{opt.label}</span>
               </div>
             )}
           </For>

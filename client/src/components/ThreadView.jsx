@@ -21,10 +21,12 @@ export default function ThreadView(props) {
   const [sending, setSending] = createSignal(false);
   const [thinkingExpert, setThinkingExpert] = createSignal(null);
   const [slashMenuStage, setSlashMenuStage] = createSignal(null); // tracks argument stage
+  const [inputFocused, setInputFocused] = createSignal(false);
   let messagesContainer;
   let inputRef;
 
   const showSlashMenu = () => {
+    if (!inputFocused()) return false;
     const text = inputText();
     // Show when input starts with "/" OR when we're in an argument stage
     return slashMenuStage() !== null || text.startsWith('/');
@@ -296,6 +298,8 @@ export default function ThreadView(props) {
                 : "Thread is concluded"}
               value={inputText()}
               onInput={(e) => setInputText(e.target.value)}
+              onFocus={() => setInputFocused(true)}
+              onBlur={() => setInputFocused(false)}
               onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
               disabled={!canInteract() || sending()}
             />
