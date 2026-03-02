@@ -32,6 +32,8 @@ export default function WelcomeScreen(props) {
   return (
     <div class="welcome-screen">
       <div class="welcome-content">
+        <a href="/"><img src="/logotype.png" alt="Mastermind Group" class="welcome-logo" /></a>
+
         <button class="welcome-new-btn" onClick={() => props.onNewThread()}>
           Start A New Session
         </button>

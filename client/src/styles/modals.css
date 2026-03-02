@@ -28,6 +28,17 @@
   margin-bottom: var(--spacing-lg);
 }
 
+.confirm-dialog {
+  width: 360px;
+}
+
+.confirm-dialog-message {
+  font-size: var(--font-size-base);
+  color: var(--color-text-secondary);
+  line-height: 1.5;
+  margin-bottom: 0;
+}
+
 .form-group {
   margin-bottom: var(--spacing-lg);
 }
@@ -210,6 +221,7 @@
 }
 
 .expert-select-card {
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -249,6 +261,18 @@
 .expert-select-card-specialty {
   font-size: var(--font-size-xs);
   color: var(--color-text-muted);
+}
+
+.expert-select-card-likes {
+  position: absolute;
+  top: var(--spacing-xs);
+  right: var(--spacing-sm);
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  font-size: var(--font-size-xs);
+  color: var(--color-orange);
+  font-weight: 600;
 }
 
 .modal-actions {
