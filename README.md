@@ -123,10 +123,11 @@ This builds the client, installs production server dependencies, and bundles eve
 
 **Amazon LightSail:**
 
-Before you can install better-sqlite on LightSail, install `gcc`, `make`, etc. and add swap space because compiling takes a lot of RAM:
+You'll need to create the `/opt/bitnami/projects/mastermind` folder and `sudo chown $USER` it, configure the Apache vhosts, and install `rsync`, `python3` and `build-essential`.
+
+And before you can install better-sqlite on LightSail, install `gcc`, `make`, etc. and add swap space because compiling takes a lot of RAM:
 
 ```sh
-sudo apt-get update && sudo apt-get install -y build-essential python3
 sudo fallocate -l 1G /swapfile
 sudo chmod 600 /swapfile
 sudo mkswap /swapfile
@@ -137,4 +138,26 @@ pnpm install
 
 sudo swapoff /swapfile
 sudo rm /swapfile
+```
+
+The VHOST setup for LightSail with Apache looks something like:
+
+```apache
+<VirtualHost 127.0.0.1:80 _default_:80>
+  ServerName www.example.com
+  ServerAlias *
+  DocumentRoot /opt/bitnami/projects/mastermind/client/dist
+  <Directory "/opt/bitnami/projects/mastermind/client/dist">
+    Options -Indexes +FollowSymLinks -MultiViews
+    AllowOverride All
+    Require all granted
+  </Directory>
+  RewriteEngine On
+  RewriteCond %{HTTP:Upgrade} websocket [NC]
+  RewriteCond %{HTTP:Connection} upgrade [NC]
+  RewriteRule ^/ws$ ws://localhost:4240/ws [P,L]
+
+  ProxyPass / http://localhost:4240/
+  ProxyPassReverse / http://localhost:4240/
+</VirtualHost>
 ```

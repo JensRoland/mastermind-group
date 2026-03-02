@@ -1,0 +1,15 @@
+[Unit]
+Description=Mastermind Group Server
+After=network.target
+
+[Service]
+Type=simple
+User=bitnami
+WorkingDirectory=/opt/bitnami/projects/mastermind/server
+Environment=PATH=/opt/bitnami/node/bin:/usr/local/bin:/usr/bin:/bin
+ExecStart=/opt/bitnami/node/bin/node index.js
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

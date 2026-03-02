@@ -5,7 +5,7 @@ DIST="dist"
 
 echo "==> Cleaning previous build..."
 rm -rf "$DIST"
-mkdir -p "$DIST/server" "$DIST/client/dist" "$DIST/public/avatars"
+mkdir -p "$DIST/server" "$DIST/client" "$DIST/public/avatars"
 
 echo "==> Building client..."
 pnpm run build
@@ -14,7 +14,7 @@ echo "==> Copying client build..."
 cp -r client/dist/ "$DIST/client/dist/"
 
 echo "==> Copying server source..."
-cp server/*.js server/package.json "$DIST/server/"
+cp server/*.js server/package.json server/mastermind.service "$DIST/server/"
 mkdir -p "$DIST/server/routes"
 cp server/routes/*.js "$DIST/server/routes/"
 
