@@ -121,12 +121,13 @@
 
 .message-input-inner {
   display: flex;
+  align-items: flex-end;
   gap: var(--spacing-sm);
   width: 100%;
   max-width: 768px;
 }
 
-.message-input input {
+.message-input textarea {
   flex: 1;
   padding: var(--spacing-sm) var(--spacing-md);
   background: var(--color-bg-input);
@@ -134,18 +135,23 @@
   border-radius: var(--radius);
   color: var(--color-text-primary);
   font-size: var(--font-size-base);
+  font-family: inherit;
+  resize: none;
+  max-height: 150px;
+  overflow-y: auto;
+  line-height: 1.4;
 }
 
-.message-input input:focus {
+.message-input textarea:focus {
   outline: none;
   border-color: var(--color-accent);
 }
 
-.message-input input::placeholder {
+.message-input textarea::placeholder {
   color: var(--color-text-muted);
 }
 
-.message-input input:disabled {
+.message-input textarea:disabled {
   opacity: 0.5;
 }
 
@@ -213,7 +219,7 @@
     padding: var(--spacing-sm) var(--spacing-md);
   }
 
-  .message-input input {
+  .message-input textarea {
     font-size: 16px;
   }
 

@@ -101,6 +101,13 @@ export default function ThreadView(props) {
     });
   });
 
+  function resizeTextarea() {
+    if (!inputRef) return;
+    inputRef.style.height = 'auto';
+    inputRef.style.height = Math.min(inputRef.scrollHeight, inputRef.clientHeight || 999) + 'px';
+    inputRef.style.height = Math.min(inputRef.scrollHeight, 150) + 'px';
+  }
+
   async function sendMessage() {
     const content = inputText().trim();
     if (!content || sending()) return;
@@ -111,6 +118,7 @@ export default function ThreadView(props) {
     try {
       await api.sendMessage(props.threadId, content);
       setInputText('');
+      resizeTextarea();
     } catch (err) {
       console.error('Failed to send message:', err);
     } finally {
@@ -292,19 +300,27 @@ export default function ThreadView(props) {
               onStageChange={handleSlashMenuStageChange}
               onDismiss={dismissSlashMenu}
             />
-            <input
+            <textarea
               ref={inputRef}
-              type="text"
+              rows="1"
               placeholder={canInteract()
                 ? (slashMenuStage()
                   ? "Type to filter..."
                   : "Type / for commands, or send a message...")
                 : "Thread is concluded"}
               value={inputText()}
-              onInput={(e) => setInputText(e.target.value)}
+              onInput={(e) => {
+                setInputText(e.target.value);
+                resizeTextarea();
+              }}
               onFocus={() => setInputFocused(true)}
               onBlur={() => setInputFocused(false)}
-              onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                  e.preventDefault();
+                  sendMessage();
+                }
+              }}
               disabled={!canInteract() || sending()}
             />
             <button onClick={sendMessage} disabled={!canInteract() || sending() || !inputText().trim() || inputText().startsWith('/')}>
