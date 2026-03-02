@@ -2,14 +2,17 @@ import { createSignal, createEffect, onCleanup, For, Show } from 'solid-js';
 import { api } from '../api.js';
 import '../styles/slash-commands.css';
 
-const COMMANDS = [
-  { name: 'invite', description: 'Add an expert to this session', hasArg: 'expert-invite' },
-  { name: 'kick', description: 'Remove an expert from this session', hasArg: 'expert-kick', confirm: true },
-  { name: 'pause', description: 'Pause the session', hasArg: false },
-  { name: 'wrap-it-up', description: 'Wrap up and conclude the session', hasArg: false, confirm: true },
-  { name: 'extend', description: 'Extend the session by more turns', hasArg: 'turns' },
-  { name: 'archive', description: 'Archive this session', hasArg: false, confirm: true },
-];
+function getCommands(threadStatus) {
+  const isPaused = threadStatus === 'paused';
+  return [
+    { name: 'invite', description: 'Add an expert to this session', hasArg: 'expert-invite' },
+    { name: 'kick', description: 'Remove an expert from this session', hasArg: 'expert-kick', confirm: true },
+    { name: isPaused ? 'resume' : 'pause', description: isPaused ? 'Resume the session' : 'Pause the session', hasArg: false },
+    { name: 'wrap-it-up', description: 'Wrap up and conclude the session', hasArg: false, confirm: true },
+    { name: 'extend', description: 'Extend the session by more turns', hasArg: 'turns' },
+    { name: 'archive', description: 'Archive this session', hasArg: false, confirm: true },
+  ];
+}
 
 const TURN_OPTIONS = [
   { value: 5, label: '5 turns' },
@@ -69,7 +72,7 @@ export default function SlashCommandMenu(props) {
 
   function filteredCommands() {
     const filter = filterText().toLowerCase();
-    return COMMANDS.filter(cmd => cmd.name.startsWith(filter));
+    return getCommands(props.threadStatus).filter(cmd => cmd.name.startsWith(filter));
   }
 
   function filteredExperts() {
@@ -98,9 +101,9 @@ export default function SlashCommandMenu(props) {
     return [];
   }
 
-  // Look up the COMMANDS entry for the pending confirm command
+  // Look up the command entry for the pending confirm command
   function pendingCommand() {
-    return COMMANDS.find(c => c.name === pendingConfirm());
+    return getCommands(props.threadStatus).find(c => c.name === pendingConfirm());
   }
 
   function selectItem(index) {

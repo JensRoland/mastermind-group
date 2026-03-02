@@ -90,6 +90,9 @@ export default function ThreadView(props) {
           ...(data.current_turn !== undefined ? { current_turn: data.current_turn } : {}),
         } : prev);
       }
+      if (data.type === 'thread_archived' && data.threadId === props.threadId) {
+        navigate('threads');
+      }
     });
 
     onCleanup(() => {
@@ -169,6 +172,7 @@ export default function ThreadView(props) {
 
     switch (command) {
       case 'pause':
+      case 'resume':
         handlePauseResume();
         break;
       case 'wrap-it-up':

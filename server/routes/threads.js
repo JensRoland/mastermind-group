@@ -260,6 +260,7 @@ router.patch('/:id/archive', (req, res) => {
   db.prepare('UPDATE threads SET archived = 1 WHERE id = ?').run(thread.id);
   console.log(`${threadTag(thread)} Archived`);
 
+  broadcast(thread.id, { type: 'thread_archived', threadId: thread.id });
   broadcastGlobal({ type: 'thread_list_update' });
   res.json({ ok: true });
 });
