@@ -266,7 +266,7 @@
 .expert-select-card-likes {
   position: absolute;
   top: var(--spacing-xs);
-  right: var(--spacing-xs);
+  right: var(--spacing-sm);
   display: inline-flex;
   align-items: center;
   gap: 2px;
