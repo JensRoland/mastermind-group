@@ -71,9 +71,13 @@ router.post('/', (req, res) => {
   const insertExpert = db.prepare(
     'INSERT INTO thread_experts (thread_id, expert_id, sort_order) VALUES (?, ?, ?)'
   );
+  const insertSystemMsg = db.prepare(
+    "INSERT INTO messages (thread_id, expert_id, role, content) VALUES (?, NULL, 'system', ?)"
+  );
   const insertMsg = db.prepare(
     "INSERT INTO messages (thread_id, expert_id, role, content) VALUES (?, NULL, 'user', ?)"
   );
+  const getExpert = db.prepare('SELECT id, name FROM experts WHERE id = ?');
 
   const createThread = db.transaction(() => {
     const result = insertThread.run(title, topic, maxTurns || DEFAULT_MAX_TURNS);
@@ -82,6 +86,11 @@ router.post('/', (req, res) => {
     expertIds.forEach((eid, i) => {
       insertExpert.run(threadId, eid, i);
     });
+
+    // Build participant list for the opening system message
+    const experts = expertIds.map(eid => getExpert.get(eid)).filter(Boolean);
+    const participantList = experts.map(e => e.name).join(', ');
+    insertSystemMsg.run(threadId, `Participants: ${participantList}`);
 
     // Seed with the topic as the first message
     insertMsg.run(threadId, topic);
