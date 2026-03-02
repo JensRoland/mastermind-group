@@ -2,6 +2,9 @@
   "name": "mastermind-client",
   "private": true,
   "type": "module",
+  "scripts": {
+    "build": "vite build"
+  },
   "dependencies": {
     "dompurify": "^3.3.1",
     "marked": "^17.0.3",

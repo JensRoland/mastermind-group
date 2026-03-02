@@ -6,6 +6,7 @@ const API_PORT = process.env.VITE_API_PORT || '8240';
 export default defineConfig({
   plugins: [solidPlugin()],
   appType: 'spa',
+  envDir: '..',
   server: {
     port: parseInt(process.env.VITE_PORT || '8242'),
     proxy: {

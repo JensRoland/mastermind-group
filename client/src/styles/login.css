@@ -17,9 +17,10 @@
 }
 
 .login-logo {
-  height: 80px;
-  width: auto;
+  height: auto;
+  width: 294px;
   margin-bottom: var(--spacing-xs);
+  mix-blend-mode: plus-lighter;
 }
 
 .login-card .subtitle {

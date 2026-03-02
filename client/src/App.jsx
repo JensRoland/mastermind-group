@@ -98,7 +98,7 @@ export default function App() {
               <button class="hamburger-btn" onClick={() => setSidebarOpen(true)}>
                 &#9776;
               </button>
-              <img src="/logotype-wide.png" alt="Mastermind Group" class="mobile-topbar-logo" />
+              <a href="/"><img src="/logotype-wide.png" alt="Mastermind Group" class="mobile-topbar-logo" /></a>
             </div>
             <Show when={activeView() === 'experts'}>
               <ExpertManager />

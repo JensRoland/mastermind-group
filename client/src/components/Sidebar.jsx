@@ -66,7 +66,7 @@ export default function Sidebar(props) {
   return (
     <div class={`sidebar ${props.open?.() ? 'open' : ''}`}>
       <div class="sidebar-header">
-        <img src="/logotype.png" alt="Mastermind Group" class="sidebar-logo" />
+        <a href="/"><img src="/logotype.png" alt="Mastermind Group" class="sidebar-logo" /></a>
         <div class="sidebar-nav">
           <button
             class={props.activeView() === 'threads' ? 'active' : ''}

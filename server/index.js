@@ -1,17 +1,19 @@
-import 'dotenv/config';
+import dotenv from 'dotenv';
 import express from 'express';
 import cors from 'cors';
 import http from 'http';
 import path from 'path';
 import { fileURLToPath } from 'url';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+dotenv.config({ path: path.resolve(__dirname, '..', '.env') });
+
 import { setupWebSocket } from './ws.js';
 import { startOrchestrator } from './orchestrator.js';
 import { runStartupChecks } from './startup-check.js';
 import { requireAuth, loginRoute, logoutRoute, checkAuthRoute, cleanupExpiredSessions } from './auth.js';
 import expertRoutes from './routes/experts.js';
 import threadRoutes from './routes/threads.js';
-
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 const app = express();
 app.use(cors({ origin: true, credentials: true }));
