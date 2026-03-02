@@ -96,7 +96,7 @@ export default function Sidebar(props) {
         </For>
 
         <Show when={threads().length === 0}>
-          <div class="empty-experts">No threads yet. Start a new discussion!</div>
+          <div class="empty-experts">No threads yet. Start a new session!</div>
         </Show>
       </div>
 

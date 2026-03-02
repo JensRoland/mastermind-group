@@ -6,6 +6,7 @@ import Sidebar from './components/Sidebar.jsx';
 import ThreadView from './components/ThreadView.jsx';
 import ExpertManager from './components/ExpertManager.jsx';
 import NewThreadModal from './components/NewThreadModal.jsx';
+import WelcomeScreen from './components/WelcomeScreen.jsx';
 import './styles/layout.css';
 
 function parseRoute(pathname) {
@@ -107,7 +108,10 @@ export default function App() {
               <ThreadView threadId={selectedThreadId()} />
             </Show>
             <Show when={activeView() === 'threads' && !selectedThreadId()}>
-              <div class="empty-state">Select a thread or start a new discussion</div>
+              <WelcomeScreen
+                onNewThread={() => setShowNewThread(true)}
+                onSelectThread={(id) => handleNavigate('threads', id)}
+              />
             </Show>
           </main>
         </div>
