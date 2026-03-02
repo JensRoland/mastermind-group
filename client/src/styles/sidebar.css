@@ -154,7 +154,7 @@ mix-blend-mode: plus-lighter;
 
 .thread-item-avatars {
   display: flex;
-  gap: -4px;
+  margin-left: auto;
 }
 
 .thread-item-avatars img {
