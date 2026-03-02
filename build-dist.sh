@@ -5,7 +5,7 @@ DIST="dist"
 
 echo "==> Cleaning previous build..."
 rm -rf "$DIST"
-mkdir -p "$DIST/server" "$DIST/client/dist" "$DIST/public/avatars" "$DIST/data"
+mkdir -p "$DIST/server" "$DIST/client/dist" "$DIST/public/avatars"
 
 echo "==> Building client..."
 pnpm run build
@@ -22,9 +22,6 @@ echo "==> Skipping server dependency install (run 'npm install --omit=dev' on ta
 
 echo "==> Copying avatars..."
 cp -r public/avatars/ "$DIST/public/avatars/" 2>/dev/null || true
-
-echo "==> Copying database..."
-cp data/mastermind.db data/mastermind.db-shm data/mastermind.db-wal "$DIST/data/" 2>/dev/null || echo "    (no database found — run seed on the target)"
 
 echo "==> Copying .env..."
 if [ -f .env ]; then

@@ -304,15 +304,15 @@
   }
 
   .message-author {
-    font-size: var(--font-size-small);
+    font-size: var(--font-size-base);
   }
 
   .message-content {
-    font-size: var(--font-size-small);
+    font-size: var(--font-size-base);
   }
 
   .system-message {
     max-width: 100%;
-    font-size: var(--font-size-xs);
+    font-size: var(--font-size-small);
   }
 }
