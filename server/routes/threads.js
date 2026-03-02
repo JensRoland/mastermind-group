@@ -48,8 +48,11 @@ router.get('/:id', (req, res) => {
   ).all(thread.id);
 
   const messages = db.prepare(
-    `SELECT m.*, e.name as expert_name, e.avatar_url as expert_avatar
-     FROM messages m LEFT JOIN experts e ON m.expert_id = e.id
+    `SELECT m.*, e.name as expert_name, e.avatar_url as expert_avatar,
+            CASE WHEN ml.message_id IS NOT NULL THEN 1 ELSE 0 END as liked
+     FROM messages m
+     LEFT JOIN experts e ON m.expert_id = e.id
+     LEFT JOIN message_likes ml ON ml.message_id = m.id
      WHERE m.thread_id = ?
      ORDER BY m.created_at ASC`
   ).all(thread.id);

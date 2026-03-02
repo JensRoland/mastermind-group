@@ -1,6 +1,7 @@
 import { Show, createSignal } from 'solid-js';
 import { marked } from 'marked';
 import DOMPurify from 'dompurify';
+import LikeButton from './LikeButton.jsx';
 import '../styles/messages.css';
 
 marked.setOptions({ breaks: true, gfm: true });
@@ -107,6 +108,9 @@ export default function MessageBubble(props) {
         <div class="message-footer">
           <Show when={msg().llm_model}>
             <span class="message-model">{msg().llm_model}</span>
+          </Show>
+          <Show when={msg().role === 'expert'}>
+            <LikeButton messageId={msg().id} liked={!!msg().liked} />
           </Show>
           <CopyButton text={msg().content} />
         </div>

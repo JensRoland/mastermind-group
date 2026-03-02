@@ -275,10 +275,25 @@
   text-overflow: ellipsis;
 }
 
+.expert-card-meta {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
 .expert-card-model {
   font-size: var(--font-size-xs);
   color: var(--color-text-muted);
   font-family: var(--font-mono);
+}
+
+.expert-card-likes {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  font-size: var(--font-size-xs);
+  color: var(--color-orange);
+  font-weight: 600;
 }
 
 .expert-card-actions {
