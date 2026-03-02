@@ -1,0 +1,111 @@
+.welcome-screen {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-xl);
+}
+
+.welcome-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-lg);
+  max-width: 360px;
+  width: 100%;
+}
+
+.welcome-heading {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-base);
+  text-align: center;
+  margin: 0;
+}
+
+.welcome-new-btn {
+  width: 100%;
+  padding: var(--spacing-md) var(--spacing-lg);
+  background: var(--color-accent);
+  border: 1px solid var(--color-accent-hover);
+  border-radius: var(--radius);
+  color: var(--color-text-bright);
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.welcome-new-btn:hover {
+  background: var(--color-accent-hover);
+}
+
+.welcome-recent {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.welcome-recent-label {
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-text-muted);
+}
+
+.welcome-recent-card {
+  padding: var(--spacing-md);
+  background: var(--color-bg-secondary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.welcome-recent-card:hover {
+  background: var(--color-bg-hover);
+  border-color: var(--color-border-light);
+}
+
+.welcome-recent-avatars {
+  display: flex;
+  margin-top: var(--spacing-md);
+}
+
+.welcome-recent-avatars img {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 2px solid var(--color-bg-secondary);
+  margin-left: -8px;
+  transition: border-color 0.15s;
+}
+
+.welcome-recent-avatars img:first-child {
+  margin-left: 0;
+}
+
+.welcome-recent-card:hover .welcome-recent-avatars img {
+  border-color: var(--color-bg-hover);
+}
+
+.welcome-recent-info {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}
+
+.welcome-recent-title {
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  color: var(--color-text-bright);
+}
+
+.welcome-recent-meta {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+}
