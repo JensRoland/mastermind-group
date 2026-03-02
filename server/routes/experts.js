@@ -4,7 +4,7 @@ import fs from 'fs';
 import sharp from 'sharp';
 import { fileURLToPath } from 'url';
 import db from '../db.js';
-import { generateExpertDescription } from '../anthropic.js';
+import { callLLM } from '../llm.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const avatarDir = path.join(__dirname, '..', '..', 'public', 'avatars');
@@ -21,11 +21,26 @@ router.post('/generate-description', async (req, res) => {
   }
 
   try {
-    const description = await generateExpertDescription(name.trim());
+    const description = await callLLM('anthropic/claude-opus-4.6', [
+      {
+        role: 'user',
+        content: `Write a persona description for an AI roundtable expert named "${name.trim()}".
+
+The description should be 3-5 sentences that capture:
+- Who this person is (their role, accomplishments, domain expertise)
+- Their key ideas, frameworks, or intellectual contributions
+- Their communication style and how they think
+- What makes their perspective distinctive in a group discussion
+
+The description will be used as a system prompt to make an AI embody this person in roundtable discussions with other experts. It should be specific enough to produce distinct, recognizable behavior.
+
+Write ONLY the description paragraph — no preamble, no quotes, no labels. Write in third person present tense (e.g., "Known for..." not "You are known for...").`,
+      },
+    ]);
     res.json({ description });
   } catch (err) {
     console.error('Description generation error:', err.message);
-    res.status(500).json({ error: 'Failed to generate description. Check that ANTHROPIC_API_KEY is set.' });
+    res.status(500).json({ error: 'Failed to generate description' });
   }
 });
 
