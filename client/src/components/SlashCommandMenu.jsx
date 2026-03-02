@@ -23,24 +23,24 @@ export default function SlashCommandMenu(props) {
   const [allExperts, setAllExperts] = createSignal([]);
   const [filterText, setFilterText] = createSignal('');
 
-  // Reset state when menu opens/closes
-  createEffect(() => {
-    if (props.visible) {
+  // Reset state when menu becomes visible
+  createEffect((prev) => {
+    const vis = props.visible;
+    if (vis && !prev) {
       setStage('commands');
       setSelectedIndex(0);
       setFilterText('');
     }
-  });
+    return vis;
+  }, false);
 
-  // Extract filter text from input for command stage
+  // Extract filter text from input
   createEffect(() => {
     if (!props.visible) return;
     const text = props.inputText;
     if (stage() === 'commands') {
-      // Input is like "/inv" — extract the part after "/"
       setFilterText(text.slice(1));
     } else {
-      // In argument stage, the full input is the filter
       setFilterText(text);
     }
   });
@@ -112,7 +112,6 @@ export default function SlashCommandMenu(props) {
     }
   }
 
-  // Called by parent on keydown
   function handleKeyDown(e) {
     if (!props.visible) return false;
 
@@ -150,8 +149,8 @@ export default function SlashCommandMenu(props) {
     return false;
   }
 
-  // Expose handleKeyDown to parent via callback
-  if (props.onReady) props.onReady({ handleKeyDown });
+  // Expose handleKeyDown via the shared ref object
+  if (props.menuRef) props.menuRef.handleKeyDown = handleKeyDown;
 
   return (
     <Show when={props.visible}>

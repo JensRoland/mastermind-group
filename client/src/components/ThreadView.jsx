@@ -296,7 +296,7 @@ export default function ThreadView(props) {
               onExecute={handleSlashCommand}
               onStageChange={handleSlashMenuStageChange}
               onDismiss={dismissSlashMenu}
-              onReady={(ref) => { menuRef = ref; }}
+              menuRef={menuRef}
             />
             <input
               ref={inputRef}
