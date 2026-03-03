@@ -1,163 +1,38 @@
-# Mastermind Group
+<!-- markdownlint-disable MD041 -->
+![Mastermind Group](client/public/logotype-wide.png)
 
-A meeting of AI-simulated minds.
+*What if you had the world's most successful business leaders on speed dial?*
 
-Configure AI "expert" personas — each backed by a different LLM via OpenRouter — and set them loose in structured, round-robin discussions on any topic. Observe the conversation in real time, interject as a moderator, request a wrap-up, or extend the debate.
+Imagine sparring on your business strategy with Jeff Bezos, Tim Cook, Jensen Huang, Steve Jobs, Elon Musk, Satya Nadella, Mark Zuckerberg, and Jack Ma Yun — at a moment's notice.
+
+Or being a fly on the wall during a passionate debate between Sam Altman, Yoshua Bengio, Leo Feng, Demis Hassabis, Geoffrey Hinton, Yann LeCun, and Ilya Sutskever on the path to Artificial General Intelligence.
+
+Or having Margaret Atwood, John Steinbeck, and Virginia Woolf review your unfinished novel and help you nail the ending.
+
+The concept of a *mastermind group* — coined by Napoleon Hill — is a small, peer-to-peer mentoring circle where like-minded individuals meet regularly to exchange ideas, challenge assumptions, and hold each other accountable. The idea is simple: collective intelligence accelerates what no single mind can do alone. **Mastermind Group** takes that concept and removes the biggest constraint — *who* gets to be in the room.
+
+Create AI expert personas — each backed by a different LLM via OpenRouter — and set them loose in structured, autonomous roundtable discussions on any topic. Observe the conversation in real time, interject as a moderator, request a wrap-up, or extend the debate.
+
+![Session view](docs/mastermind-session.png)
+
+Add experts to your roster over time and mix and match them across discussions. Build a personal board of advisors, a think tank for your startup, or a virtual writers' room for your next novel.
+
+Living or dead, real or fictional — anything goes. Today's frontier AI models have internalized everything these figures ever said or wrote, and can channel their perspectives, reasoning styles, and blind spots with uncanny accuracy.
+
+The prevailing AI narrative focuses on replacing entry- and mid-level workers — customer service reps, copywriters, analysts, junior engineers — with "good enough" algorithms at a fraction of the cost. But why stop there? What if instead of automating the bottom of the org chart, you could summon the *top* — the founders, the Nobel laureates, the visionaries — and put them to work on *your* problems?
+
+![Expert personas](docs/mastermind-experts.png)
 
 ## Features
 
-- **Expert personas** — Create named AI experts with descriptions, avatar images, and individually assigned LLM models
-- **Threaded discussions** — Start discussions with a topic, pick which experts to invite, and set a turn limit to control costs
-- **Autonomous orchestration** — Discussions continue server-side whether the browser is open or not
-- **Real-time updates** — WebSocket-powered live message streaming
-- **Moderator controls** — Interject with follow-up questions, wrap up for concluding remarks, extend turns, or pause/resume
-- **Wrap-up summaries** — AI-generated structured summary after wrap-up, covering consensus, disagreements, key insights, and actionable recommendations
-- **Thinking indicator** — Real-time display of which expert is currently composing their response
-- **Markdown rendering** — Expert responses rendered with full markdown support (via marked + DOMPurify)
-- **Prompt engineering** — 12-rule system prompt enforces critical thinking, genuine engagement, concise responses, and convergence toward actionable conclusions
-- **Single-user auth** — Password login with scrypt hashing and server-side brute-force throttling (5-minute cooldown)
+- **Custom expert personas** — Create named AI experts with bios, avatars, and individually assigned LLM models
+- **Autonomous roundtables** — Discussions run server-side on a tick loop, whether the browser is open or not
+- **Real-time streaming** — Watch the conversation unfold live via WebSockets
+- **Moderator controls** — Interject with follow-up questions, request a wrap-up, extend turns, or pause/resume
+- **AI-generated summaries** — Structured wrap-up covering consensus, disagreements, key insights, and actionable recommendations
+- **Model-agnostic** — Mix and match any models available on OpenRouter, from GPT 5.2 to Claude to Gemini to open-weight models
+- **Self-hosted** — Runs on a single Node.js server with SQLite; no external services beyond an OpenRouter API key
 
-## Tech Stack
+## Getting Started
 
-| Layer            | Technology                        |
-| ---------------- | --------------------------------- |
-| Frontend         | SolidJS, Vite, vanilla CSS        |
-| Backend          | Node.js, Express                  |
-| Database         | SQLite (better-sqlite3, WAL mode) |
-| LLM gateway      | OpenRouter API                    |
-| Real-time        | WebSockets (ws)                   |
-| Image processing | sharp                             |
-| Package manager  | pnpm (workspaces monorepo)        |
-
-## Project Structure
-
-```sh
-├── server/
-│   ├── index.js             # Express app entry point
-│   ├── auth.js              # Password auth + session management
-│   ├── config.js            # Shared constants (default turn limits, etc.)
-│   ├── db.js                # SQLite schema + init
-│   ├── orchestrator.js      # Autonomous discussion engine (5s tick loop)
-│   ├── llm.js               # OpenRouter API client
-│   ├── prompts.js           # System prompt + message history builder
-│   ├── startup-check.js     # Integrity checks on server start
-│   ├── ws.js                # WebSocket server
-│   ├── setup-password.js    # CLI tool to set the login password
-│   └── routes/
-│       ├── experts.js       # Expert CRUD + avatar processing
-│       └── threads.js       # Thread CRUD + moderator actions
-└── client/
-    └── src/
-        ├── App.jsx          # Root component + auth gate
-        ├── api.js           # REST API client
-        ├── ws.js            # WebSocket client
-        ├── components/      # LoginScreen, Sidebar, ThreadView, etc.
-        └── styles/          # Vanilla CSS (variables, layout, theme)
-```
-
-## Setup
-
-**Prerequisites:** Node.js (v18+), pnpm
-
-### 1. Install dependencies
-
-```sh
-pnpm install
-```
-
-### 2. Configure environment
-
-Create a `.env` file in the project root:
-
-```env
-OPENROUTER_API_KEY=sk-or-...    # Required — OpenRouter API key
-PORT=4240                       # Optional — production server port (default: 4240)
-VITE_API_PORT=8240              # Optional — dev API server port (default: 8240)
-VITE_PORT=8242                  # Optional — dev Vite server port (default: 8242)
-```
-
-Both the server and the Vite dev server load from this single root `.env` file.
-
-### 3. Set the login password
-
-```sh
-node server/setup-password.js
-```
-
-This interactive CLI prompt hashes your password and stores it in the SQLite database.
-
-### 4. Seed expert personas (optional)
-
-```sh
-pnpm run seed
-```
-
-Loads 12 pre-built expert personas into the database. Existing experts with the same name are skipped.
-
-### 5. Run in development
-
-```sh
-pnpm run dev
-```
-
-This starts both the API server (port 8240) and the Vite dev server (port 8242) with hot reload.
-
-### 6. Production
-
-Build the client, then start the server:
-
-```sh
-pnpm run build
-pnpm run start
-```
-
-The server serves the built frontend and API on a single port (default 4240, override with `PORT`).
-
-**Deploying to a server:**
-
-```sh
-./build-dist.sh
-```
-
-This builds the client, installs production server dependencies, and bundles everything into a `dist/` folder ready to upload. On the target, run `node server/index.js` to start. Only Node.js is required.
-
-**Amazon LightSail:**
-
-You'll need to create the `/opt/bitnami/projects/mastermind` folder and `sudo chown $USER` it, configure the Apache vhosts, and install `rsync`, `python3` and `build-essential`.
-
-And before you can install better-sqlite on LightSail, install `gcc`, `make`, etc. and add swap space because compiling takes a lot of RAM:
-
-```sh
-sudo fallocate -l 1G /swapfile
-sudo chmod 600 /swapfile
-sudo mkswap /swapfile
-sudo swapon /swapfile
-
-cd server
-pnpm install
-
-sudo swapoff /swapfile
-sudo rm /swapfile
-```
-
-The VHOST setup for LightSail with Apache looks something like:
-
-```apache
-<VirtualHost 127.0.0.1:80 _default_:80>
-  ServerName www.example.com
-  ServerAlias *
-  DocumentRoot /opt/bitnami/projects/mastermind/client/dist
-  <Directory "/opt/bitnami/projects/mastermind/client/dist">
-    Options -Indexes +FollowSymLinks -MultiViews
-    AllowOverride All
-    Require all granted
-  </Directory>
-  RewriteEngine On
-  RewriteCond %{HTTP:Upgrade} websocket [NC]
-  RewriteCond %{HTTP:Connection} upgrade [NC]
-  RewriteRule ^/ws$ ws://localhost:4240/ws [P,L]
-
-  ProxyPass / http://localhost:4240/
-  ProxyPassReverse / http://localhost:4240/
-</VirtualHost>
-```
+See [docs/SETUP.md](docs/SETUP.md) for installation, configuration, and deployment instructions.

@@ -31,6 +31,7 @@ body {
 .app-shell {
   display: flex;
   height: 100vh;
+  height: 100dvh;
   background: var(--color-bg-primary);
 }
 

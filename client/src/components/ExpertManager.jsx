@@ -132,24 +132,37 @@ export default function ExpertManager() {
           <For each={experts()}>
             {(expert) => (
               <div class="expert-card">
-                <label class="expert-card-checkbox" onClick={(e) => e.stopPropagation()}>
-                  <input
-                    type="checkbox"
-                    checked={selectedIds().has(expert.id)}
-                    onChange={() => toggleSelect(expert.id)}
-                  />
-                </label>
+                <div class="expert-card-actions">
+                  <button class="btn-icon" onClick={() => handleEdit(expert)} title="Edit">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M17 3a2.85 2.85 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/>
+                    </svg>
+                  </button>
+                  <button class="btn-icon btn-icon-danger" onClick={() => handleDelete(expert)} title="Delete">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>
+                    </svg>
+                  </button>
+                </div>
                 <img
                   src={expert.avatar_url || '/avatars/default.png'}
                   alt={expert.name}
                   onError={(e) => { e.target.src = '/avatars/default.png'; e.target.onerror = null; }}
                 />
                 <div class="expert-card-info">
-                  <div class="expert-card-name">{expert.name}</div>
+                  <div class="expert-card-name">
+                    <label class="expert-card-checkbox" onClick={(e) => e.stopPropagation()}>
+                      <input
+                        type="checkbox"
+                        checked={selectedIds().has(expert.id)}
+                        onChange={() => toggleSelect(expert.id)}
+                      />
+                    </label>
+                    {expert.name}
+                  </div>
                   <div class="expert-card-specialty">{expert.specialty}</div>
                   <div class="expert-card-desc">{expert.description}</div>
                   <div class="expert-card-meta">
-                    <span class="expert-card-model">{expert.llm_model}</span>
                     <Show when={expert.total_likes > 0}>
                       <span class="expert-card-likes">
                         <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" stroke="none">
@@ -158,11 +171,8 @@ export default function ExpertManager() {
                         {expert.total_likes}
                       </span>
                     </Show>
+                    <span class="expert-card-model">{(expert.llm_model || '').replace(/^[^/]+\//, '')}</span>
                   </div>
-                </div>
-                <div class="expert-card-actions">
-                  <button class="btn-secondary" onClick={() => handleEdit(expert)}>Edit</button>
-                  <button class="btn-danger" onClick={() => handleDelete(expert)}>Delete</button>
                 </div>
               </div>
             )}
