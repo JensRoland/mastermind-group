@@ -334,10 +334,16 @@
 }
 
 .expert-manager-header {
+  position: sticky;
+  top: calc(-1 * var(--spacing-xl));
+  z-index: 10;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: var(--spacing-xl);
+  margin: calc(-1 * var(--spacing-xl)) calc(-1 * var(--spacing-xl)) var(--spacing-xl);
+  padding: var(--spacing-lg) var(--spacing-xl);
+  background: var(--color-bg-primary);
+  border-bottom: 1px solid var(--color-border);
 }
 
 .expert-manager-header h2 {
@@ -346,12 +352,13 @@
 }
 
 .expert-list {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(320px, 100%), 1fr));
   gap: var(--spacing-md);
 }
 
 .expert-card {
+  position: relative;
   display: flex;
   align-items: center;
   gap: var(--spacing-lg);
@@ -359,11 +366,13 @@
   background: var(--color-bg-secondary);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
+  min-width: 0;
+  overflow: hidden;
 }
 
 .expert-card img {
-  width: 48px;
-  height: 48px;
+  width: 64px;
+  height: 64px;
   border-radius: var(--radius);
   object-fit: cover;
   flex-shrink: 0;
@@ -375,9 +384,13 @@
 }
 
 .expert-card-name {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
   font-weight: 700;
   color: var(--color-text-bright);
   font-size: var(--font-size-base);
+  padding-right: 72px;
 }
 
 .expert-card-specialty {
@@ -403,6 +416,7 @@
   font-size: var(--font-size-xs);
   color: var(--color-text-muted);
   font-family: var(--font-mono);
+  margin-left: auto;
 }
 
 .expert-card-likes {
@@ -415,14 +429,40 @@
 }
 
 .expert-card-actions {
+  position: absolute;
+  top: var(--spacing-lg);
+  right: var(--spacing-lg);
   display: flex;
-  gap: var(--spacing-sm);
-  flex-shrink: 0;
+  gap: var(--spacing-xs);
 }
 
-.expert-card-actions button {
-  padding: var(--spacing-xs) var(--spacing-md);
-  font-size: var(--font-size-small);
+.btn-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  background: transparent;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.btn-icon:hover {
+  background: var(--color-bg-hover);
+  color: var(--color-text-primary);
+}
+
+.btn-icon-danger {
+  border-color: var(--color-red);
+  color: var(--color-red);
+}
+
+.btn-icon-danger:hover {
+  background: rgba(224, 30, 90, 0.1);
 }
 
 .expert-card-checkbox {
@@ -515,6 +555,57 @@
 .bulk-action-combobox input:focus {
   outline: none;
   border-color: var(--color-accent);
+}
+
+@media (max-width: 768px) {
+  .modal {
+    padding: var(--spacing-lg);
+  }
+
+  .modal h2 {
+    margin-bottom: var(--spacing-md);
+  }
+
+  /* New Session: 2-column expert grid on small screens */
+  .expert-group-cards {
+    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  }
+
+  .expert-select-card {
+    padding: var(--spacing-sm);
+  }
+
+  .expert-select-card img {
+    width: 56px;
+    height: 56px;
+  }
+
+  /* Expert Manager: single column, compact cards */
+  .expert-list {
+    grid-template-columns: 1fr;
+  }
+
+  .expert-card {
+    gap: var(--spacing-md);
+    padding: var(--spacing-md);
+  }
+
+  .expert-card img {
+    width: 40px;
+    height: 40px;
+  }
+
+  .expert-card-actions {
+    top: var(--spacing-md);
+    right: var(--spacing-md);
+  }
+
+  /* Form inputs: prevent Safari auto-zoom */
+  .form-group input:not([type="checkbox"]):not([type="radio"]),
+  .form-group textarea,
+  .form-group select {
+    font-size: 16px;
+  }
 }
 
 .combobox-dropdown-up {
