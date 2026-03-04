@@ -254,6 +254,9 @@ export default function ThreadView(props) {
             <button class="danger" onClick={handleWrapUp} disabled={!canInteract()}>
               Wrap It Up
             </button>
+            <button onClick={() => api.exportThread(props.threadId)} title="Download as Markdown">
+              Export
+            </button>
           </div>
         </header>
 
