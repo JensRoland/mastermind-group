@@ -111,12 +111,41 @@ router.post('/', (req, res) => {
 router.post('/:id/message', (req, res) => {
   const thread = db.prepare('SELECT * FROM threads WHERE id = ?').get(req.params.id);
   if (!thread) return res.status(404).json({ error: 'Thread not found' });
-  if (thread.status === 'concluded') {
-    return res.status(400).json({ error: 'Thread is concluded' });
-  }
-
   const { content } = req.body;
   if (!content) return res.status(400).json({ error: 'Content is required' });
+
+  // If concluded, reopen the thread with extended turns
+  if (thread.status === 'concluded') {
+    const extraTurns = 10;
+    const newMaxTurns = thread.current_turn + extraTurns;
+    db.prepare('UPDATE threads SET status = ?, max_turns = ?, wrapping_up = 0 WHERE id = ?')
+      .run('active', newMaxTurns, thread.id);
+    console.log(`${threadTag(thread)} Reopened via user message (extended to ${newMaxTurns} turns)`);
+
+    const reopenMsg = db.prepare(
+      "INSERT INTO messages (thread_id, expert_id, role, content) VALUES (?, NULL, 'system', ?)"
+    ).run(thread.id, 'The moderator has reopened the discussion.');
+
+    broadcast(thread.id, {
+      type: 'new_message',
+      message: {
+        id: Number(reopenMsg.lastInsertRowid),
+        thread_id: thread.id,
+        expert_id: null,
+        role: 'system',
+        content: 'The moderator has reopened the discussion.',
+        created_at: new Date().toISOString(),
+      },
+    });
+    broadcast(thread.id, {
+      type: 'thread_status',
+      threadId: thread.id,
+      status: 'active',
+      max_turns: newMaxTurns,
+      current_turn: thread.current_turn,
+    });
+    broadcastGlobal({ type: 'thread_list_update' });
+  }
 
   // If paused, resume the thread
   if (thread.status === 'paused') {
