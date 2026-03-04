@@ -49,6 +49,14 @@ export const api = {
   addExpertToThread: (threadId, expertId) => request(`/threads/${threadId}/experts`, { method: 'POST', body: JSON.stringify({ expertId }) }),
   removeExpertFromThread: (threadId, expertId) => request(`/threads/${threadId}/experts/${expertId}`, { method: 'DELETE' }),
 
+  // Export
+  exportThread: (id) => {
+    const a = document.createElement('a');
+    a.href = `${BASE}/threads/${id}/export`;
+    a.download = '';
+    a.click();
+  },
+
   // Likes
   toggleLike: (messageId) => request(`/messages/${messageId}/like`, { method: 'POST' }),
 };

@@ -252,6 +252,47 @@ router.put('/:id/status', (req, res) => {
   res.json({ ok: true, status });
 });
 
+// GET /api/threads/:id/export — download thread as Markdown
+router.get('/:id/export', (req, res) => {
+  const thread = db.prepare('SELECT * FROM threads WHERE id = ?').get(req.params.id);
+  if (!thread) return res.status(404).json({ error: 'Thread not found' });
+
+  const messages = db.prepare(
+    `SELECT m.*, e.name as expert_name
+     FROM messages m
+     LEFT JOIN experts e ON m.expert_id = e.id
+     WHERE m.thread_id = ?
+     ORDER BY m.created_at ASC`
+  ).all(thread.id);
+
+  const experts = db.prepare(
+    `SELECT e.name FROM thread_experts te
+     JOIN experts e ON e.id = te.expert_id
+     WHERE te.thread_id = ? ORDER BY te.sort_order`
+  ).all(thread.id);
+
+  let md = `# ${thread.title}\n\n`;
+  md += `**Topic:** ${thread.topic}\n\n`;
+  md += `**Participants:** ${experts.map(e => e.name).join(', ')}\n\n`;
+  md += `**Date:** ${thread.created_at}\n\n`;
+  md += `---\n\n`;
+
+  for (const msg of messages) {
+    if (msg.role === 'system') {
+      md += `*${msg.content}*\n\n`;
+    } else if (msg.role === 'user') {
+      md += `### Moderator\n\n${msg.content}\n\n`;
+    } else {
+      md += `### ${msg.expert_name || 'Unknown'}\n\n${msg.content}\n\n`;
+    }
+  }
+
+  const filename = thread.title.replace(/[^a-zA-Z0-9 ]/g, '').replace(/\s+/g, '-').toLowerCase();
+  res.setHeader('Content-Type', 'text/markdown; charset=utf-8');
+  res.setHeader('Content-Disposition', `attachment; filename="${filename}.md"`);
+  res.send(md);
+});
+
 // PATCH /api/threads/:id/archive
 router.patch('/:id/archive', (req, res) => {
   const thread = db.prepare('SELECT * FROM threads WHERE id = ?').get(req.params.id);
