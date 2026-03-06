@@ -59,4 +59,10 @@ export const api = {
 
   // Likes
   toggleLike: (messageId) => request(`/messages/${messageId}/like`, { method: 'POST' }),
+
+  // Settings
+  getSettings: () => request('/settings'),
+  setModeratorName: (name) => request('/settings/moderator-name', { method: 'PUT', body: JSON.stringify({ name }) }),
+  changePassword: (currentPassword, newPassword) => request('/settings/password', { method: 'PUT', body: JSON.stringify({ currentPassword, newPassword }) }),
+  setApiKey: (apiKey) => request('/settings/api-key', { method: 'PUT', body: JSON.stringify({ apiKey }) }),
 };

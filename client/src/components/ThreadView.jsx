@@ -263,7 +263,7 @@ export default function ThreadView(props) {
         <div class="messages-container" ref={messagesContainer}>
           <div class="messages-inner">
             <For each={messages()}>
-              {(msg) => <MessageBubble message={msg} />}
+              {(msg) => <MessageBubble message={msg} moderatorName={props.moderatorName} />}
             </For>
             <Show when={thinkingExpert()}>
               {(expert) => (
@@ -280,7 +280,7 @@ export default function ThreadView(props) {
                   <div class="message-body">
                     <div class="thinking-text">
                       {expert().id === null
-                        ? 'Moderator is summarizing the discussion...'
+                        ? `${expert().name || 'Moderator'} is summarizing the discussion...`
                         : `${expert().name} is thinking...`}
                     </div>
                   </div>

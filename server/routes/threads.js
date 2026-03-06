@@ -3,6 +3,7 @@ import db from '../db.js';
 import { broadcast, broadcastGlobal } from '../ws.js';
 import { getThinkingExpert } from '../orchestrator.js';
 import { DEFAULT_MAX_TURNS } from '../config.js';
+import { getModeratorName } from '../auth.js';
 
 const router = Router();
 
@@ -122,9 +123,11 @@ router.post('/:id/message', (req, res) => {
       .run('active', newMaxTurns, thread.id);
     console.log(`${threadTag(thread)} Reopened via user message (extended to ${newMaxTurns} turns)`);
 
+    const modLabel = getModeratorName() || 'The moderator';
+    const reopenText = `${modLabel} has reopened the discussion.`;
     const reopenMsg = db.prepare(
       "INSERT INTO messages (thread_id, expert_id, role, content) VALUES (?, NULL, 'system', ?)"
-    ).run(thread.id, 'The moderator has reopened the discussion.');
+    ).run(thread.id, reopenText);
 
     broadcast(thread.id, {
       type: 'new_message',
@@ -133,7 +136,7 @@ router.post('/:id/message', (req, res) => {
         thread_id: thread.id,
         expert_id: null,
         role: 'system',
-        content: 'The moderator has reopened the discussion.',
+        content: reopenText,
         created_at: new Date().toISOString(),
       },
     });
@@ -187,7 +190,8 @@ router.post('/:id/wrapup', (req, res) => {
     'SELECT COUNT(*) as count FROM thread_experts WHERE thread_id = ?'
   ).get(thread.id);
 
-  const wrapupMessage = 'The moderator has asked the group to wrap up. Each participant should provide their concluding thoughts, key takeaways, and any actionable recommendations. Be concise and direct.';
+  const modLabel = getModeratorName() || 'The moderator';
+  const wrapupMessage = `${modLabel} has asked the group to wrap up. Each participant should provide their concluding thoughts, key takeaways, and any actionable recommendations. Be concise and direct.`;
 
   db.prepare(
     "INSERT INTO messages (thread_id, expert_id, role, content) VALUES (?, NULL, 'system', ?)"
@@ -306,11 +310,12 @@ router.get('/:id/export', (req, res) => {
   md += `**Date:** ${thread.created_at}\n\n`;
   md += `---\n\n`;
 
+  const exportModName = getModeratorName() || 'Moderator';
   for (const msg of messages) {
     if (msg.role === 'system') {
       md += `*${msg.content}*\n\n`;
     } else if (msg.role === 'user') {
-      md += `### Moderator\n\n${msg.content}\n\n`;
+      md += `### ${exportModName}\n\n${msg.content}\n\n`;
     } else {
       md += `### ${msg.expert_name || 'Unknown'}\n\n${msg.content}\n\n`;
     }

@@ -15,6 +15,7 @@ import { requireAuth, loginRoute, logoutRoute, checkAuthRoute, cleanupExpiredSes
 import expertRoutes from './routes/experts.js';
 import threadRoutes from './routes/threads.js';
 import likeRoutes from './routes/likes.js';
+import settingsRoutes from './routes/settings.js';
 
 const app = express();
 app.use(cors({ origin: true, credentials: true }));
@@ -36,6 +37,7 @@ setInterval(cleanupExpiredSessions, 60 * 60 * 1000);
 app.use('/api/experts', requireAuth, expertRoutes);
 app.use('/api/threads', requireAuth, threadRoutes);
 app.use('/api/messages', requireAuth, likeRoutes);
+app.use('/api/settings', requireAuth, settingsRoutes);
 
 // In production, serve the built client
 app.use(express.static(path.join(__dirname, '..', 'client', 'dist')));

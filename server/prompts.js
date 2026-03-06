@@ -1,4 +1,4 @@
-export function buildSystemPrompt(expert, thread, allExperts) {
+export function buildSystemPrompt(expert, thread, allExperts, moderatorName) {
   const otherExperts = allExperts
     .filter(e => e.id !== expert.id)
     .map(e => `- ${e.name}: ${e.description}`)
@@ -18,7 +18,7 @@ DISCUSSION RULES:
 4. Reference specific points made by other participants by name. Show you are actively listening.
 5. Keep responses focused and concise (2-4 paragraphs). Do not lecture or monologue.
 6. Work toward actionable conclusions. As the discussion progresses, synthesize insights and propose concrete next steps or recommendations.
-7. If the moderator asks a question or gives direction, address it directly before continuing the broader discussion.
+7. If ${moderatorName || 'the moderator'} (the moderator) asks a question or gives direction, address it directly before continuing the broader discussion.
 8. Do NOT use hollow phrases like "Great point!", "I love that idea!", "That's a fascinating perspective!" -- get straight to substance.
 9. Do NOT use meta-commentary like "As ${expert.name}, I think..." -- just speak directly as this person would.
 10. It is okay to change your mind if someone makes a compelling argument. Acknowledge the shift honestly.
@@ -26,12 +26,13 @@ DISCUSSION RULES:
 12. When you notice emerging consensus, name it explicitly and help refine it.`;
 }
 
-export function buildWrapUpSystemPrompt(expert, thread, allExperts) {
-  const base = buildSystemPrompt(expert, thread, allExperts);
+export function buildWrapUpSystemPrompt(expert, thread, allExperts, moderatorName) {
+  const base = buildSystemPrompt(expert, thread, allExperts, moderatorName);
+  const modLabel = moderatorName || 'The moderator';
   return `${base}
 
 WRAP-UP INSTRUCTIONS (OVERRIDE ALL OTHER RULES):
-The moderator has called for the discussion to wrap up. This is your FINAL contribution — no further turns will be given.
+${modLabel} has called for the discussion to wrap up. This is your FINAL contribution — no further turns will be given.
 
 REMEMBER: The original question/topic was: "${thread.topic}"
 Your closing statement must directly address this original prompt.
@@ -49,9 +50,12 @@ You MUST NOT:
 This is a closing statement, not a continuation.`;
 }
 
-export function buildSummaryPrompt(thread, allExperts) {
+export function buildSummaryPrompt(thread, allExperts, moderatorName) {
   const participants = allExperts.map(e => `- ${e.name}: ${e.description}`).join('\n');
-  return `You are the moderator of a Mastermind Group discussion. Your job is to write a concise, structured summary of the discussion that just concluded.
+  const modIdentity = moderatorName
+    ? `You are ${moderatorName}, the moderator of a Mastermind Group discussion.`
+    : 'You are the moderator of a Mastermind Group discussion.';
+  return `${modIdentity} Your job is to write a concise, structured summary of the discussion that just concluded.
 
 Topic: "${thread.topic}"
 
@@ -79,22 +83,24 @@ Guidelines:
 - The summary must culminate in recommendations that answer the original topic/question. If the discussion drifted, refocus the takeaways on the original prompt.`;
 }
 
-export function buildSummaryHistory(messages) {
+export function buildSummaryHistory(messages, moderatorName) {
+  const modLabel = moderatorName || 'Moderator';
   return messages.map(msg => {
     if (msg.role === 'system') {
       return { role: 'user', content: `[System]: ${msg.content}` };
     }
     if (msg.role === 'user') {
-      return { role: 'user', content: `[Moderator]: ${msg.content}` };
+      return { role: 'user', content: `[${modLabel}]: ${msg.content}` };
     }
     return { role: 'user', content: `[${msg.expert_name}]: ${msg.content}` };
   });
 }
 
-export function buildMessageHistory(messages, currentExpertId) {
+export function buildMessageHistory(messages, currentExpertId, moderatorName) {
+  const modLabel = moderatorName || 'Moderator';
   return messages.map(msg => {
     if (msg.role === 'user') {
-      return { role: 'user', content: `[Moderator]: ${msg.content}` };
+      return { role: 'user', content: `[${modLabel}]: ${msg.content}` };
     }
     if (msg.role === 'system') {
       return { role: 'system', content: msg.content };

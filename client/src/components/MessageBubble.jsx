@@ -87,7 +87,9 @@ export default function MessageBubble(props) {
   }
 
   const isUser = () => msg().role === 'user';
-  const authorName = () => isUser() ? 'You (Moderator)' : (msg().expert_name || 'Unknown');
+  const authorName = () => isUser()
+    ? `${props.moderatorName || 'The Moderator'} (Moderator)`
+    : (msg().expert_name || 'Unknown');
   const avatarUrl = () => msg().expert_avatar || msg().avatar_url;
 
   return (

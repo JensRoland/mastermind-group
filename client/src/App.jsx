@@ -7,6 +7,7 @@ import ThreadView from './components/ThreadView.jsx';
 import ExpertManager from './components/ExpertManager.jsx';
 import NewThreadModal from './components/NewThreadModal.jsx';
 import WelcomeScreen from './components/WelcomeScreen.jsx';
+import SettingsModal from './components/SettingsModal.jsx';
 import './styles/layout.css';
 
 function parseRoute(pathname) {
@@ -38,6 +39,8 @@ export default function App() {
   const [selectedThreadId, setSelectedThreadId] = createSignal(initial.threadId);
   const [showNewThread, setShowNewThread] = createSignal(false);
   const [sidebarOpen, setSidebarOpen] = createSignal(false);
+  const [moderatorName, setModeratorName] = createSignal(null);
+  const [showSettings, setShowSettings] = createSignal(false);
 
   function onPopState() {
     const route = parseRoute(window.location.pathname);
@@ -52,6 +55,7 @@ export default function App() {
       const result = await api.checkAuth();
       if (result.authenticated) {
         setAuthenticated(true);
+        if (result.moderatorName) setModeratorName(result.moderatorName);
         connectWebSocket();
       }
     } catch (e) {
@@ -93,6 +97,7 @@ export default function App() {
             onNewThread={() => setShowNewThread(true)}
             open={sidebarOpen}
             onNavigate={handleNavigate}
+            onOpenSettings={() => setShowSettings(true)}
           />
           <main class="main-panel">
             <div class="mobile-topbar">
@@ -105,7 +110,7 @@ export default function App() {
               <ExpertManager />
             </Show>
             <Show when={activeView() === 'threads' && selectedThreadId()}>
-              <ThreadView threadId={selectedThreadId()} />
+              <ThreadView threadId={selectedThreadId()} moderatorName={moderatorName()} />
             </Show>
             <Show when={activeView() === 'threads' && !selectedThreadId()}>
               <WelcomeScreen
@@ -120,6 +125,14 @@ export default function App() {
           <NewThreadModal
             onCreated={handleThreadCreated}
             onClose={() => setShowNewThread(false)}
+          />
+        </Show>
+
+        <Show when={showSettings()}>
+          <SettingsModal
+            moderatorName={moderatorName()}
+            onModeratorNameChange={setModeratorName}
+            onClose={() => setShowSettings(false)}
           />
         </Show>
       </Show>
