@@ -310,7 +310,7 @@ export default function ThreadView(props) {
                 ? (slashMenuStage()
                   ? "Type to filter..."
                   : "Type / for commands, or send a message...")
-                : "Thread is concluded"}
+                : "Send a message to reopen the discussion..."}
               value={inputText()}
               onInput={(e) => {
                 setInputText(e.target.value);
@@ -324,9 +324,9 @@ export default function ThreadView(props) {
                   sendMessage();
                 }
               }}
-              disabled={!canInteract() || sending()}
+              disabled={sending()}
             />
-            <button onClick={sendMessage} disabled={!canInteract() || sending() || !inputText().trim() || inputText().startsWith('/')}>
+            <button onClick={sendMessage} disabled={sending() || !inputText().trim() || inputText().startsWith('/')}>
               Send
             </button>
           </div>
