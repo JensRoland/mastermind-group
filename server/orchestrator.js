@@ -2,6 +2,7 @@ import db from './db.js';
 import { callLLM } from './llm.js';
 import { buildSystemPrompt, buildWrapUpSystemPrompt, buildMessageHistory, buildSummaryPrompt, buildSummaryHistory } from './prompts.js';
 import { broadcast, broadcastGlobal } from './ws.js';
+import { getModeratorName } from './auth.js';
 
 const TICK_INTERVAL = 5000;
 const MESSAGE_HISTORY_LIMIT = 50;
@@ -103,10 +104,11 @@ async function processThread(thread) {
   const recentMessages = allMessages.slice(-MESSAGE_HISTORY_LIMIT);
 
   // Build the LLM request (use wrap-up prompt if thread is wrapping up)
+  const moderatorName = getModeratorName();
   const systemPrompt = thread.wrapping_up
-    ? buildWrapUpSystemPrompt(currentExpert, thread, experts)
-    : buildSystemPrompt(currentExpert, thread, experts);
-  const history = buildMessageHistory(recentMessages, currentExpert.id);
+    ? buildWrapUpSystemPrompt(currentExpert, thread, experts, moderatorName)
+    : buildSystemPrompt(currentExpert, thread, experts, moderatorName);
+  const history = buildMessageHistory(recentMessages, currentExpert.id, moderatorName);
 
   const llmMessages = [
     { role: 'system', content: systemPrompt },
@@ -189,8 +191,9 @@ async function generateSummary(thread) {
      ORDER BY m.created_at ASC`
   ).all(thread.id);
 
-  const summarySystemPrompt = buildSummaryPrompt(thread, experts);
-  const summaryHistory = buildSummaryHistory(allMessages);
+  const moderatorName = getModeratorName();
+  const summarySystemPrompt = buildSummaryPrompt(thread, experts, moderatorName);
+  const summaryHistory = buildSummaryHistory(allMessages, moderatorName);
 
   const llmMessages = [
     { role: 'system', content: summarySystemPrompt },
@@ -199,7 +202,7 @@ async function generateSummary(thread) {
 
   try {
     // Notify clients that the moderator is summarizing
-    const thinkingInfo = { id: null, name: 'Moderator', avatar_url: null };
+    const thinkingInfo = { id: null, name: moderatorName || 'Moderator', avatar_url: null };
     thinkingExperts.set(thread.id, thinkingInfo);
     broadcast(thread.id, { type: 'thinking', expert: thinkingInfo });
 

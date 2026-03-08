@@ -167,7 +167,51 @@ export function logoutRoute(req, res) {
 export function checkAuthRoute(req, res) {
   const token = parseSessionCookie(req.headers.cookie);
   if (token && isValidSession(token)) {
-    return res.json({ authenticated: true });
+    return res.json({ authenticated: true, moderatorName: getModeratorName() });
   }
   res.json({ authenticated: false });
+}
+
+// --- Moderator name ---
+
+export function getModeratorName() {
+  const row = db.prepare("SELECT value FROM settings WHERE key = 'moderator_name'").get();
+  return row?.value || null;
+}
+
+export function setModeratorName(name) {
+  db.prepare(
+    `INSERT INTO settings (key, value) VALUES ('moderator_name', ?)
+     ON CONFLICT(key) DO UPDATE SET value = excluded.value`
+  ).run(name);
+}
+
+// --- OpenRouter API key ---
+
+export function getApiKey() {
+  const row = db.prepare("SELECT value FROM settings WHERE key = 'openrouter_api_key'").get();
+  return row?.value || null;
+}
+
+export function setApiKey(key) {
+  db.prepare(
+    `INSERT INTO settings (key, value) VALUES ('openrouter_api_key', ?)
+     ON CONFLICT(key) DO UPDATE SET value = excluded.value`
+  ).run(key);
+}
+
+export function getApiKeyMasked() {
+  const key = getApiKey();
+  if (!key) return null;
+  if (key.length <= 8) return '****';
+  return key.slice(0, 5) + '...' + key.slice(-4);
+}
+
+// --- Password change ---
+
+export async function changePassword(currentPassword, newPassword) {
+  const valid = await verifyPassword(currentPassword);
+  if (!valid) return { ok: false, error: 'Current password is incorrect' };
+  await setPassword(newPassword);
+  return { ok: true };
 }

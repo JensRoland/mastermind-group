@@ -1,10 +1,13 @@
+import { getApiKey } from './auth.js';
+
 const OPENROUTER_URL = 'https://openrouter.ai/api/v1/chat/completions';
 
 export async function callLLM(model, messages) {
+  const apiKey = getApiKey() || process.env.OPENROUTER_API_KEY;
   const response = await fetch(OPENROUTER_URL, {
     method: 'POST',
     headers: {
-      'Authorization': `Bearer ${process.env.OPENROUTER_API_KEY}`,
+      'Authorization': `Bearer ${apiKey}`,
       'Content-Type': 'application/json',
       'HTTP-Referer': 'https://mastermind-group.local',
       'X-Title': 'Mastermind Group',
