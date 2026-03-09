@@ -666,7 +666,7 @@
 }
 
 .settings-msg.success {
-  color: var(--color-green, #4caf50);
+  color: var(--color-green);
 }
 
 .settings-msg.error {
