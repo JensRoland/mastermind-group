@@ -15,9 +15,13 @@ export default function SettingsModal(props) {
   const [pwSaving, setPwSaving] = createSignal(false);
   const [pwMsg, setPwMsg] = createSignal(null);
 
+  // Password toggle
+  const [showPwSection, setShowPwSection] = createSignal(false);
+
   // API key
   const [apiKeyMasked, setApiKeyMasked] = createSignal(null);
   const [hasApiKey, setHasApiKey] = createSignal(false);
+  const [hasEnvApiKey, setHasEnvApiKey] = createSignal(false);
   const [newApiKey, setNewApiKey] = createSignal('');
   const [keySaving, setKeySaving] = createSignal(false);
   const [keyMsg, setKeyMsg] = createSignal(null);
@@ -28,6 +32,7 @@ export default function SettingsModal(props) {
       if (settings.moderatorName) setName(settings.moderatorName);
       setHasApiKey(settings.hasApiKey);
       setApiKeyMasked(settings.apiKeyMasked);
+      setHasEnvApiKey(settings.hasEnvApiKey);
     } catch (err) {
       console.error('Failed to load settings:', err);
     }
@@ -128,36 +133,43 @@ export default function SettingsModal(props) {
         </section>
 
         <section class="settings-section">
-          <h3>Change Password</h3>
-          <div class="form-group">
-            <label>Current password</label>
-            <input
-              type="password"
-              value={currentPw()}
-              onInput={(e) => setCurrentPw(e.target.value)}
-            />
-          </div>
-          <div class="form-group">
-            <label>New password</label>
-            <input
-              type="password"
-              value={newPw()}
-              onInput={(e) => setNewPw(e.target.value)}
-            />
-          </div>
-          <div class="form-group">
-            <label>Confirm new password</label>
-            <input
-              type="password"
-              value={confirmPw()}
-              onInput={(e) => setConfirmPw(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && savePassword()}
-            />
-          </div>
-          <button class="btn-primary" onClick={savePassword} disabled={pwSaving()}>
-            {pwSaving() ? 'Saving...' : 'Change Password'}
-          </button>
-          <StatusMsg msg={pwMsg()} />
+          <Show when={!showPwSection()}>
+            <button class="settings-pw-toggle" onClick={() => setShowPwSection(true)}>
+              Change Password
+            </button>
+          </Show>
+          <Show when={showPwSection()}>
+            <h3>Change Password</h3>
+            <div class="form-group">
+              <label>Current password</label>
+              <input
+                type="password"
+                value={currentPw()}
+                onInput={(e) => setCurrentPw(e.target.value)}
+              />
+            </div>
+            <div class="form-group">
+              <label>New password</label>
+              <input
+                type="password"
+                value={newPw()}
+                onInput={(e) => setNewPw(e.target.value)}
+              />
+            </div>
+            <div class="form-group">
+              <label>Confirm new password</label>
+              <input
+                type="password"
+                value={confirmPw()}
+                onInput={(e) => setConfirmPw(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && savePassword()}
+              />
+            </div>
+            <button class="btn-primary" onClick={savePassword} disabled={pwSaving()}>
+              {pwSaving() ? 'Saving...' : 'Change Password'}
+            </button>
+            <StatusMsg msg={pwMsg()} />
+          </Show>
         </section>
 
         <section class="settings-section">
@@ -167,6 +179,9 @@ export default function SettingsModal(props) {
           </Show>
           <Show when={!hasApiKey()}>
             <p class="settings-hint">No API key configured. Set one to enable LLM discussions.</p>
+          </Show>
+          <Show when={hasEnvApiKey()}>
+            <p class="settings-hint">The <code>OPENROUTER_API_KEY</code> environment variable is set and will be used as a fallback.</p>
           </Show>
           <div class="settings-row">
             <div class="form-group" style="flex: 1; margin-bottom: 0">
