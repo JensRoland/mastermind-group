@@ -13,6 +13,7 @@ router.get('/', (req, res) => {
     moderatorName: getModeratorName(),
     hasApiKey: !!getApiKey(),
     apiKeyMasked: getApiKeyMasked(),
+    hasEnvApiKey: !!process.env.OPENROUTER_API_KEY,
   });
 });
 
