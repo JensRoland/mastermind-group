@@ -327,6 +327,54 @@ router.get('/:id/export', (req, res) => {
   res.send(md);
 });
 
+// POST /api/threads/:id/rollback — rollback discussion to a specific message
+router.post('/:id/rollback', (req, res) => {
+  const thread = db.prepare('SELECT * FROM threads WHERE id = ?').get(req.params.id);
+  if (!thread) return res.status(404).json({ error: 'Thread not found' });
+
+  const { messageId } = req.body;
+  if (!messageId) return res.status(400).json({ error: 'messageId is required' });
+
+  const message = db.prepare('SELECT * FROM messages WHERE id = ? AND thread_id = ?').get(messageId, thread.id);
+  if (!message) return res.status(404).json({ error: 'Message not found in this thread' });
+
+  const rollback = db.transaction(() => {
+    db.prepare('DELETE FROM messages WHERE thread_id = ? AND id > ?').run(thread.id, messageId);
+
+    const { count: newTurn } = db.prepare(
+      "SELECT COUNT(*) as count FROM messages WHERE thread_id = ? AND role = 'expert' AND id <= ?"
+    ).get(thread.id, messageId);
+
+    db.prepare('UPDATE threads SET status = ?, current_turn = ?, wrapping_up = 0 WHERE id = ?')
+      .run('paused', newTurn, thread.id);
+
+    return newTurn;
+  });
+
+  const newTurn = rollback();
+
+  console.log(`${threadTag(thread)} Rolled back to message ${messageId} (turn ${newTurn})`);
+
+  broadcast(thread.id, {
+    type: 'messages_rollback',
+    threadId: thread.id,
+    messageId,
+    current_turn: newTurn,
+  });
+
+  broadcast(thread.id, {
+    type: 'thread_status',
+    threadId: thread.id,
+    status: 'paused',
+    max_turns: thread.max_turns,
+    current_turn: newTurn,
+  });
+
+  broadcastGlobal({ type: 'thread_list_update' });
+
+  res.json({ ok: true, current_turn: newTurn });
+});
+
 // PATCH /api/threads/:id/archive
 router.patch('/:id/archive', (req, res) => {
   const thread = db.prepare('SELECT * FROM threads WHERE id = ?').get(req.params.id);

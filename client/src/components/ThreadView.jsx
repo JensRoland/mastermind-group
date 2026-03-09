@@ -4,6 +4,7 @@ import { api } from '../api.js';
 import { subscribe, unsubscribe, onMessage } from '../ws.js';
 import MessageBubble from './MessageBubble.jsx';
 import SlashCommandMenu from './SlashCommandMenu.jsx';
+import ConfirmDialog from './ConfirmDialog.jsx';
 import '../styles/thread.css';
 
 function formatDateTime(dateStr) {
@@ -22,6 +23,7 @@ export default function ThreadView(props) {
   const [thinkingExpert, setThinkingExpert] = createSignal(null);
   const [slashMenuStage, setSlashMenuStage] = createSignal(null); // tracks argument stage
   const [inputFocused, setInputFocused] = createSignal(false);
+  const [rollbackMessageId, setRollbackMessageId] = createSignal(null);
   let messagesContainer;
   let inputRef;
 
@@ -89,6 +91,10 @@ export default function ThreadView(props) {
           ...(data.max_turns !== undefined ? { max_turns: data.max_turns } : {}),
           ...(data.current_turn !== undefined ? { current_turn: data.current_turn } : {}),
         } : prev);
+      }
+      if (data.type === 'messages_rollback' && data.threadId === props.threadId) {
+        setMessages(prev => prev.filter(m => m.id <= data.messageId));
+        setThinkingExpert(null);
       }
       if (data.type === 'thread_archived' && data.threadId === props.threadId) {
         navigate('threads');
@@ -210,6 +216,18 @@ export default function ThreadView(props) {
     }
   }
 
+  async function handleRollbackConfirm() {
+    const msgId = rollbackMessageId();
+    if (!msgId) return;
+    setRollbackMessageId(null);
+    try {
+      const result = await api.rollbackToMessage(props.threadId, msgId);
+      setThread(prev => prev ? { ...prev, status: 'paused', current_turn: result.current_turn } : prev);
+    } catch (err) {
+      console.error('Failed to rollback:', err);
+    }
+  }
+
   function handleSlashMenuStageChange(stage, commandName) {
     if (stage === 'commands') {
       setSlashMenuStage(null);
@@ -248,8 +266,8 @@ export default function ThreadView(props) {
                 {isActive() ? 'Pause' : 'Resume'}
               </button>
             </Show>
-            <button onClick={() => handleExtend(10)} disabled={thread().status === 'concluded'}>
-              +10 Turns
+            <button onClick={() => handleExtend(experts().length)} disabled={thread().status === 'concluded'}>
+              +{experts().length} Turns
             </button>
             <button class="danger" onClick={handleWrapUp} disabled={!canInteract()}>
               Wrap It Up
@@ -263,7 +281,7 @@ export default function ThreadView(props) {
         <div class="messages-container" ref={messagesContainer}>
           <div class="messages-inner">
             <For each={messages()}>
-              {(msg) => <MessageBubble message={msg} moderatorName={props.moderatorName} />}
+              {(msg) => <MessageBubble message={msg} moderatorName={props.moderatorName} onRollback={(id) => setRollbackMessageId(id)} />}
             </For>
             <Show when={thinkingExpert()}>
               {(expert) => (
@@ -331,6 +349,16 @@ export default function ThreadView(props) {
             </button>
           </div>
         </footer>
+
+        <ConfirmDialog
+          open={rollbackMessageId() !== null}
+          title="Rollback Discussion"
+          message="All messages after this point will be deleted and the session will be paused. This cannot be undone."
+          confirmLabel="Rollback"
+          danger
+          onConfirm={handleRollbackConfirm}
+          onCancel={() => setRollbackMessageId(null)}
+        />
       </div>
     </Show>
   );
