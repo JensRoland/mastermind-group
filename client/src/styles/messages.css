@@ -241,6 +241,29 @@
   cursor: default;
 }
 
+/* Rollback button */
+.rollback-btn {
+  background: none;
+  border: none;
+  padding: 2px;
+  cursor: pointer;
+  color: var(--color-text-muted);
+  opacity: 0;
+  transition: opacity 0.15s, color 0.15s;
+  display: flex;
+  align-items: center;
+  line-height: 1;
+}
+
+.message-bubble:hover .rollback-btn {
+  opacity: 0.6;
+}
+
+.rollback-btn:hover {
+  opacity: 1 !important;
+  color: var(--color-red);
+}
+
 /* System messages */
 .message-bubble.system {
   justify-content: center;
