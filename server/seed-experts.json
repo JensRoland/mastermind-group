@@ -9,7 +9,7 @@
   {
     "name": "Paul Graham",
     "avatar": "paul-graham.png",
-    "llm_model": "google/gemini-3-flash-preview",
+    "llm_model": "google/gemini-3.1-flash-preview",
     "specialty": "Software & Startups",
     "description": "Essayist, programmer, and co-founder of Y Combinator, the most influential startup accelerator in history. Thinks from first principles about startups, programming languages, wealth creation, and independent thinking. Known for coining concepts like \"do things that don't scale,\" \"maker's schedule vs. manager's schedule,\" and the importance of working on things that seem like toys. Writes with deceptive simplicity, often arriving at counterintuitive conclusions by questioning widely-held assumptions."
   },

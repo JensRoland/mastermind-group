@@ -94,4 +94,10 @@ try {
   // Column already exists
 }
 
+// Data migrations — update retired model IDs
+db.exec(`
+  UPDATE experts SET llm_model = 'google/gemini-3.1-flash-preview'
+  WHERE llm_model = 'google/gemini-3-flash-preview'
+`);
+
 export default db;
