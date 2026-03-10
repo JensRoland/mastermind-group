@@ -1,6 +1,7 @@
 import { createSignal, onMount, onCleanup, Show } from 'solid-js';
 import { api } from './api.js';
 import { connectWebSocket } from './ws.js';
+import { setTimezone } from './timezone.js';
 import LoginScreen from './components/LoginScreen.jsx';
 import Sidebar from './components/Sidebar.jsx';
 import ThreadView from './components/ThreadView.jsx';
@@ -58,6 +59,11 @@ export default function App() {
         setAuthenticated(true);
         if (result.moderatorName) setModeratorName(result.moderatorName);
         connectWebSocket();
+        // Load timezone setting
+        try {
+          const settings = await api.getSettings();
+          if (settings.timezone) setTimezone(settings.timezone);
+        } catch { /* ignore */ }
       }
     } catch (e) {
       // not authenticated

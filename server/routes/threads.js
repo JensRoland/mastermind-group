@@ -307,7 +307,7 @@ router.get('/:id/export', (req, res) => {
   let md = `# ${thread.title}\n\n`;
   md += `**Topic:** ${thread.topic}\n\n`;
   md += `**Participants:** ${experts.map(e => e.name).join(', ')}\n\n`;
-  md += `**Date:** ${thread.created_at}\n\n`;
+  md += `**Date:** ${thread.created_at} UTC\n\n`;
   md += `---\n\n`;
 
   const exportModName = getModeratorName() || 'Moderator';

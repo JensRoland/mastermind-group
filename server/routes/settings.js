@@ -3,6 +3,7 @@ import {
   getModeratorName, setModeratorName,
   getApiKey, setApiKey, getApiKeyMasked,
   changePassword,
+  getTimezone, setTimezone,
 } from '../auth.js';
 
 const router = Router();
@@ -14,6 +15,7 @@ router.get('/', (req, res) => {
     hasApiKey: !!getApiKey(),
     apiKeyMasked: getApiKeyMasked(),
     hasEnvApiKey: !!process.env.OPENROUTER_API_KEY,
+    timezone: getTimezone(),
   });
 });
 
@@ -52,6 +54,24 @@ router.put('/api-key', (req, res) => {
   }
   setApiKey(apiKey.trim());
   res.json({ ok: true, apiKeyMasked: getApiKeyMasked() });
+});
+
+// PUT /api/settings/timezone
+router.put('/timezone', (req, res) => {
+  const { timezone } = req.body;
+  if (!timezone || typeof timezone !== 'string') {
+    return res.status(400).json({ error: 'Timezone is required' });
+  }
+  // Validate: must be 'auto' or a valid IANA timezone
+  if (timezone !== 'auto') {
+    try {
+      Intl.DateTimeFormat(undefined, { timeZone: timezone });
+    } catch {
+      return res.status(400).json({ error: 'Invalid timezone' });
+    }
+  }
+  setTimezone(timezone);
+  res.json({ ok: true, timezone });
 });
 
 export default router;
