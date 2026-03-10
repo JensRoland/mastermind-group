@@ -4,6 +4,9 @@ import { broadcast, broadcastGlobal } from '../ws.js';
 import { getThinkingExpert } from '../orchestrator.js';
 import { DEFAULT_MAX_TURNS } from '../config.js';
 import { getModeratorName } from '../auth.js';
+import { callLLM } from '../llm.js';
+
+const TITLE_MODEL = 'google/gemini-2.5-flash-lite-preview';
 
 const router = Router();
 
@@ -65,9 +68,12 @@ router.get('/:id', (req, res) => {
 // POST /api/threads
 router.post('/', (req, res) => {
   const { title, topic, expertIds, maxTurns } = req.body;
-  if (!title || !topic || !expertIds?.length || expertIds.length < 2) {
-    return res.status(400).json({ error: 'Title, topic, and at least 2 experts are required' });
+  if (!topic || !expertIds?.length || expertIds.length < 2) {
+    return res.status(400).json({ error: 'Topic and at least 2 experts are required' });
   }
+
+  // Use provided title or a placeholder that will be replaced by LLM
+  const initialTitle = title || topic.slice(0, 60);
 
   const insertThread = db.prepare(
     'INSERT INTO threads (title, topic, max_turns) VALUES (?, ?, ?)'
@@ -84,7 +90,7 @@ router.post('/', (req, res) => {
   const getExpert = db.prepare('SELECT id, name FROM experts WHERE id = ?');
 
   const createThread = db.transaction(() => {
-    const result = insertThread.run(title, topic, maxTurns || DEFAULT_MAX_TURNS);
+    const result = insertThread.run(initialTitle, topic, maxTurns || DEFAULT_MAX_TURNS);
     const threadId = Number(result.lastInsertRowid);
 
     expertIds.forEach((eid, i) => {
@@ -103,9 +109,51 @@ router.post('/', (req, res) => {
   });
 
   const threadId = createThread();
-  console.log(`[${title.length > 32 ? title.slice(0, 32) + '…' : title}] New thread started with ${expertIds.length} experts (max ${maxTurns || DEFAULT_MAX_TURNS} turns)`);
+  console.log(`[${initialTitle.length > 32 ? initialTitle.slice(0, 32) + '…' : initialTitle}] New thread started with ${expertIds.length} experts (max ${maxTurns || DEFAULT_MAX_TURNS} turns)`);
   broadcastGlobal({ type: 'thread_list_update' });
   res.status(201).json({ id: threadId });
+
+  // Auto-generate title if none was provided
+  if (!title) {
+    generateThreadTitle(threadId, topic);
+  }
+});
+
+async function generateThreadTitle(threadId, topic) {
+  try {
+    const generated = await callLLM(TITLE_MODEL, [
+      {
+        role: 'system',
+        content: 'Generate a short, descriptive title (max 6 words) for a group discussion about the given topic. Reply with ONLY the title, no quotes, no punctuation at the end.',
+      },
+      { role: 'user', content: topic },
+    ]);
+    const newTitle = generated.trim().replace(/^["']|["']$/g, '').slice(0, 80);
+    if (newTitle) {
+      db.prepare('UPDATE threads SET title = ? WHERE id = ?').run(newTitle, threadId);
+      broadcastGlobal({ type: 'thread_list_update' });
+      console.log(`[Thread ${threadId}] Auto-titled: "${newTitle}"`);
+    }
+  } catch (err) {
+    console.error(`[Thread ${threadId}] Failed to generate title:`, err.message);
+  }
+}
+
+// PATCH /api/threads/:id/title — rename thread
+router.patch('/:id/title', (req, res) => {
+  const thread = db.prepare('SELECT * FROM threads WHERE id = ?').get(req.params.id);
+  if (!thread) return res.status(404).json({ error: 'Thread not found' });
+
+  const { title } = req.body;
+  if (!title?.trim()) return res.status(400).json({ error: 'Title is required' });
+
+  const newTitle = title.trim().slice(0, 80);
+  db.prepare('UPDATE threads SET title = ? WHERE id = ?').run(newTitle, thread.id);
+
+  console.log(`${threadTag(thread)} Renamed to "${newTitle}"`);
+  broadcastGlobal({ type: 'thread_list_update' });
+
+  res.json({ ok: true, title: newTitle });
 });
 
 // POST /api/threads/:id/message — user interruption
