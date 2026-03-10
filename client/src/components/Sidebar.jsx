@@ -45,31 +45,83 @@ export default function Sidebar(props) {
   function ThreadItem(threadProps) {
     const t = () => threadProps.thread;
     const isSelected = () => props.selectedThreadId() === t().id && props.activeView() === 'threads';
+    const [editing, setEditing] = createSignal(false);
+    const [editValue, setEditValue] = createSignal('');
 
     function handleArchiveClick(e) {
       e.stopPropagation();
       setArchiveTarget(t());
     }
 
+    function handleRenameClick(e) {
+      e.stopPropagation();
+      setEditValue(t().title);
+      setEditing(true);
+    }
+
+    async function commitRename() {
+      const newTitle = editValue().trim();
+      setEditing(false);
+      if (!newTitle || newTitle === t().title) return;
+      try {
+        await api.renameThread(t().id, newTitle);
+      } catch (err) {
+        console.error('Failed to rename thread:', err);
+      }
+    }
+
+    function handleRenameKeyDown(e) {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        commitRename();
+      } else if (e.key === 'Escape') {
+        setEditing(false);
+      }
+    }
+
     return (
       <div
         class={`thread-item ${isSelected() ? 'selected' : ''}`}
-        onClick={() => nav('threads', t().id)}
+        onClick={() => !editing() && nav('threads', t().id)}
       >
         <div class="thread-item-title">
           <span class={`status-dot ${t().status}`} />
-          {t().title}
-          <button
-            class="thread-item-archive"
-            onClick={handleArchiveClick}
-            title="Archive session"
-          >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <polyline points="21 8 21 21 3 21 3 8" />
-              <rect x="1" y="3" width="22" height="5" />
-              <line x1="10" y1="12" x2="14" y2="12" />
-            </svg>
-          </button>
+          <Show when={editing()} fallback={
+            <>
+              <span class="thread-item-title-text">{t().title}</span>
+              <button
+                class="thread-item-rename"
+                onClick={handleRenameClick}
+                title="Rename session"
+              >
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z" />
+                </svg>
+              </button>
+              <button
+                class="thread-item-archive"
+                onClick={handleArchiveClick}
+                title="Archive session"
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="21 8 21 21 3 21 3 8" />
+                  <rect x="1" y="3" width="22" height="5" />
+                  <line x1="10" y1="12" x2="14" y2="12" />
+                </svg>
+              </button>
+            </>
+          }>
+            <input
+              class="thread-item-rename-input"
+              type="text"
+              value={editValue()}
+              onInput={(e) => setEditValue(e.target.value)}
+              onBlur={commitRename}
+              onKeyDown={handleRenameKeyDown}
+              onClick={(e) => e.stopPropagation()}
+              ref={(el) => setTimeout(() => el.focus(), 0)}
+            />
+          </Show>
         </div>
         <div class="thread-item-meta">
           <div class="thread-item-avatars">

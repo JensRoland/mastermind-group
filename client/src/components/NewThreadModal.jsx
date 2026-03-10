@@ -4,7 +4,6 @@ import { DEFAULT_MAX_TURNS } from '../config.js';
 import '../styles/modals.css';
 
 export default function NewThreadModal(props) {
-  const [title, setTitle] = createSignal('');
   const [topic, setTopic] = createSignal('');
   const [maxTurns, setMaxTurns] = createSignal(DEFAULT_MAX_TURNS);
   const [maxTurnsText, setMaxTurnsText] = createSignal(String(DEFAULT_MAX_TURNS));
@@ -65,8 +64,8 @@ export default function NewThreadModal(props) {
   async function handleSubmit(e) {
     e.preventDefault();
 
-    if (!title().trim() || !topic().trim()) {
-      setError('Title and topic are required');
+    if (!topic().trim()) {
+      setError('Topic is required');
       return;
     }
     if (selectedExperts().size < 2) {
@@ -79,7 +78,6 @@ export default function NewThreadModal(props) {
 
     try {
       const result = await api.createThread({
-        title: title().trim(),
         topic: topic().trim(),
         expertIds: Array.from(selectedExperts()),
         maxTurns: maxTurns(),
@@ -98,23 +96,13 @@ export default function NewThreadModal(props) {
 
         <form onSubmit={handleSubmit}>
           <div class="form-group">
-            <label>Title</label>
-            <input
-              type="text"
-              placeholder="A short title for this discussion"
-              value={title()}
-              onInput={(e) => setTitle(e.target.value)}
-              autofocus
-            />
-          </div>
-
-          <div class="form-group">
             <label>Topic / Question</label>
             <textarea
               placeholder="What should the group discuss? Be specific about what you want them to explore or decide."
               value={topic()}
               onInput={(e) => setTopic(e.target.value)}
               rows="4"
+              autofocus
             />
           </div>
 

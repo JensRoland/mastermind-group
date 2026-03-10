@@ -46,6 +46,7 @@ export const api = {
   extendTurns: (id, turns) => request(`/threads/${id}/extend`, { method: 'POST', body: JSON.stringify({ turns }) }),
   setStatus: (id, status) => request(`/threads/${id}/status`, { method: 'PUT', body: JSON.stringify({ status }) }),
   rollbackToMessage: (threadId, messageId) => request(`/threads/${threadId}/rollback`, { method: 'POST', body: JSON.stringify({ messageId }) }),
+  renameThread: (id, title) => request(`/threads/${id}/title`, { method: 'PATCH', body: JSON.stringify({ title }) }),
   archiveThread: (id) => request(`/threads/${id}/archive`, { method: 'PATCH' }),
   addExpertToThread: (threadId, expertId) => request(`/threads/${threadId}/experts`, { method: 'POST', body: JSON.stringify({ expertId }) }),
   removeExpertFromThread: (threadId, expertId) => request(`/threads/${threadId}/experts/${expertId}`, { method: 'DELETE' }),
