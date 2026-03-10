@@ -6,7 +6,7 @@ import { DEFAULT_MAX_TURNS } from '../config.js';
 import { getModeratorName } from '../auth.js';
 import { callLLM } from '../llm.js';
 
-const TITLE_MODEL = 'google/gemini-2.5-flash-lite-preview';
+const TITLE_MODEL = 'google/gemini-3.1-flash-lite-preview';
 
 const router = Router();
 
@@ -132,6 +132,7 @@ async function generateThreadTitle(threadId, topic) {
     if (newTitle) {
       db.prepare('UPDATE threads SET title = ? WHERE id = ?').run(newTitle, threadId);
       broadcastGlobal({ type: 'thread_list_update' });
+      broadcast(threadId, { type: 'thread_title_update', threadId, title: newTitle });
       console.log(`[Thread ${threadId}] Auto-titled: "${newTitle}"`);
     }
   } catch (err) {
@@ -152,6 +153,7 @@ router.patch('/:id/title', (req, res) => {
 
   console.log(`${threadTag(thread)} Renamed to "${newTitle}"`);
   broadcastGlobal({ type: 'thread_list_update' });
+  broadcast(thread.id, { type: 'thread_title_update', threadId: thread.id, title: newTitle });
 
   res.json({ ok: true, title: newTitle });
 });

@@ -4,34 +4,49 @@ import { timezone as tzSignal, setTimezone as setGlobalTimezone } from '../timez
 import '../styles/modals.css';
 
 /** Common IANA timezones grouped by region. */
-const TIMEZONE_OPTIONS = [
-  { label: 'Auto-detect (browser)', value: 'auto' },
-  { label: 'UTC', value: 'UTC' },
-  { label: 'US/Eastern', value: 'America/New_York' },
-  { label: 'US/Central', value: 'America/Chicago' },
-  { label: 'US/Mountain', value: 'America/Denver' },
-  { label: 'US/Pacific', value: 'America/Los_Angeles' },
-  { label: 'US/Alaska', value: 'America/Anchorage' },
-  { label: 'US/Hawaii', value: 'Pacific/Honolulu' },
-  { label: 'Canada/Atlantic', value: 'America/Halifax' },
-  { label: 'Mexico City', value: 'America/Mexico_City' },
-  { label: 'São Paulo', value: 'America/Sao_Paulo' },
-  { label: 'Buenos Aires', value: 'America/Argentina/Buenos_Aires' },
-  { label: 'London', value: 'Europe/London' },
-  { label: 'Paris / Berlin / Rome', value: 'Europe/Paris' },
-  { label: 'Helsinki / Bucharest', value: 'Europe/Helsinki' },
-  { label: 'Moscow', value: 'Europe/Moscow' },
-  { label: 'Istanbul', value: 'Europe/Istanbul' },
-  { label: 'Dubai', value: 'Asia/Dubai' },
-  { label: 'Kolkata / Mumbai', value: 'Asia/Kolkata' },
-  { label: 'Bangkok / Jakarta', value: 'Asia/Bangkok' },
-  { label: 'Singapore / Kuala Lumpur', value: 'Asia/Singapore' },
-  { label: 'Shanghai / Beijing', value: 'Asia/Shanghai' },
-  { label: 'Tokyo', value: 'Asia/Tokyo' },
-  { label: 'Seoul', value: 'Asia/Seoul' },
-  { label: 'Sydney', value: 'Australia/Sydney' },
-  { label: 'Auckland', value: 'Pacific/Auckland' },
+const TIMEZONE_ENTRIES = [
+  { cities: 'Auto-detect (browser)', value: 'auto' },
+  { cities: 'UTC', value: 'UTC' },
+  { cities: 'US/Eastern', value: 'America/New_York' },
+  { cities: 'US/Central', value: 'America/Chicago' },
+  { cities: 'US/Mountain', value: 'America/Denver' },
+  { cities: 'US/Pacific', value: 'America/Los_Angeles' },
+  { cities: 'US/Alaska', value: 'America/Anchorage' },
+  { cities: 'US/Hawaii', value: 'Pacific/Honolulu' },
+  { cities: 'Canada/Atlantic', value: 'America/Halifax' },
+  { cities: 'Mexico City', value: 'America/Mexico_City' },
+  { cities: 'São Paulo', value: 'America/Sao_Paulo' },
+  { cities: 'Buenos Aires', value: 'America/Argentina/Buenos_Aires' },
+  { cities: 'London', value: 'Europe/London' },
+  { cities: 'Paris / Berlin / Rome / Stockholm', value: 'Europe/Paris' },
+  { cities: 'Helsinki / Bucharest', value: 'Europe/Helsinki' },
+  { cities: 'Moscow', value: 'Europe/Moscow' },
+  { cities: 'Istanbul', value: 'Europe/Istanbul' },
+  { cities: 'Dubai', value: 'Asia/Dubai' },
+  { cities: 'Kolkata / Mumbai', value: 'Asia/Kolkata' },
+  { cities: 'Bangkok / Jakarta', value: 'Asia/Bangkok' },
+  { cities: 'Singapore / Kuala Lumpur', value: 'Asia/Singapore' },
+  { cities: 'Shanghai / Beijing', value: 'Asia/Shanghai' },
+  { cities: 'Tokyo', value: 'Asia/Tokyo' },
+  { cities: 'Seoul', value: 'Asia/Seoul' },
+  { cities: 'Sydney', value: 'Australia/Sydney' },
+  { cities: 'Auckland', value: 'Pacific/Auckland' },
 ];
+
+function utcOffsetLabel(tz) {
+  if (tz === 'auto' || tz === 'UTC') return '';
+  try {
+    const now = new Date();
+    const parts = new Intl.DateTimeFormat('en-US', { timeZone: tz, timeZoneName: 'shortOffset' }).formatToParts(now);
+    const offset = parts.find(p => p.type === 'timeZoneName')?.value || '';
+    return offset ? ` (${offset})` : '';
+  } catch { return ''; }
+}
+
+const TIMEZONE_OPTIONS = TIMEZONE_ENTRIES.map(e => ({
+  label: e.cities + utcOffsetLabel(e.value),
+  value: e.value,
+}));
 
 export default function SettingsPage(props) {
   // Moderator name

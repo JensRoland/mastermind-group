@@ -90,6 +90,9 @@ export default function ThreadView(props) {
         setMessages(prev => prev.filter(m => m.id <= data.messageId));
         setThinkingExpert(null);
       }
+      if (data.type === 'thread_title_update' && data.threadId === props.threadId) {
+        setThread(prev => prev ? { ...prev, title: data.title } : prev);
+      }
       if (data.type === 'thread_archived' && data.threadId === props.threadId) {
         navigate('threads');
       }
