@@ -2,7 +2,7 @@ import { createSignal, onMount, Show } from 'solid-js';
 import { api } from '../api.js';
 import '../styles/modals.css';
 
-export default function SettingsModal(props) {
+export default function SettingsPage(props) {
   // Moderator name
   const [name, setName] = createSignal(props.moderatorName || '');
   const [nameSaving, setNameSaving] = createSignal(false);
@@ -108,10 +108,11 @@ export default function SettingsModal(props) {
   }
 
   return (
-    <div class="modal-overlay" onClick={(e) => e.target === e.currentTarget && props.onClose()}>
-      <div class="modal settings-modal">
+    <div class="settings-page">
+      <div class="settings-page-header">
         <h2>Settings</h2>
-
+      </div>
+      <div class="settings-page-content">
         <section class="settings-section">
           <h3>Your Name</h3>
           <p class="settings-hint">This is how you appear in discussions. Experts will address you by this name.</p>
@@ -199,10 +200,6 @@ export default function SettingsModal(props) {
           </div>
           <StatusMsg msg={keyMsg()} />
         </section>
-
-        <div class="modal-actions">
-          <button class="btn-secondary" onClick={props.onClose}>Close</button>
-        </div>
       </div>
     </div>
   );
