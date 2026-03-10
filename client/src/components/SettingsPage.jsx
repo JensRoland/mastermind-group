@@ -1,6 +1,37 @@
 import { createSignal, onMount, Show } from 'solid-js';
 import { api } from '../api.js';
+import { timezone as tzSignal, setTimezone as setGlobalTimezone } from '../timezone.js';
 import '../styles/modals.css';
+
+/** Common IANA timezones grouped by region. */
+const TIMEZONE_OPTIONS = [
+  { label: 'Auto-detect (browser)', value: 'auto' },
+  { label: 'UTC', value: 'UTC' },
+  { label: 'US/Eastern', value: 'America/New_York' },
+  { label: 'US/Central', value: 'America/Chicago' },
+  { label: 'US/Mountain', value: 'America/Denver' },
+  { label: 'US/Pacific', value: 'America/Los_Angeles' },
+  { label: 'US/Alaska', value: 'America/Anchorage' },
+  { label: 'US/Hawaii', value: 'Pacific/Honolulu' },
+  { label: 'Canada/Atlantic', value: 'America/Halifax' },
+  { label: 'Mexico City', value: 'America/Mexico_City' },
+  { label: 'São Paulo', value: 'America/Sao_Paulo' },
+  { label: 'Buenos Aires', value: 'America/Argentina/Buenos_Aires' },
+  { label: 'London', value: 'Europe/London' },
+  { label: 'Paris / Berlin / Rome', value: 'Europe/Paris' },
+  { label: 'Helsinki / Bucharest', value: 'Europe/Helsinki' },
+  { label: 'Moscow', value: 'Europe/Moscow' },
+  { label: 'Istanbul', value: 'Europe/Istanbul' },
+  { label: 'Dubai', value: 'Asia/Dubai' },
+  { label: 'Kolkata / Mumbai', value: 'Asia/Kolkata' },
+  { label: 'Bangkok / Jakarta', value: 'Asia/Bangkok' },
+  { label: 'Singapore / Kuala Lumpur', value: 'Asia/Singapore' },
+  { label: 'Shanghai / Beijing', value: 'Asia/Shanghai' },
+  { label: 'Tokyo', value: 'Asia/Tokyo' },
+  { label: 'Seoul', value: 'Asia/Seoul' },
+  { label: 'Sydney', value: 'Australia/Sydney' },
+  { label: 'Auckland', value: 'Pacific/Auckland' },
+];
 
 export default function SettingsPage(props) {
   // Moderator name
@@ -18,6 +49,10 @@ export default function SettingsPage(props) {
   // Password toggle
   const [showPwSection, setShowPwSection] = createSignal(false);
 
+  // Timezone
+  const [selectedTz, setSelectedTz] = createSignal(tzSignal());
+  const [tzMsg, setTzMsg] = createSignal(null);
+
   // API key
   const [apiKeyMasked, setApiKeyMasked] = createSignal(null);
   const [hasApiKey, setHasApiKey] = createSignal(false);
@@ -30,6 +65,7 @@ export default function SettingsPage(props) {
     try {
       const settings = await api.getSettings();
       if (settings.moderatorName) setName(settings.moderatorName);
+      if (settings.timezone) setSelectedTz(settings.timezone);
       setHasApiKey(settings.hasApiKey);
       setApiKeyMasked(settings.apiKeyMasked);
       setHasEnvApiKey(settings.hasEnvApiKey);
@@ -82,6 +118,18 @@ export default function SettingsPage(props) {
     }
   }
 
+  async function saveTimezone(tz) {
+    setSelectedTz(tz);
+    setTzMsg(null);
+    try {
+      await api.setTimezone(tz);
+      setGlobalTimezone(tz);
+      setTzMsg({ type: 'success', text: 'Saved' });
+    } catch (err) {
+      setTzMsg({ type: 'error', text: err.message });
+    }
+  }
+
   async function saveApiKey() {
     if (!newApiKey().trim() || keySaving()) return;
     setKeySaving(true);
@@ -131,6 +179,24 @@ export default function SettingsPage(props) {
             </button>
           </div>
           <StatusMsg msg={nameMsg()} />
+        </section>
+
+        <section class="settings-section">
+          <h3>Timezone</h3>
+          <p class="settings-hint">Controls how times are displayed throughout the app.</p>
+          <div class="settings-row">
+            <div class="form-group" style="flex: 1; margin-bottom: 0">
+              <select
+                value={selectedTz()}
+                onChange={(e) => saveTimezone(e.target.value)}
+              >
+                {TIMEZONE_OPTIONS.map(opt => (
+                  <option value={opt.value}>{opt.label}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+          <StatusMsg msg={tzMsg()} />
         </section>
 
         <section class="settings-section">

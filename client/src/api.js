@@ -66,4 +66,5 @@ export const api = {
   setModeratorName: (name) => request('/settings/moderator-name', { method: 'PUT', body: JSON.stringify({ name }) }),
   changePassword: (currentPassword, newPassword) => request('/settings/password', { method: 'PUT', body: JSON.stringify({ currentPassword, newPassword }) }),
   setApiKey: (apiKey) => request('/settings/api-key', { method: 'PUT', body: JSON.stringify({ apiKey }) }),
+  setTimezone: (timezone) => request('/settings/timezone', { method: 'PUT', body: JSON.stringify({ timezone }) }),
 };

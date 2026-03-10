@@ -207,6 +207,20 @@ export function getApiKeyMasked() {
   return key.slice(0, 5) + '...' + key.slice(-4);
 }
 
+// --- Timezone ---
+
+export function getTimezone() {
+  const row = db.prepare("SELECT value FROM settings WHERE key = 'timezone'").get();
+  return row?.value || 'auto';
+}
+
+export function setTimezone(tz) {
+  db.prepare(
+    `INSERT INTO settings (key, value) VALUES ('timezone', ?)
+     ON CONFLICT(key) DO UPDATE SET value = excluded.value`
+  ).run(tz);
+}
+
 // --- Password change ---
 
 export async function changePassword(currentPassword, newPassword) {

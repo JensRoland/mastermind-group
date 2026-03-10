@@ -5,14 +5,8 @@ import { subscribe, unsubscribe, onMessage } from '../ws.js';
 import MessageBubble from './MessageBubble.jsx';
 import SlashCommandMenu from './SlashCommandMenu.jsx';
 import ConfirmDialog from './ConfirmDialog.jsx';
+import { formatDateTime } from '../timezone.js';
 import '../styles/thread.css';
-
-function formatDateTime(dateStr) {
-  if (!dateStr) return '';
-  const d = new Date(dateStr);
-  return d.toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' })
-    + ' ' + d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-}
 
 export default function ThreadView(props) {
   const [thread, setThread] = createSignal(null);

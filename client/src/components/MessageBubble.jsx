@@ -2,6 +2,7 @@ import { Show, createSignal } from 'solid-js';
 import { marked } from 'marked';
 import DOMPurify from 'dompurify';
 import LikeButton from './LikeButton.jsx';
+import { formatTime } from '../timezone.js';
 import '../styles/messages.css';
 
 marked.setOptions({ breaks: true, gfm: true });
@@ -9,12 +10,6 @@ marked.setOptions({ breaks: true, gfm: true });
 function renderMarkdown(content) {
   if (!content) return '';
   return DOMPurify.sanitize(marked.parse(content));
-}
-
-function formatTime(dateStr) {
-  if (!dateStr) return '';
-  const d = new Date(dateStr);
-  return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 }
 
 function getInitials(name) {
