@@ -94,10 +94,14 @@ try {
   // Column already exists
 }
 
-// Data migrations — update retired model IDs
+// Data migrations — revert mistaken Gemini 3.1 upgrade (model doesn't exist yet)
 db.exec(`
-  UPDATE experts SET llm_model = 'google/gemini-3.1-flash-preview'
-  WHERE llm_model = 'google/gemini-3-flash-preview'
+  UPDATE experts SET llm_model = 'google/gemini-3-flash-preview'
+  WHERE llm_model = 'google/gemini-3.1-flash-preview'
+`);
+db.exec(`
+  UPDATE experts SET llm_model = 'google/gemini-3-pro-preview'
+  WHERE llm_model = 'google/gemini-3.1-pro-preview'
 `);
 
 export default db;
