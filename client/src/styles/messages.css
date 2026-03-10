@@ -97,12 +97,51 @@
   border-radius: var(--radius-sm);
 }
 
+/* Code block wrapper with copy button */
+.message-content .code-block-wrapper {
+  position: relative;
+  margin: var(--spacing-sm) 0;
+}
+
+.message-content .code-block-wrapper:hover .code-copy-btn {
+  opacity: 0.7;
+}
+
+.code-copy-btn {
+  position: absolute;
+  top: var(--spacing-xs);
+  right: var(--spacing-xs);
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: var(--radius-sm);
+  padding: 4px 6px;
+  cursor: pointer;
+  color: var(--color-text-muted);
+  opacity: 0;
+  transition: opacity 0.15s, color 0.15s, background 0.15s;
+  display: flex;
+  align-items: center;
+  line-height: 1;
+  z-index: 1;
+}
+
+.code-copy-btn:hover {
+  opacity: 1 !important;
+  color: var(--color-text-bright);
+  background: rgba(255, 255, 255, 0.14);
+}
+
+.code-copy-btn.copied {
+  opacity: 1 !important;
+  color: #4ade80;
+}
+
 .message-content pre {
   background: rgba(0, 0, 0, 0.3);
   border-radius: var(--radius);
   padding: var(--spacing-md);
   overflow-x: auto;
-  margin: var(--spacing-sm) 0;
+  margin: 0;
 }
 
 .message-content pre code {
@@ -110,6 +149,17 @@
   padding: 0;
   font-size: 0.85em;
   line-height: 1.5;
+}
+
+/* KaTeX math blocks */
+.message-content .katex-display {
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: var(--spacing-xs) 0;
+}
+
+.message-content .katex {
+  font-size: 1.1em;
 }
 
 .message-content blockquote {
