@@ -7,11 +7,12 @@ import ThreadView from './components/ThreadView.jsx';
 import ExpertManager from './components/ExpertManager.jsx';
 import NewThreadModal from './components/NewThreadModal.jsx';
 import WelcomeScreen from './components/WelcomeScreen.jsx';
-import SettingsModal from './components/SettingsModal.jsx';
+import SettingsPage from './components/SettingsPage.jsx';
 import './styles/layout.css';
 
 function parseRoute(pathname) {
   if (pathname === '/experts') return { view: 'experts', threadId: null };
+  if (pathname === '/settings') return { view: 'settings', threadId: null };
   const match = pathname.match(/^\/thread\/(\d+)$/);
   if (match) return { view: 'threads', threadId: parseInt(match[1], 10) };
   return { view: 'threads', threadId: null };
@@ -19,6 +20,7 @@ function parseRoute(pathname) {
 
 function buildPath(view, threadId) {
   if (view === 'experts') return '/experts';
+  if (view === 'settings') return '/settings';
   if (threadId) return `/thread/${threadId}`;
   return '/';
 }
@@ -40,7 +42,6 @@ export default function App() {
   const [showNewThread, setShowNewThread] = createSignal(false);
   const [sidebarOpen, setSidebarOpen] = createSignal(false);
   const [moderatorName, setModeratorName] = createSignal(null);
-  const [showSettings, setShowSettings] = createSignal(false);
 
   function onPopState() {
     const route = parseRoute(window.location.pathname);
@@ -97,7 +98,7 @@ export default function App() {
             onNewThread={() => setShowNewThread(true)}
             open={sidebarOpen}
             onNavigate={handleNavigate}
-            onOpenSettings={() => setShowSettings(true)}
+            onNavigateSettings={() => handleNavigate('settings')}
           />
           <main class="main-panel">
             <div class="mobile-topbar">
@@ -106,6 +107,9 @@ export default function App() {
               </button>
               <a href="/"><img src="/logotype-wide.png" alt="Mastermind Group" class="mobile-topbar-logo" /></a>
             </div>
+            <Show when={activeView() === 'settings'}>
+              <SettingsPage moderatorName={moderatorName()} onModeratorNameChange={setModeratorName} />
+            </Show>
             <Show when={activeView() === 'experts'}>
               <ExpertManager />
             </Show>
@@ -128,13 +132,6 @@ export default function App() {
           />
         </Show>
 
-        <Show when={showSettings()}>
-          <SettingsModal
-            moderatorName={moderatorName()}
-            onModeratorNameChange={setModeratorName}
-            onClose={() => setShowSettings(false)}
-          />
-        </Show>
       </Show>
     </Show>
   );
