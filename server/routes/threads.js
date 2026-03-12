@@ -380,7 +380,6 @@ router.get('/:id/export', (req, res) => {
 
   let md = `# ${thread.title}\n\n`;
   md += `**${lang.exportTopic}:** ${thread.topic}\n\n`;
-  md += `**${lang.exportParticipants}:**\n${experts.map(e => `- ${e.name} (${e.llm_model})`).join('\n')}\n\n`;
   md += `**${lang.exportDate}:** ${thread.created_at} UTC\n\n`;
   md += `> **${lang.exportDisclaimerLabel}:** ${lang.exportDisclaimer}\n\n`;
   md += `*${lang.exportCreatedWith}*\n\n`;
@@ -396,6 +395,9 @@ router.get('/:id/export', (req, res) => {
       md += `### ${msg.expert_name || 'Unknown'}\n\n${msg.content}\n\n`;
     }
   }
+
+  md += `---\n\n`;
+  md += `**${lang.exportParticipants}:**\n${experts.map(e => `- ${e.name} (${e.llm_model})`).join('\n')}\n\n`;
 
   const filename = thread.title.replace(/[^a-zA-Z0-9 ]/g, '').replace(/\s+/g, '-').toLowerCase();
   res.setHeader('Content-Type', 'text/markdown; charset=utf-8');
@@ -481,7 +483,14 @@ router.get('/:id/export-html', (req, res) => {
   }
 
   const messagesHtml = messages.map(renderMessage).join('\n');
-  const participantsList = experts.map(e => `${escapeHtml(e.name)} (${escapeHtml(e.llm_model)})`).join(', ');
+  const participantsList = experts.map(e => `<li>${escapeHtml(e.name)} <span class="participant-model">${escapeHtml(e.llm_model)}</span></li>`).join('\n');
+  const avatarRow = experts.map(e => {
+    const info = avatarFiles.get(e.id);
+    if (info) {
+      return `<img src="avatars/${info.filename}" alt="${escapeHtml(e.name)}" title="${escapeHtml(e.name)}" />`;
+    }
+    return `<div class="avatar-placeholder" title="${escapeHtml(e.name)}">${getInitials(e.name)}</div>`;
+  }).join('\n');
 
   const html = `<!DOCTYPE html>
 <html lang="${lang.code}">
@@ -504,17 +513,23 @@ ${getExportCss()}
       <span class="meta-separator">·</span>
       <span>${thread.current_turn} ${lang.exportTurns}</span>
     </div>
-    <div class="participants">${lang.exportParticipants}: ${participantsList}</div>
+    <div class="disclaimer">
+      <strong>${lang.exportDisclaimerLabel}:</strong> ${lang.exportDisclaimer}
+    </div>
+    <div class="header-avatars">
+      ${avatarRow}
+    </div>
   </header>
   <main class="messages">
 ${messagesHtml}
   </main>
   <footer class="export-footer">
-    <div class="disclaimer">
-      <strong>${lang.exportDisclaimerLabel}:</strong> ${lang.exportDisclaimer}
-    </div>
     <div class="credit">
       ${lang.exportCreatedBy}
+    </div>
+    <div class="participants">
+      <strong>${lang.exportParticipants}:</strong>
+      <ul>${participantsList}</ul>
     </div>
   </footer>
 </div>
@@ -614,6 +629,22 @@ body {
 .participants {
   font-size: 13px;
   color: var(--color-text-muted);
+  margin-top: var(--spacing-lg);
+  line-height: 1.6;
+}
+
+.participants ul {
+  list-style: none;
+  padding: 0;
+  margin: var(--spacing-sm) 0 0 0;
+}
+
+.participants li {
+  padding: 2px 0;
+}
+
+.participant-model {
+  opacity: 0.7;
 }
 
 /* Messages */
@@ -814,6 +845,34 @@ body {
 }
 
 /* Footer */
+.header-avatars {
+  display: flex;
+  justify-content: center;
+  gap: var(--spacing-sm);
+  flex-wrap: wrap;
+  margin-top: var(--spacing-lg);
+}
+
+.header-avatars img {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.header-avatars .avatar-placeholder {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--color-accent);
+  color: var(--color-bg-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 600;
+}
+
 .export-footer {
   margin-top: var(--spacing-xl);
   padding-top: var(--spacing-xl);
@@ -826,7 +885,7 @@ body {
   background: rgba(255, 255, 255, 0.03);
   padding: var(--spacing-lg);
   border-radius: var(--radius);
-  margin-bottom: var(--spacing-lg);
+  margin-top: var(--spacing-lg);
   line-height: 1.6;
 }
 
