@@ -1,12 +1,12 @@
 import { createSignal, createMemo, onMount, For, Show } from 'solid-js';
 import { api } from '../api.js';
-import { DEFAULT_MAX_TURNS } from '../config.js';
+import { DEFAULT_ROUNDS } from '../config.js';
 import '../styles/modals.css';
 
 export default function NewThreadModal(props) {
   const [topic, setTopic] = createSignal('');
-  const [maxTurns, setMaxTurns] = createSignal(DEFAULT_MAX_TURNS);
-  const [maxTurnsText, setMaxTurnsText] = createSignal(String(DEFAULT_MAX_TURNS));
+  const [rounds, setRounds] = createSignal(DEFAULT_ROUNDS);
+  const [roundsText, setRoundsText] = createSignal(String(DEFAULT_ROUNDS));
   const [selectedExperts, setSelectedExperts] = createSignal(new Set());
   const [experts, setExperts] = createSignal([]);
   const [languages, setLanguages] = createSignal([]);
@@ -86,7 +86,7 @@ export default function NewThreadModal(props) {
       const result = await api.createThread({
         topic: topic().trim(),
         expertIds: Array.from(selectedExperts()),
-        maxTurns: maxTurns(),
+        maxTurns: rounds() * selectedExperts().size,
         language: language(),
       });
       props.onCreated(result.id);
@@ -190,24 +190,29 @@ export default function NewThreadModal(props) {
           </div>
 
           <div class="form-group">
-            <label>Max Turns</label>
+            <label>Rounds</label>
             <input
               type="number"
-              min="4"
-              max="200"
-              value={maxTurnsText()}
-              onInput={(e) => setMaxTurnsText(e.target.value)}
+              min="1"
+              max="20"
+              value={roundsText()}
+              onInput={(e) => setRoundsText(e.target.value)}
               onBlur={() => {
-                const parsed = parseInt(maxTurnsText());
-                if (!isNaN(parsed) && parsed >= 4 && parsed <= 200) {
-                  setMaxTurns(parsed);
-                  setMaxTurnsText(String(parsed));
+                const parsed = parseInt(roundsText());
+                if (!isNaN(parsed) && parsed >= 1 && parsed <= 20) {
+                  setRounds(parsed);
+                  setRoundsText(String(parsed));
                 } else {
-                  setMaxTurnsText(String(maxTurns()));
+                  setRoundsText(String(rounds()));
                 }
               }}
             />
-            <div class="form-hint">The discussion pauses after this many turns. You can extend it later.</div>
+            <div class="form-hint">
+              Each round gives every expert one turn to speak.
+              {selectedExperts().size >= 2
+                ? ` ${rounds()} rounds × ${selectedExperts().size} experts = ${rounds() * selectedExperts().size} turns total.`
+                : ''}
+            </div>
           </div>
 
           <Show when={error()}>
