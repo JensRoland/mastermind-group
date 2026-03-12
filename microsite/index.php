@@ -174,6 +174,8 @@ $basePath = rtrim(dirname($_SERVER['SCRIPT_NAME']), '/') . '/';
   </nav>
 </aside>
 
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+
 <button class="sidebar-toggle" id="sidebarToggle" aria-label="Toggle menu">
   <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
     <rect y="3" width="20" height="2" rx="1" fill="currentColor"/>
@@ -280,18 +282,41 @@ $basePath = rtrim(dirname($_SERVER['SCRIPT_NAME']), '/') . '/';
 // Sidebar toggle for mobile
 const toggle = document.getElementById('sidebarToggle');
 const sidebar = document.getElementById('sidebar');
+const overlay = document.getElementById('sidebarOverlay');
+
+function closeSidebar() {
+  sidebar.classList.remove('open');
+  overlay.classList.remove('active');
+}
+
 toggle.addEventListener('click', () => {
+  const opening = !sidebar.classList.contains('open');
   sidebar.classList.toggle('open');
+  overlay.classList.toggle('active', opening);
 });
 
-// Close sidebar when clicking outside on mobile
+overlay.addEventListener('click', closeSidebar);
+
+// Close sidebar when clicking outside on mobile (non-iframe pages)
 document.addEventListener('click', (e) => {
   if (sidebar.classList.contains('open') &&
       !sidebar.contains(e.target) &&
       !toggle.contains(e.target)) {
-    sidebar.classList.remove('open');
+    closeSidebar();
   }
 });
+
+// On mobile, inject top margin into iframe header so hamburger doesn't overlap
+const frame = document.getElementById('sessionFrame');
+if (frame && window.matchMedia('(max-width: 768px)').matches) {
+  frame.addEventListener('load', () => {
+    try {
+      const style = frame.contentDocument.createElement('style');
+      style.textContent = '.thread-header { margin-top: 48px; }';
+      frame.contentDocument.head.appendChild(style);
+    } catch (e) { /* cross-origin fallback: do nothing */ }
+  });
+}
 </script>
 </body>
 </html>

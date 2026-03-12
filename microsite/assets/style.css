@@ -302,7 +302,7 @@ body {
 .about-logo {
   display: block;
   width: 100%;
-  max-width: 100%;
+  max-width: 379px;
   height: auto;
   mix-blend-mode: plus-lighter;
   margin: 0 auto 40px;
@@ -366,6 +366,20 @@ body {
 
 .about-disclaimer p:last-child {
   margin-bottom: 0;
+}
+
+/* --- Sidebar overlay (mobile, covers iframe so clicks register) --- */
+
+.sidebar-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 899;
+  background: rgba(0, 0, 0, 0.5);
+}
+
+.sidebar-overlay.active {
+  display: block;
 }
 
 /* --- Sidebar toggle (mobile) --- */
