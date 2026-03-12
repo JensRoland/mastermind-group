@@ -297,6 +297,7 @@ body {
   margin: 0 auto;
   padding: 48px var(--spacing-xl) var(--spacing-xl);
   line-height: 1.7;
+  background: var(--color-bg-primary);
 }
 
 .about-logo {
