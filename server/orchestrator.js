@@ -3,6 +3,7 @@ import { callLLM } from './llm.js';
 import { buildSystemPrompt, buildWrapUpSystemPrompt, buildMessageHistory, buildSummaryPrompt, buildSummaryHistory } from './prompts.js';
 import { broadcast, broadcastGlobal } from './ws.js';
 import { getModeratorName } from './auth.js';
+import { getLanguage } from './languages.js';
 
 const TICK_INTERVAL = 5000;
 const MESSAGE_HISTORY_LIMIT = 50;
@@ -65,9 +66,10 @@ async function processThread(thread) {
 
     db.prepare("UPDATE threads SET status = 'paused' WHERE id = ?").run(thread.id);
 
+    const lang = getLanguage(thread.language);
     db.prepare(
       "INSERT INTO messages (thread_id, expert_id, role, content) VALUES (?, NULL, 'system', ?)"
-    ).run(thread.id, 'The discussion has been paused after reaching the maximum number of turns. The moderator can extend the discussion or wrap it up.');
+    ).run(thread.id, lang.pausedMessage);
 
     console.log(`${threadTag(thread)} Paused (reached ${thread.max_turns} turns)`);
 
@@ -206,10 +208,12 @@ async function generateSummary(thread) {
     thinkingExperts.set(thread.id, thinkingInfo);
     broadcast(thread.id, { type: 'thinking', expert: thinkingInfo });
 
+    const lang = getLanguage(thread.language);
+
     console.log(`${threadTag(thread)} Generating moderator summary (${SUMMARY_MODEL})...`);
     const summaryContent = await callLLM(SUMMARY_MODEL, llmMessages);
 
-    const fullContent = `## Discussion Summary\n\n${summaryContent}`;
+    const fullContent = `${lang.summaryHeading}\n\n${summaryContent}`;
 
     const result = db.prepare(
       "INSERT INTO messages (thread_id, expert_id, role, content, llm_model) VALUES (?, NULL, 'system', ?, ?)"
@@ -247,12 +251,13 @@ async function generateSummary(thread) {
     thinkingExperts.delete(thread.id);
     console.error(`${threadTag(thread)} Summary generation failed:`, err.message);
     // Fall back to pausing — moderator can retry or conclude manually
+    const failLang = getLanguage(thread.language);
     db.prepare("UPDATE threads SET status = 'paused', wrapping_up = 0 WHERE id = ?")
       .run(thread.id);
 
     db.prepare(
       "INSERT INTO messages (thread_id, expert_id, role, content) VALUES (?, NULL, 'system', ?)"
-    ).run(thread.id, 'Summary generation failed. The moderator can wrap up again or conclude manually.');
+    ).run(thread.id, failLang.summaryFailed);
 
     broadcast(thread.id, {
       type: 'thread_status',

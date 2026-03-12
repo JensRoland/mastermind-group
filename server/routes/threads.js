@@ -5,15 +5,21 @@ import { getThinkingExpert } from '../orchestrator.js';
 import { DEFAULT_MAX_TURNS } from '../config.js';
 import { getModeratorName } from '../auth.js';
 import { callLLM } from '../llm.js';
+import { getLanguage, getAvailableLanguages, t } from '../languages.js';
 
 const TITLE_MODEL = 'google/gemini-3.1-flash-lite-preview';
 
 const router = Router();
 
 function threadTag(thread) {
-  const t = thread.title.length > 32 ? thread.title.slice(0, 32) + '…' : thread.title;
-  return `[${t}]`;
+  const tag = thread.title.length > 32 ? thread.title.slice(0, 32) + '…' : thread.title;
+  return `[${tag}]`;
 }
+
+// GET /api/threads/languages
+router.get('/languages', (_req, res) => {
+  res.json(getAvailableLanguages());
+});
 
 // GET /api/threads
 router.get('/', (req, res) => {
@@ -67,16 +73,18 @@ router.get('/:id', (req, res) => {
 
 // POST /api/threads
 router.post('/', (req, res) => {
-  const { title, topic, expertIds, maxTurns } = req.body;
+  const { title, topic, expertIds, maxTurns, language } = req.body;
   if (!topic || !expertIds?.length || expertIds.length < 2) {
     return res.status(400).json({ error: 'Topic and at least 2 experts are required' });
   }
+
+  const threadLanguage = language || 'en';
 
   // Use provided title or a placeholder that will be replaced by LLM
   const initialTitle = title || topic.slice(0, 60);
 
   const insertThread = db.prepare(
-    'INSERT INTO threads (title, topic, max_turns) VALUES (?, ?, ?)'
+    'INSERT INTO threads (title, topic, max_turns, language) VALUES (?, ?, ?, ?)'
   );
   const insertExpert = db.prepare(
     'INSERT INTO thread_experts (thread_id, expert_id, sort_order) VALUES (?, ?, ?)'
@@ -90,7 +98,7 @@ router.post('/', (req, res) => {
   const getExpert = db.prepare('SELECT id, name FROM experts WHERE id = ?');
 
   const createThread = db.transaction(() => {
-    const result = insertThread.run(initialTitle, topic, maxTurns || DEFAULT_MAX_TURNS);
+    const result = insertThread.run(initialTitle, topic, maxTurns || DEFAULT_MAX_TURNS, threadLanguage);
     const threadId = Number(result.lastInsertRowid);
 
     expertIds.forEach((eid, i) => {
@@ -115,16 +123,17 @@ router.post('/', (req, res) => {
 
   // Auto-generate title if none was provided
   if (!title) {
-    generateThreadTitle(threadId, topic);
+    generateThreadTitle(threadId, topic, threadLanguage);
   }
 });
 
-async function generateThreadTitle(threadId, topic) {
+async function generateThreadTitle(threadId, topic, language) {
+  const lang = getLanguage(language);
   try {
     const generated = await callLLM(TITLE_MODEL, [
       {
         role: 'system',
-        content: 'Generate a short, descriptive title (max 6 words) for a group discussion about the given topic. Reply with ONLY the title, no quotes, no punctuation at the end.',
+        content: lang.titleSystemPrompt,
       },
       { role: 'user', content: topic },
     ]);
@@ -173,8 +182,9 @@ router.post('/:id/message', (req, res) => {
       .run('active', newMaxTurns, thread.id);
     console.log(`${threadTag(thread)} Reopened via user message (extended to ${newMaxTurns} turns)`);
 
+    const lang = getLanguage(thread.language);
     const modLabel = getModeratorName() || 'The moderator';
-    const reopenText = `${modLabel} has reopened the discussion.`;
+    const reopenText = t(lang.reopenedMessage, { moderatorName: modLabel });
     const reopenMsg = db.prepare(
       "INSERT INTO messages (thread_id, expert_id, role, content) VALUES (?, NULL, 'system', ?)"
     ).run(thread.id, reopenText);
@@ -240,8 +250,9 @@ router.post('/:id/wrapup', (req, res) => {
     'SELECT COUNT(*) as count FROM thread_experts WHERE thread_id = ?'
   ).get(thread.id);
 
+  const lang = getLanguage(thread.language);
   const modLabel = getModeratorName() || 'The moderator';
-  const wrapupMessage = `${modLabel} has asked the group to wrap up. Each participant should provide their concluding thoughts, key takeaways, and any actionable recommendations. Be concise and direct.`;
+  const wrapupMessage = t(lang.wrapUpMessage, { moderatorName: modLabel });
 
   db.prepare(
     "INSERT INTO messages (thread_id, expert_id, role, content) VALUES (?, NULL, 'system', ?)"
@@ -464,13 +475,16 @@ router.post('/:id/experts', (req, res) => {
   ).get(thread.id);
   const nextOrder = (maxOrder?.max_order ?? -1) + 1;
 
+  const lang = getLanguage(thread.language);
+  const joinMsg = t(lang.joinedMessage, { expertName: expert.name });
+
   const addExpert = db.transaction(() => {
     db.prepare('INSERT INTO thread_experts (thread_id, expert_id, sort_order) VALUES (?, ?, ?)')
       .run(thread.id, expertId, nextOrder);
 
     const msgResult = db.prepare(
       "INSERT INTO messages (thread_id, expert_id, role, content) VALUES (?, NULL, 'system', ?)"
-    ).run(thread.id, `${expert.name} has joined the discussion.`);
+    ).run(thread.id, joinMsg);
 
     return Number(msgResult.lastInsertRowid);
   });
@@ -486,7 +500,7 @@ router.post('/:id/experts', (req, res) => {
       thread_id: thread.id,
       expert_id: null,
       role: 'system',
-      content: `${expert.name} has joined the discussion.`,
+      content: joinMsg,
       created_at: new Date().toISOString(),
     },
   });
@@ -519,13 +533,16 @@ router.delete('/:id/experts/:expertId', (req, res) => {
 
   const expert = db.prepare('SELECT * FROM experts WHERE id = ?').get(expertId);
 
+  const lang = getLanguage(thread.language);
+  const leaveMsg = t(lang.leftMessage, { expertName: expert.name });
+
   const removeExpert = db.transaction(() => {
     db.prepare('DELETE FROM thread_experts WHERE thread_id = ? AND expert_id = ?')
       .run(thread.id, expertId);
 
     const msgResult = db.prepare(
       "INSERT INTO messages (thread_id, expert_id, role, content) VALUES (?, NULL, 'system', ?)"
-    ).run(thread.id, `${expert.name} has left the discussion.`);
+    ).run(thread.id, leaveMsg);
 
     return Number(msgResult.lastInsertRowid);
   });
@@ -541,7 +558,7 @@ router.delete('/:id/experts/:expertId', (req, res) => {
       thread_id: thread.id,
       expert_id: null,
       role: 'system',
-      content: `${expert.name} has left the discussion.`,
+      content: leaveMsg,
       created_at: new Date().toISOString(),
     },
   });

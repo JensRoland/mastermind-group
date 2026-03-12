@@ -38,6 +38,7 @@ export const api = {
   bulkUpdateSpecialty: (ids, specialty) => request('/experts/bulk-specialty', { method: 'PATCH', body: JSON.stringify({ ids, specialty }) }),
 
   // Threads
+  getLanguages: () => request('/threads/languages'),
   getThreads: (status) => request(`/threads${status ? `?status=${status}` : ''}`),
   getThread: (id) => request(`/threads/${id}`),
   createThread: (data) => request('/threads', { method: 'POST', body: JSON.stringify(data) }),
