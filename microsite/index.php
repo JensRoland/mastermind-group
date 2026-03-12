@@ -192,11 +192,11 @@ $basePath = rtrim(dirname($_SERVER['SCRIPT_NAME']), '/') . '/';
     ></iframe>
   <?php elseif ($isAboutPage): ?>
     <div class="about-page">
-      <img src="assets/logotype-wide.png" alt="Mastermind Group" class="about-logo">
+      <img src="assets/logotype.png" alt="Mastermind Group" class="about-logo">
 
       <h1>Om Mastermind Group</h1>
 
-      <p><em>Hvad nu hvis du havde verdens mest succesfulde erhvervsledere på speed dial?</em></p>
+      <p><em>Tænk hvis hvis du havde verdens mest succesfulde erhvervsledere på speed dial?</em></p>
 
       <p>Forestil dig at sparre om din forretningsstrategi med Jeff Bezos, Tim Cook, Jensen Huang, Steve Jobs, Elon Musk, Satya Nadella, Mark Zuckerberg og Jack Ma Yun &mdash; med et øjebliks varsel.</p>
 

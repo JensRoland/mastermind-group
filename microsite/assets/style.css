@@ -150,6 +150,8 @@ body {
   overflow-y: auto;
   display: flex;
   flex-direction: column;
+  isolation: isolate;
+  background: var(--color-bg-primary);
 }
 
 .session-frame {
@@ -298,10 +300,11 @@ body {
 
 .about-logo {
   display: block;
-  max-width: 220px;
+  width: 100%;
+  max-width: 100%;
   height: auto;
   mix-blend-mode: plus-lighter;
-  margin-bottom: 40px;
+  margin: 0 auto 40px;
 }
 
 .about-page h1 {
@@ -401,6 +404,10 @@ body {
   .sidebar.open {
     transform: translateX(0);
     box-shadow: 4px 0 24px rgba(0, 0, 0, 0.5);
+  }
+
+  .sidebar.open ~ .sidebar-toggle {
+    display: none;
   }
 
   .sidebar-toggle {
