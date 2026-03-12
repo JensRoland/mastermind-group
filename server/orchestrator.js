@@ -68,7 +68,7 @@ async function processThread(thread) {
 
     const lang = getLanguage(thread.language);
     db.prepare(
-      "INSERT INTO messages (thread_id, expert_id, role, content) VALUES (?, NULL, 'system', ?)"
+      "INSERT INTO messages (thread_id, expert_id, role, content, message_type) VALUES (?, NULL, 'system', ?, 'status')"
     ).run(thread.id, lang.pausedMessage);
 
     console.log(`${threadTag(thread)} Paused (reached ${thread.max_turns} turns)`);
@@ -256,7 +256,7 @@ async function generateSummary(thread) {
       .run(thread.id);
 
     db.prepare(
-      "INSERT INTO messages (thread_id, expert_id, role, content) VALUES (?, NULL, 'system', ?)"
+      "INSERT INTO messages (thread_id, expert_id, role, content, message_type) VALUES (?, NULL, 'system', ?, 'status')"
     ).run(thread.id, failLang.summaryFailed);
 
     broadcast(thread.id, {

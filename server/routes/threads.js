@@ -366,7 +366,7 @@ router.get('/:id/export', (req, res) => {
     `SELECT m.*, e.name as expert_name
      FROM messages m
      LEFT JOIN experts e ON m.expert_id = e.id
-     WHERE m.thread_id = ?
+     WHERE m.thread_id = ? AND COALESCE(m.message_type, '') != 'status'
      ORDER BY m.created_at ASC`
   ).all(thread.id);
 
@@ -414,7 +414,7 @@ router.get('/:id/export-html', (req, res) => {
     `SELECT m.*, e.name as expert_name, e.avatar_url as expert_avatar
      FROM messages m
      LEFT JOIN experts e ON m.expert_id = e.id
-     WHERE m.thread_id = ?
+     WHERE m.thread_id = ? AND COALESCE(m.message_type, '') != 'status'
      ORDER BY m.created_at ASC`
   ).all(thread.id);
 
