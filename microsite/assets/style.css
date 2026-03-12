@@ -172,6 +172,7 @@ body {
   max-width: 720px;
   margin: 0 auto;
   width: 100%;
+  background: var(--color-bg-primary);
 }
 
 .landing-logo {
@@ -422,5 +423,23 @@ body {
 
   .landing {
     padding: 80px var(--spacing-lg) var(--spacing-lg);
+  }
+
+  .card-avatars {
+    gap: 0;
+  }
+
+  .card-avatars img,
+  .card-avatar-placeholder {
+    width: 40px;
+    height: 40px;
+    font-size: 14px;
+    margin-right: -12px;
+    border: 2px solid var(--color-bg-secondary);
+  }
+
+  .card-avatars img:last-child,
+  .card-avatar-placeholder:last-child {
+    margin-right: 0;
   }
 }
