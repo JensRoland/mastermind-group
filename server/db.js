@@ -114,6 +114,16 @@ db.exec(`
       OR content LIKE '%har bedt gruppen om at afslutte%')
 `);
 
+// Data migration — backfill message_type for status messages (paused / summary failed)
+db.exec(`
+  UPDATE messages SET message_type = 'status'
+  WHERE role = 'system' AND message_type IS NULL
+    AND (content LIKE 'The discussion has been paused%'
+      OR content LIKE 'Diskussionen er sat på pause%'
+      OR content LIKE 'Summary generation failed%'
+      OR content LIKE 'Generering af resumé mislykkedes%')
+`);
+
 // Data migrations — revert mistaken Gemini 3.1 upgrade (model doesn't exist yet)
 db.exec(`
   UPDATE experts SET llm_model = 'google/gemini-3-flash-preview'
