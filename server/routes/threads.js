@@ -255,7 +255,7 @@ router.post('/:id/wrapup', (req, res) => {
   const wrapupMessage = t(lang.wrapUpMessage, { moderatorName: modLabel });
 
   db.prepare(
-    "INSERT INTO messages (thread_id, expert_id, role, content) VALUES (?, NULL, 'system', ?)"
+    "INSERT INTO messages (thread_id, expert_id, role, content, message_type) VALUES (?, NULL, 'system', ?, 'wrapup')"
   ).run(thread.id, wrapupMessage);
 
   // Set max_turns so everyone speaks exactly once more
@@ -408,8 +408,14 @@ router.post('/:id/rollback', (req, res) => {
       "SELECT COUNT(*) as count FROM messages WHERE thread_id = ? AND role = 'expert' AND id <= ?"
     ).get(thread.id, messageId);
 
-    db.prepare('UPDATE threads SET status = ?, current_turn = ?, wrapping_up = 0 WHERE id = ?')
-      .run('paused', newTurn, thread.id);
+    // If the wrap-up message survived the rollback, preserve wrapping_up state
+    const hasWrapupMessage = db.prepare(
+      "SELECT 1 FROM messages WHERE thread_id = ? AND message_type = 'wrapup' AND id <= ?"
+    ).get(thread.id, messageId);
+    const wrappingUp = hasWrapupMessage ? 1 : 0;
+
+    db.prepare('UPDATE threads SET status = ?, current_turn = ?, wrapping_up = ? WHERE id = ?')
+      .run('paused', newTurn, wrappingUp, thread.id);
 
     return newTurn;
   });

@@ -100,6 +100,12 @@ try {
   // Column already exists
 }
 
+try {
+  db.exec("ALTER TABLE messages ADD COLUMN message_type TEXT DEFAULT NULL");
+} catch {
+  // Column already exists
+}
+
 // Data migrations — revert mistaken Gemini 3.1 upgrade (model doesn't exist yet)
 db.exec(`
   UPDATE experts SET llm_model = 'google/gemini-3-flash-preview'
