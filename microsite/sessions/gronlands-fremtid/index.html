@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Grønlands fremtid og dansk udenrigspolitik — Mastermind Group</title>
+<style>
+
+:root {
+  --color-bg-primary: #1a1d21;
+  --color-bg-secondary: #222529;
+  --color-text-primary: #d1d2d3;
+  --color-text-secondary: #ababad;
+  --color-text-bright: #ffffff;
+  --color-text-muted: #8b8f97;
+  --color-accent: #192f40;
+  --color-yellow: #ecb22e;
+  --color-border: #393c41;
+  --radius: 6px;
+  --radius-sm: 4px;
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 12px;
+  --spacing-lg: 16px;
+  --spacing-xl: 24px;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--color-bg-primary);
+  color: var(--color-text-primary);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  font-size: 15px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+.page {
+  max-width: 820px;
+  margin: 0 auto;
+  padding: var(--spacing-xl);
+}
+
+.thread-header {
+  padding-bottom: var(--spacing-xl);
+  border-bottom: 1px solid var(--color-border);
+  margin-bottom: var(--spacing-xl);
+}
+
+.thread-header h1 {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--color-text-bright);
+  margin-bottom: var(--spacing-sm);
+}
+
+.thread-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--spacing-sm);
+  font-size: 13px;
+  color: var(--color-text-secondary);
+  margin-bottom: var(--spacing-sm);
+}
+
+.thread-topic { font-style: italic; }
+.meta-separator { color: var(--color-text-muted); }
+
+.participants {
+  font-size: 13px;
+  color: var(--color-text-muted);
+  margin-top: var(--spacing-lg);
+  line-height: 1.6;
+}
+
+.participants ul {
+  list-style: none;
+  padding: 0;
+  margin: var(--spacing-sm) 0 0 0;
+}
+
+.participants li {
+  padding: 2px 0;
+}
+
+.participant-model {
+  opacity: 0.7;
+}
+
+/* Messages */
+.message-bubble {
+  display: flex;
+  gap: var(--spacing-md);
+  padding: var(--spacing-sm) 0;
+  margin-bottom: var(--spacing-sm);
+}
+
+.message-bubble + .message-bubble {
+  border-top: 1px solid rgba(255, 255, 255, 0.04);
+  padding-top: var(--spacing-md);
+}
+
+.message-avatar {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+}
+
+.message-avatar img {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius);
+  object-fit: cover;
+}
+
+.avatar-placeholder {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius);
+  background: var(--color-accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--color-text-bright);
+}
+
+.message-body { flex: 1; min-width: 0; }
+
+.message-header {
+  display: flex;
+  align-items: baseline;
+  gap: var(--spacing-sm);
+  margin-bottom: var(--spacing-xs);
+}
+
+.message-author {
+  font-weight: 700;
+  color: var(--color-text-bright);
+}
+
+.message-time {
+  font-size: 11px;
+  color: var(--color-text-muted);
+}
+
+.message-content {
+  color: var(--color-text-primary);
+  line-height: 1.6;
+  word-break: break-word;
+}
+
+.message-content p { margin-bottom: var(--spacing-sm); }
+.message-content p:last-child { margin-bottom: 0; }
+.message-content h1, .message-content h2, .message-content h3,
+.message-content h4, .message-content h5, .message-content h6 {
+  color: var(--color-text-bright);
+  margin-top: var(--spacing-lg);
+  margin-bottom: var(--spacing-sm);
+  line-height: 1.3;
+}
+.message-content h1 { font-size: 1.4em; }
+.message-content h2 { font-size: 1.25em; }
+.message-content h3 { font-size: 1.1em; }
+
+.message-content code {
+  font-family: 'SF Mono', SFMono-Regular, Consolas, 'Liberation Mono', Menlo, monospace;
+  font-size: 0.9em;
+  background: rgba(255, 255, 255, 0.06);
+  padding: 2px 6px;
+  border-radius: var(--radius-sm);
+}
+
+.message-content pre {
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: var(--radius);
+  padding: var(--spacing-md);
+  overflow-x: auto;
+  margin: var(--spacing-sm) 0;
+}
+
+.message-content pre code {
+  background: none;
+  padding: 0;
+  font-size: 0.85em;
+  line-height: 1.5;
+}
+
+.message-content blockquote {
+  border-left: 3px solid var(--color-accent);
+  padding-left: var(--spacing-md);
+  margin: var(--spacing-sm) 0;
+  color: var(--color-text-secondary);
+}
+
+.message-content ul, .message-content ol {
+  padding-left: var(--spacing-xl);
+  margin: var(--spacing-sm) 0;
+}
+
+.message-content li { margin-bottom: var(--spacing-xs); }
+
+.message-content a {
+  color: #4da6ff;
+  text-decoration: underline;
+}
+
+.message-content hr {
+  border: none;
+  border-top: 1px solid var(--color-border);
+  margin: var(--spacing-lg) 0;
+}
+
+.message-content table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: var(--spacing-sm) 0;
+}
+
+.message-content th, .message-content td {
+  border: 1px solid var(--color-border);
+  padding: var(--spacing-xs) var(--spacing-sm);
+  text-align: left;
+}
+
+.message-content th {
+  background: rgba(255, 255, 255, 0.04);
+  font-weight: 600;
+  color: var(--color-text-bright);
+}
+
+.message-content strong { color: var(--color-text-bright); }
+
+.message-footer {
+  margin-top: var(--spacing-xs);
+}
+
+.message-model {
+  font-size: 11px;
+  color: var(--color-text-muted);
+  opacity: 0.6;
+}
+
+/* System messages */
+.message-bubble.system {
+  justify-content: center;
+  padding: var(--spacing-md) 0;
+}
+
+.system-message {
+  text-align: center;
+  font-size: 13px;
+  color: var(--color-text-muted);
+  font-style: italic;
+  padding: var(--spacing-sm) var(--spacing-lg);
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: var(--radius);
+  max-width: 600px;
+}
+
+/* Summary messages */
+.message-bubble.summary {
+  justify-content: center;
+  padding: var(--spacing-lg) 0;
+}
+
+.summary-message {
+  width: 100%;
+  max-width: 720px;
+  margin: 0 auto;
+  padding: var(--spacing-lg);
+  background: rgba(255, 255, 255, 0.03);
+  border-left: 3px solid var(--color-accent);
+  border-radius: var(--radius);
+}
+
+.summary-message .message-content h2:first-child { margin-top: 0; }
+
+/* User (moderator) messages */
+.message-bubble.user .message-author { color: var(--color-yellow); }
+.message-bubble.user .avatar-placeholder {
+  background: var(--color-yellow);
+  color: var(--color-bg-primary);
+}
+
+/* Footer */
+.header-avatars {
+  display: flex;
+  justify-content: center;
+  gap: var(--spacing-sm);
+  flex-wrap: wrap;
+  margin-top: var(--spacing-lg);
+}
+
+.header-avatars img {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.header-avatars .avatar-placeholder {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--color-accent);
+  color: var(--color-bg-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.export-footer {
+  margin-top: var(--spacing-xl);
+  padding-top: var(--spacing-xl);
+  border-top: 1px solid var(--color-border);
+}
+
+.disclaimer {
+  font-size: 13px;
+  color: var(--color-text-muted);
+  background: rgba(255, 255, 255, 0.03);
+  padding: var(--spacing-lg);
+  border-radius: var(--radius);
+  margin-top: var(--spacing-lg);
+  line-height: 1.6;
+}
+
+.credit {
+  font-size: 13px;
+  color: var(--color-text-muted);
+  text-align: center;
+}
+
+.credit a {
+  color: #4da6ff;
+  text-decoration: underline;
+}
+
+@media (max-width: 600px) {
+  .page { padding: var(--spacing-md); }
+  .message-avatar { width: 28px; height: 28px; }
+  .message-avatar img { width: 28px; height: 28px; }
+  .avatar-placeholder { width: 28px; height: 28px; font-size: 11px; }
+  .message-bubble { gap: var(--spacing-sm); }
+}
+
+</style>
+</head>
+<body>
+<div class="page">
+  <header class="thread-header">
+    <h1>Grønlands fremtid og dansk udenrigspolitik</h1>
+    <div class="thread-meta">
+      <span class="thread-topic">Skal Danmark sælge Grønland til USA?</span>
+      <span class="meta-separator">·</span>
+      <span>12. marts 2026</span>
+      <span class="meta-separator">·</span>
+      <span>18 ture</span>
+    </div>
+    <div class="disclaimer">
+      <strong>Ansvarsfraskrivelse:</strong> Dette er en simuleret rundbordsdiskussion genereret af AI. Deltagerne er fiktive personaer drevet af LLMer. Deres udtalelser repræsenterer ikke holdningerne hos nogen virkelige personer og må ikke tilskrives nogen faktiske personer, levende eller døde.
+    </div>
+    <div class="header-avatars">
+      <img src="avatars/50.png" alt="Mette Frederiksen (S)" title="Mette Frederiksen (S)" />
+<img src="avatars/48.png" alt="Troels Lund Poulsen (V)" title="Troels Lund Poulsen (V)" />
+<img src="avatars/45.png" alt="Pia Olsen Dyhr (SF)" title="Pia Olsen Dyhr (SF)" />
+<img src="avatars/54.png" alt="Lars Løkke Rasmussen (M)" title="Lars Løkke Rasmussen (M)" />
+<img src="avatars/49.png" alt="Inger Støjberg (DD)" title="Inger Støjberg (DD)" />
+<img src="avatars/51.png" alt="Alex Vanopslagh (LA)" title="Alex Vanopslagh (LA)" />
+    </div>
+  </header>
+  <main class="messages">
+<div class="message-bubble system"><div class="system-message">Deltagere: Mette Frederiksen (S), Troels Lund Poulsen (V), Pia Olsen Dyhr (SF), Lars Løkke Rasmussen (M), Inger Støjberg (DD), Alex Vanopslagh (LA)</div></div>
+<div class="message-bubble user">
+      <div class="message-avatar"><div class="avatar-placeholder">JR</div></div>
+      <div class="message-body">
+        <div class="message-header">
+          <span class="message-author">Jens Roland (Moderator)</span>
+          <span class="message-time">12. mar., 21.09</span>
+        </div>
+        <div class="message-content"><p>Skal Danmark sælge Grønland til USA?</p>
+</div>
+        
+      </div>
+    </div>
+<div class="message-bubble expert">
+      <div class="message-avatar"><img src="avatars/50.png" alt="Mette Frederiksen (S)" /></div>
+      <div class="message-body">
+        <div class="message-header">
+          <span class="message-author">Mette Frederiksen (S)</span>
+          <span class="message-time">12. mar., 21.09</span>
+        </div>
+        <div class="message-content"><p>Nej. Det korte svar er nej, og det mener jeg ikke behøver lange filosofiske overvejelser.</p>
+<p>Grønland er ikke dansk ejendom. Det er et folk, en nation, et samfund med ret til selvbestemmelse. Spørgsmålet om Grønlands fremtid tilhører grønlænderne – ikke os, og slet ikke Donald Trump. At formulere det som om Danmark kan &quot;sælge&quot; Grønland er allerede at acceptere en præmis, jeg grundlæggende afviser. Man sælger ikke folk.</p>
+<p>Men – og det er vigtigt – det her spørgsmål er heller ikke bare et afvisningsspørgsmål. Det tvinger os til at tage noget alvorligt, som vi har undgået i for mange år: Hvad er vores reelle ansvar over for Grønland? Vi har ikke investeret tilstrækkeligt i arktisk infrastruktur, i grønlandsk økonomi, i forsvaret af Rigsfællesskabet. Hvis amerikanerne ser et magtpolitisk vakuum i Arktis, er det delvist fordi vi – og vores europæiske partnere – har ladet det opstå. Det ansvar kan vi ikke skubbe over på Trump ved at pege fingre.</p>
+<p>Så mit udgangspunkt til denne diskussion er: Vi skal ikke diskutere salg. Vi skal diskutere, hvordan Danmark og Europa tager det arktiske ansvar seriøst, som vi burde have taget for tyve år siden. Det er det rigtige spørgsmål.</p>
+</div>
+        <div class="message-footer"><span class="message-model">anthropic/claude-sonnet-4.6</span></div>
+      </div>
+    </div>
+<div class="message-bubble expert">
+      <div class="message-avatar"><img src="avatars/48.png" alt="Troels Lund Poulsen (V)" /></div>
+      <div class="message-body">
+        <div class="message-header">
+          <span class="message-author">Troels Lund Poulsen (V)</span>
+          <span class="message-time">12. mar., 21.10</span>
+        </div>
+        <div class="message-content"><p>Nej, Danmark skal ikke “sælge” Grønland til USA. Og jeg er enig med Mette i præmissen: Grønland er ikke et stykke fast ejendom, vi kan handle med. Det er et folk med selvbestemmelsesret, og enhver diskussion, der lader som om København kan underskrive en slutseddel, er både politisk og folkeretligt forfejlet. Når det er sagt, synes jeg også, at Mettes “det behøver ikke lange overvejelser” er lidt for letkøbt — for der ligger en reel geopolitisk udfordring bag spørgsmålet, som vi er nødt til at håndtere mere nøgternt end bare at afvise Trump-retorikken.</p>
+<p>Det rigtige spørgsmål er, hvordan vi undgår et arktisk vakuum. USA er vores tætteste sikkerhedspolitiske allierede, og deres interesse i Arktis er legitim. Men svaret kan ikke være, at vi trækker os væk eller lader som om basale kapaciteter kan klares med symbolpolitik. Her har Mette ret i, at vi i årevis har underinvesteret — både i overvågning, beredskab, infrastruktur og i at få samarbejdet i Rigsfællesskabet til at fungere mere ligeværdigt i praksis. Hvis vi vil bevare indflydelse og stabilitet, kræver det konkret tilstedeværelse, ikke bare holdninger.</p>
+<p>Næste skridt bør være tre ting: 1) En opdateret, fælles arktisk aftale mellem Danmark, Grønland og Færøerne om sikkerhed og beredskab med klare kapabilitetsmål (radar, droner, patruljekapacitet, havne/luftstrips). 2) Et tættere, men mere gennemsigtigt samarbejde med USA i NATO-rammen og via bilaterale aftaler, hvor Grønland sidder med ved bordet — ikke bagefter. 3) Et økonomisk spor, hvor vi hjælper med rammerne for private investeringer og erhvervsudvikling i Grønland, så der er et reelt alternativ til, at andre stormagter køber sig ind gennem enkeltprojekter.</p>
+<p>Hvis vi er ved at nærme os en fælles bund i gruppen, så er det: ingen salgstankegang, men ja til et markant løft af ansvar, kapacitet og partnerskab. Spørgsmålet er så, om vi tør sætte konkrete tal og tidsplan på — og det vil jeg gerne høre især Lars’ og Mettes bud på, fordi uden en plan ender det her igen som en hensigtserklæring.</p>
+</div>
+        <div class="message-footer"><span class="message-model">openai/gpt-5.2</span></div>
+      </div>
+    </div>
+<div class="message-bubble expert">
+      <div class="message-avatar"><img src="avatars/45.png" alt="Pia Olsen Dyhr (SF)" /></div>
+      <div class="message-body">
+        <div class="message-header">
+          <span class="message-author">Pia Olsen Dyhr (SF)</span>
+          <span class="message-time">12. mar., 21.10</span>
+        </div>
+        <div class="message-content"><p>Mette Frederiksen og Troels Lund Poulsen har fuldstændig ret i, at vi ikke kan sælge det, vi ikke ejer. Det er en forældet, kolonialistisk tankegang overhovedet at lade ordet &quot;salg&quot; passere vores læber. Men Troels, når du taler om &quot;private investeringer&quot; og &quot;kapabilitetsmål&quot;, så er jeg bange for, at du glemmer selve fundamentet for, hvorfor Arktis er vigtigt: Det handler ikke kun om geopolitisk lir og radarstationer. Det handler om klimaet og om de mennesker, der bor der.</p>
+<p>Hvis vi skal tage det arktiske ansvar seriøst, som Mette efterlyser, så starter det med den grønne omstilling. Arktis er klodens termometer, og det smelter mellem hænderne på os. Vi kan ikke diskutere sikkerhedspolitik uden at forstå, at den største trussel mod Grønlands stabilitet ikke nødvendigvis er en russisk ubåd, men klimaforandringerne, der ødelægger livsgrundlaget for de grønlandske familier. Et &quot;stærkt Rigsfællesskab&quot; skal være et grønt og socialt retfærdigt fællesskab, ellers er det bare ord.</p>
+<p>Jeg er bekymret for den glidebane, Troels lægger op til med et tættere samarbejde med USA. Ja, USA er vores allierede, men vi skal ikke gøre Grønland til en brik i et nyt koldkrigs-opgør mellem stormagterne. Det tjener hverken danskernes eller grønlændernes interesser. Vi skal arbejde for Arktis som en lavspænding-zone. Hvis vi bare pumper penge i militær infrastruktur for at tækkes USA, så risikerer vi at optrappe en konflikt, vi i stedet burde forsøge at dæmpe gennem diplomati og internationalt samarbejde.</p>
+<p>Mit forslag til et næste skridt er derfor: Vi skal skabe en &quot;Arktisk velfærds- og klimafonden&quot;. Danmark skal investere massivt i grønlandsk uddannelse, sundhed og grøn energi – ikke som en gave, men som en investering i et ligeværdigt partnerskab. Vi skal vise grønlænderne, at Rigsfællesskabet er mere end blot en sikkerhedspolitisk nødvendighed for København; det skal være en garanti for social tryghed og en bæredygtig fremtid. Hvad siger du til det, Lars Løkke? Du plejer at tale om pragmatiske løsninger – kan vi finde en vej, hvor vi investerer i menneskelige ressourcer frem for kun i isenkram?</p>
+</div>
+        <div class="message-footer"><span class="message-model">google/gemini-3-flash-preview</span></div>
+      </div>
+    </div>
+<div class="message-bubble expert">
+      <div class="message-avatar"><img src="avatars/54.png" alt="Lars Løkke Rasmussen (M)" /></div>
+      <div class="message-body">
+        <div class="message-header">
+          <span class="message-author">Lars Løkke Rasmussen (M)</span>
+          <span class="message-time">12. mar., 21.10</span>
+        </div>
+        <div class="message-content"><p>Jeg er enig med Mette og Troels i det grundlæggende: nej til salg, ja til ansvar. Men Pia, du opstiller en falsk modsætning mellem sikkerhed og velfærd. Det er ikke enten-eller — det er både-og, og det er netop pointen med at tage ansvar alvorligt.</p>
+<p>Se, jeg har siddet i de her\Bundle\minos og forhandlet både forsvarsaftaler og velfærdsreformer. Erfaringen er den: uden sikkerhedspolitisk stabilitet kan du ikke bygge varige velfærdsinstitutioner. Og uden fungerende velfærd og økonomisk perspektiv kan du ikke opretholde den lokalbefolkning, der gør suverænitet meningsfuld. Grønland har brug for radarer <em>og</em> hospitaler, patruljeskibe <em>og</em> uddannelsesinstitutioner. Det ene udelukker ikke det andet.</p>
+<p>Hvor jeg vil udfordre Troels — og Mette — er på den konkrete implementering. Vi kan alle blive enige om &quot;markante løft&quot; og &quot;fælles aftaler&quot; her ved bordet. Men jeg har set for mange hensigtserklæringer dø i finansministeriets kælder. Spørgsmålet er: er vi klar til at prioritere? For et reelt arktisk løft kræver milliarder, ikke millioner. Det kræver langsigtet binding over skiftende regeringer. Og det kræver — og det er det svære — at vi inddrager Europa. Det her kan ikke være en dansk solo-forestilling. EU har arktiske interesser, og vi bør koble deres finansieringsinstrumenter til opgaven.</p>
+<p>Så mit spørgsmål til gruppen er: er vi villige til at binde os økonomisk på tværs af partiskelister i ti-årige aftaler — eller bliver det ved hensigterne?</p>
+</div>
+        <div class="message-footer"><span class="message-model">z-ai/glm-5</span></div>
+      </div>
+    </div>
+<div class="message-bubble expert">
+      <div class="message-avatar"><img src="avatars/49.png" alt="Inger Støjberg (DD)" /></div>
+      <div class="message-body">
+        <div class="message-header">
+          <span class="message-author">Inger Støjberg (DD)</span>
+          <span class="message-time">12. mar., 21.11</span>
+        </div>
+        <div class="message-content"><p>Lars, du taler om at binde os økonomisk i ti-årige aftaler og hive EU ind i billedet, men det lyder for mig som den sædvanlige elite-flugt fra dansk ansvar – lad Bruxelles tage regningen, mens vi sidder med hænderne i skødet. Jeg er enig i, at vi ikke sælger Grønland, men hvis vi skal have langsigtede bindinger, skal de være danske og grønlandske, ikke dikteret af nogen eurokratisk monster. Vi har set det før: EU-indblandingen ender med mere bureaukrati og mindre suverænitet, og det er præcis det, der svækker Rigsfællesskabet. Troels har ret i, at vi skal have konkrete kapabilitetsmål som radar og patruljer, men lad os ikke glemme, at det handler om at forsvare mod reelle trusler fra Rusland og Kina, ikke bare klimasnak.</p>
+<p>Pia, din &quot;Arktisk velfærds- og klimafonden&quot; lyder fin på papiret, men det er naivt at tro, at grøn energi og social tryghed stopper en kinesisk isbryder eller en russisk militærbase. Jeg er enig med Mette i, at vi har undladt vores ansvar for længe, men det ansvar inkluderer hård prioritering: Først sikkerhed for at beskytte folkene deroppe, så kommer økonomien og velfærden. Jeg kender almindelige danskere, der har set grønlændere strides med manglende jobs og infrastruktur – det løser vi ikke med fonde, men ved at investere i reel økonomisk selvstændighed, som Troels nævner, via private projekter uden EU-snubletråd.</p>
+<p>Lad os syntetisere det her: Vi har konsensus om nej til salg og ja til investeringer, men vi kører i ring om prioriteringer. Mit forslag er en konkret, Grønland-ledet taskforce inden for et år, med repræsentanter fra Folketinget og Naalakkersuisut, der fastsætter et budget på mindst 5 milliarder kroner årligt til militær og civil infrastruktur – uden EU-penge. Lars, er du med på at gøre det dansk-fokuseret, eller bliver det ved de vage hensigter?</p>
+</div>
+        <div class="message-footer"><span class="message-model">x-ai/grok-4</span></div>
+      </div>
+    </div>
+<div class="message-bubble expert">
+      <div class="message-avatar"><img src="avatars/51.png" alt="Alex Vanopslagh (LA)" /></div>
+      <div class="message-body">
+        <div class="message-header">
+          <span class="message-author">Alex Vanopslagh (LA)</span>
+          <span class="message-time">12. mar., 21.11</span>
+        </div>
+        <div class="message-content"><p>Nej, selvfølgelig skal Danmark ikke sælge Grønland. Og jeg er enig med Mette i præmissen: man sælger ikke et folk. Men jeg synes også, vi skal passe på med at bruge den moralske afvisning som en sovepude. For Troels og Lars har ret i, at spørgsmålet bag provokationen er reelt: Har vi i årtier leveret for lidt sikkerhed, for lidt infrastruktur og for lidt økonomisk udvikling? Ja, det har vi.</p>
+<p>Pia, du laver samme fejl, som venstrefløjen ofte gør: du taler, som om sikkerhed og økonomisk udvikling er suspekte, hvis der også er private investeringer og militære kapaciteter involveret. Det er en luksusforestilling. Hvis Grønland skal stå stærkere — også i forhold til mere selvbestemmelse — kræver det en mere bæredygtig økonomi, flere private arbejdspladser, bedre rammer for investeringer og mindre afhængighed af bloktilskud. Velfærd bliver ikke stærkere af, at man ignorerer, hvor pengene kommer fra. Inger har ret i, at vi ikke skal gemme os bag EU-processer, men hendes rækkefølge er for mekanisk: “først sikkerhed, så økonomi.” Nej. Det skal bygges parallelt, ellers ender vi med mere stat, flere udgifter og stadig for lidt reel robusthed.</p>
+<p>Hvis der er en begyndende konsensus her, så er den faktisk ret klar: nej til salg, ja til et markant løft. Så lad os gøre det konkret i stedet for højstemt. En 10-årig rigsfællesskabsaftale med Grønland ved bordet fra start, ikke til pynt. Tre spor: 1) sikkerhedskapaciteter i Arktis, 2) kritisk civil infrastruktur, 3) erhvervsreformer og investeringer, så Grønland kan tiltrække privat kapital på egne præmisser. Lars har ret i, at det kræver milliarder, men så lad os også kræve resultater, tidsplaner og ansvar — ikke bare flere offentlige puljer. Hvis vi bare hælder penge i systemet uden reformer, reproducerer vi præcis den passivitet, der bragte os hertil.</p>
+</div>
+        <div class="message-footer"><span class="message-model">openai/gpt-5.4</span></div>
+      </div>
+    </div>
+<div class="message-bubble expert">
+      <div class="message-avatar"><img src="avatars/50.png" alt="Mette Frederiksen (S)" /></div>
+      <div class="message-body">
+        <div class="message-header">
+          <span class="message-author">Mette Frederiksen (S)</span>
+          <span class="message-time">12. mar., 21.11</span>
+        </div>
+        <div class="message-content"><p>Troels, Lars og Alex sætter det rigtige spørgsmål: hvad koster det, og hvem binder sig? Det er det, vi skal tage op nu, frem for at blive ved med at nikke til hinandens principper.</p>
+<p>Inger, jeg er uenig med dig om EU. Ikke fordi jeg er naiv om Bruxelles&#39; begrænsninger, men fordi den arktiske geopolitik er for stor til, at Danmark kan stå alene. Vi er et land på seks millioner. Rusland og Kina tænker i kontinenter. Lars har ret i, at vi skal koble europæiske interesser og finansiering til opgaven – det er ikke at flygte fra dansk ansvar, det er at forstå magtbalancen realistisk. Rigsfællesskabets suverænitet styrkes ikke af nationalromantik, men af at stå i en stærkere alliance.</p>
+<p>Pia, jeg deler din bekymring for klimaet og for grønlandske velfærdsvilkår. Men jeg er nødt til at sige direkte: Hvis vi i dag prioriterer klimafonde højere end sikkerhedskapacitet, efterlader vi grønlænderne med et magtpolitisk vakuum, som andre vil udfylde. Det er ikke et valg mellem sikkerhed og menneskelig værdighed – det er begge dele, og sikkerheden er en forudsætning for resten.</p>
+<p>Alex&#39; tresporsmodel er faktisk brugbar som ramme. Lad mig tilføje ét afgørende element, som ingen har nævnt eksplicit: Grønland skal ikke bare &quot;sidde med ved bordet til pynt,&quot; som du formulerer det. Naalakkersuisut skal have reel vetoret på de elementer, der angår grønlandsk territorium og befolkning. Ellers er vi ikke et ligeværdigt Rigsfællesskab – vi er bare et nyt kolonialt kapitel med bedre PR. Det er den præmis, resten af aftalen skal bygges på.</p>
+</div>
+        <div class="message-footer"><span class="message-model">anthropic/claude-sonnet-4.6</span></div>
+      </div>
+    </div>
+<div class="message-bubble expert">
+      <div class="message-avatar"><img src="avatars/48.png" alt="Troels Lund Poulsen (V)" /></div>
+      <div class="message-body">
+        <div class="message-header">
+          <span class="message-author">Troels Lund Poulsen (V)</span>
+          <span class="message-time">12. mar., 21.12</span>
+        </div>
+        <div class="message-content"><p>Pia, jeg køber ikke præmissen om, at “kapabilitetsmål” og private investeringer skubber klima og mennesker i baggrunden. Klimaforandringerne er reelle og rammer Grønland hårdt – men det er netop et argument for robust infrastruktur, beredskab og tilstedeværelse. Når isen ændrer sig, ændrer trafikmønstre og risici sig også; det øger behovet for overvågning, redningskapacitet og stabile forsyningslinjer. Så det er ikke “isenkram versus velfærd” – det er at sikre, at vi kan levere både sundhed, uddannelse og klimatilpasning i et område, hvor afstande og vejr gør alting dyrere og mere sårbart.</p>
+<p>Lars har ret i, at hensigtserklæringer dør, hvis ikke vi binder os – og her er jeg klar til at gå ind i en flerårig, bred aftale. Men Inger, jeg mener, du undervurderer værdien af at få Europa med. EU skal ikke styre Grønland, men vi skal være voksne nok til at bruge de finansierings- og forskningsinstrumenter, der findes, til fx havne, energi, forsyningssikkerhed og satellitdata. Det gør ikke rigsfællesskabet svagere; det gør os mere robuste i en verden, hvor Rusland og Kina spiller hårdt. Og Alex har en pointe i, at økonomisk bæredygtighed kræver flere private arbejdspladser – men det skal ske på grønlandske præmisser og med ordentlig risikostyring, så vi ikke ender med kortsigtede projekter, der efterlader regningen hos det offentlige.</p>
+<p>Mette rejser det afgørende punkt om grønlandsk indflydelse. “Vetoret” kan være det rigtige værn på nogle områder, men vi skal være præcise: På spørgsmål om baser, arealanvendelse, miljø og lokale samfundskonsekvenser skal Grønland have reel beslutningsmagt – ellers får vi hverken legitimitet eller langsigtet stabilitet. Omvendt skal vi også kunne levere på NATO-forpligtelser og fælles sikkerhed; det kræver en model, der både respekterer selvstyret og sikrer, at beslutninger faktisk kan træffes og implementeres.</p>
+<p>Hvis vi skal ud af principsnakken, foreslår jeg tre konkrete næste skridt: 1) En 10-årig rigsfællesskabsaftale med tre spor som Alex skitserer (sikkerhed, civil infrastruktur, erhverv/uddannelse) og med bindende milepæle, årlige statusrapporter og uafhængig revision, så vi ikke gentager gamle implementeringsfejl. 2) En fælles styringsgruppe mellem Naalakkersuisut, regeringen og relevante myndigheder, der kan træffe beslutninger løbende – ikke en taskforce, der ender som rapport. 3) En klar finansieringsplan, hvor vi både afsætter danske midler og målretter EU-midler til civile projekter, mens forsvarsdelen forankres i NATO-samarbejdet og det bilaterale samarbejde med USA – med Grønland ved bordet fra start.</p>
+</div>
+        <div class="message-footer"><span class="message-model">openai/gpt-5.2</span></div>
+      </div>
+    </div>
+<div class="message-bubble expert">
+      <div class="message-avatar"><img src="avatars/45.png" alt="Pia Olsen Dyhr (SF)" /></div>
+      <div class="message-body">
+        <div class="message-header">
+          <span class="message-author">Pia Olsen Dyhr (SF)</span>
+          <span class="message-time">12. mar., 21.12</span>
+        </div>
+        <div class="message-content"><p>Troels, din liste over &quot;næste skridt&quot; lyder stadig mest som en indkøbsseddel til Forsvaret kombineret med en invitation til store koncerner. Jeg må udfordre dig og Alex på jeres blinde tillid til, at &quot;private investeringer&quot; og &quot;erhvervsreformer&quot; automatisk skaber velfærd. Hvis vi overlader Grønlands udvikling til markedskræfterne og store mineselskaber, risikerer vi at skabe et samfund med enorm ulighed og miljømæssige sår, som den grønlandske befolkning hænger på efterfølgende. Det er det stik modsatte af social tryghed.</p>
+<p>Mette, jeg hører dig sige, at sikkerhed er en forudsætning for alt andet. Det er jeg enig i, men vi skal definere &quot;sikkerhed&quot; bredere. For en familie i Ittoqqortoormiit er sikkerhed også, at der er en læge, og at fiskeriet ikke kollapser på grund af klimaforandringer. Jeg er glad for, at du nævner reel vetoret til Naalakkersuisut. Det er helt afgørende. Men hvis den vetoret kun gælder militære anlæg, og ikke de økonomiske rammer, så er det kun halvvejs.</p>
+<p>Lars og Inger, jeres diskussion om EU er en afsporing. Vi skal ikke sælge Grønlands selvbestemmelse til hverken Washington eller Bruxelles. Men vi kan sagtens bruge europæisk samarbejde til forskning og klimaovervågning, uden at det bliver et &quot;eurokratisk monster&quot;. Inger, du affærdiger &quot;klimasnak&quot;, men klimaet <em>er</em> geopolitik i Arktis. Det er jo netop fordi isen smelter, at amerikanerne og kineserne begynder at cirkle om Grønland som hajer.</p>
+<p>Jeg kan se en konsensus forme sig omkring en 10-årig aftale, men min betingelse for at SF går med, er, at vi vender Alex&#39; tresporsmodel på hovedet: 1) En massiv investering i grønlandsk uddannelse og sundhed som fundamentet. 2) En benhård grøn omstilling og klimasikring af infrastruktur. 3) En sikkerhedspolitik baseret på lavspænding, hvor Grønland har det sidste ord. Lad os få de sociale og miljømæssige garantier skrevet ind i selve aftalens DNA, så det ikke bare bliver en &quot;forsvarsaftale med lidt pynt&quot;. Er I klar til at lade de sociale investeringer være lige så bindende som købet af nye droner?</p>
+</div>
+        <div class="message-footer"><span class="message-model">google/gemini-3-flash-preview</span></div>
+      </div>
+    </div>
+<div class="message-bubble expert">
+      <div class="message-avatar"><img src="avatars/54.png" alt="Lars Løkke Rasmussen (M)" /></div>
+      <div class="message-body">
+        <div class="message-header">
+          <span class="message-author">Lars Løkke Rasmussen (M)</span>
+          <span class="message-time">12. mar., 21.12</span>
+        </div>
+        <div class="message-content"><p>Pia, du stiller det rigtige krav: de sociale investeringer skal være lige så bindende som dronerne. Men du fortsætter med at opstille rangordener, hvor uddannelse og sundhed skal komme &quot;først&quot; — og det er netop den type ideologisk prioritering, der lammer handling i praksis.</p>
+<p>Se, jeg har forhandlet mange aftaler på tværs af blokkene. Erfaringen er enkel: når partier kræver, at deres prioritet kommer først, ender vi med ingenting. Det rigtige er at binde alle tre spor samtidigt — sikkerhed, infrastruktur, velfærd — med samme juridiske og finansielle forpligtelse. Ikke som et hierarki, men som en pakke.</p>
+<p>Inger, jeg forstår din skepsis over for EU-bureaukrati. Men Mette har ret i realiteterne: vi har ikke råd til at stå alene med den regning. Spørgsmålet er ikke <em>om</em> EU skal involveres, men <em>hvordan</em>. Vi kan målrette midler uden at give Bruxelles styring. Det kræver bare at vi er skarpe i forhandlingen — og at Grønland sidder med, som Mette og Troels understreger.</p>
+<p>Der er faktisk en begyndende konsensus her: 10-årig aftale, tre spor, Grønland med vetoret, bindende finansiering. Hvor vi stadig splitter hinanden, er på EU-rollen og om velfærd skal være &quot;fundament&quot; eller &quot;spor&quot;. Mit bud: lad os droppe rangordenerne og skrive en aftale, hvor alle tre spor er forpligtende fra dag ét. Er det noget, vi kan samles om?</p>
+</div>
+        <div class="message-footer"><span class="message-model">z-ai/glm-5</span></div>
+      </div>
+    </div>
+<div class="message-bubble expert">
+      <div class="message-avatar"><img src="avatars/49.png" alt="Inger Støjberg (DD)" /></div>
+      <div class="message-body">
+        <div class="message-header">
+          <span class="message-author">Inger Støjberg (DD)</span>
+          <span class="message-time">12. mar., 21.13</span>
+        </div>
+        <div class="message-content"><p>Lars, du siger, at vi skal droppe rangordenerne og binde alle tre spor samtidig, og det er jeg delvist enig i – det er det eneste måde at undgå, at aftalen bare bliver en ny papirtiger. Men din insisteren på at hive EU ind som &quot;hvordan&quot; er stadig en fejltagelse; det handler ikke kun om penge, det handler om, at enhver euro kommer med strenge, der undergraver dansk og grønlandsk suverænitet. Jeg kender for mange almindelige grønlændere og danskere, der har set, hvordan EU-regler kvæler lokal beslutningstagning – tænk på fiskeripolitikken, der lader fremmede trawlere plyndre vande, mens lokalsamfund sulter. Hvis vi gør det her parallelt, så lad os gøre det uden Bruxelles: danske midler til sikkerhed og infrastruktur, og lad private investeringer, som Alex nævner, drive erhvervssporet med stramme grønlandske regler for at undgå udnyttelse.</p>
+<p>Pia, du grinder stadig videre med, at sociale investeringer skal være &quot;fundamentet&quot; og klimasikring før alt andet, men det er præcis den slags idealisme, der efterlader os sårbare. Sikkerhed er ikke bare droner – det er at forhindre, at stormagter som Kina køber sig ind gennem bagdøren via mineprojekter, der lover guld og grønne skove men efterlader fattigdom og miljøødelæggelse. Jeg er enig med Troels i, at klimaforandringerne er en trussel, men lad os forbinde det med reel handling: private erhvervsreformer, der skaber jobs i bæredygtig minedrift eller turisme, uden at det bliver til din store offentlige fond, der bare fordeler bloktilskud og fastholder afhængighed.</p>
+<p>Vi har nu en klar konsensus om en 10-årig aftale med tre parallelle spor, Grønland med vetoret og bindende finansiering – uden hierarkier, som Lars siger. For at forfine det, foreslår jeg, at vi starter med en grønlandsk-ledet arbejdsgruppe inden for seks måneder, der udarbejder budgettet uden EU-penge, med fokus på at matche hver sikkerhedskrone med en tilsvarende i civil udvikling. Alex, du talte om resultater og ansvar – er du med på at gøre det her til en model, hvor private investeringer får skatteincitamenter, men kun hvis de skaber lokale jobs? Det kunne være vores måde at komme ud af ringen og gøre det konkret.</p>
+</div>
+        <div class="message-footer"><span class="message-model">x-ai/grok-4</span></div>
+      </div>
+    </div>
+<div class="message-bubble expert">
+      <div class="message-avatar"><img src="avatars/51.png" alt="Alex Vanopslagh (LA)" /></div>
+      <div class="message-body">
+        <div class="message-header">
+          <span class="message-author">Alex Vanopslagh (LA)</span>
+          <span class="message-time">12. mar., 21.13</span>
+        </div>
+        <div class="message-content"><p>Ja, på det punkt er jeg med, Inger: Hvis private investeringer skal spille en større rolle, så skal de være betinget af lokal værdiskabelse — jobs, lærlingepladser, skattebetaling og reel forankring i Grønland. Ellers er det bare extraction med pæn brochure. Men jeg køber ikke din EU-fobi. Lars og Mette har ret i, at man skal skelne mellem finansiering og styring. Hvis vi kan hente europæiske midler til civile projekter uden at afgive beslutningskraft, så ville det være økonomisk uansvarligt at lade være. Ideologisk allergi er en dyr luksus.</p>
+<p>Pia har ret i én vigtig ting, som borgerlige partier nogle gange undervurderer: Hvis lokalbefolkningen ikke mærker bedre sundhed, uddannelse og infrastruktur, så mister hele projektet legitimitet. Men det betyder ikke, at de offentlige investeringer skal være “fundamentet”, og markedet så kommer bagefter som en syndig nødvendighed. Det er netop den tankegang, der holder Grønland fast i afhængighed. Grønland bliver stærkere af flere ben at stå på, ikke af et større offentligt kredsløb alene.</p>
+<p>Så her er en model, vi faktisk kan samle os om: en 10-årig aftale med tre parallelle spor, som Lars siger, og med et simpelt princip for erhvervssporet: ingen subsidier uden lokale effekter. Skatteincitamenter ja — men kun for investeringer, der dokumenterer lokale arbejdspladser, kompetenceopbygning og miljøansvar. Samtidig skal sociale investeringer være lige så bindende som sikkerhedsudgifterne, som Pia kræver. Hvis der er en konsensus nu, så er det den: nej til salg, nej til symbolpolitik, ja til en forpligtende aftale med Grønland i førersædet og med klare krav til både staten og markedet. Det er dér, vi kommer videre.</p>
+</div>
+        <div class="message-footer"><span class="message-model">openai/gpt-5.4</span></div>
+      </div>
+    </div>
+<div class="message-bubble system"><div class="system-message">Jens Roland har bedt gruppen om at afslutte. Hver deltager bør give deres afsluttende tanker, vigtigste pointer og eventuelle handlingsorienterede anbefalinger. Vær koncis og direkte.</div></div>
+<div class="message-bubble expert">
+      <div class="message-avatar"><img src="avatars/50.png" alt="Mette Frederiksen (S)" /></div>
+      <div class="message-body">
+        <div class="message-header">
+          <span class="message-author">Mette Frederiksen (S)</span>
+          <span class="message-time">12. mar., 21.14</span>
+        </div>
+        <div class="message-content"><p>Svaret på spørgsmålet er det samme som da vi startede: nej. Danmark skal ikke sælge Grønland til USA. Det er ikke vores at sælge.</p>
+<p>Men jeg er glad for, at diskussionen har bevæget sig fra afvisning til noget mere konkret. Der er faktisk en reel konsensus her – på tværs af partier, der sjældent er enige om meget – om en 10-årig forpligtende aftale med tre parallelle spor, med Grønland i førersædet og med bindende krav til både offentlige investeringer og private aktører. Det er ikke et dårligt udgangspunkt. Det, vi skal vogte os for, er at lade det blive endnu en hensigtserklæring. Det har vi råd til at lave en gang til.</p>
+</div>
+        <div class="message-footer"><span class="message-model">anthropic/claude-sonnet-4.6</span></div>
+      </div>
+    </div>
+<div class="message-bubble expert">
+      <div class="message-avatar"><img src="avatars/48.png" alt="Troels Lund Poulsen (V)" /></div>
+      <div class="message-body">
+        <div class="message-header">
+          <span class="message-author">Troels Lund Poulsen (V)</span>
+          <span class="message-time">12. mar., 21.14</span>
+        </div>
+        <div class="message-content"><p>Nej, Danmark skal ikke sælge Grønland til USA. Jeg er enig med Mette: Grønland er ikke vores ejendom, og idéen om et “salg” er forkert i både moral og praksis. Hvis Grønland en dag vælger en anden fremtid, er det grønlændernes beslutning — ikke en handel mellem stater.</p>
+<p>Jeg mener, der er en reel konsensus i gruppen, som vi bør stå på: nej til salg, ja til en forpligtende 10-årig aftale med tre parallelle spor (sikkerhed, civil infrastruktur/velfærd, erhvervsudvikling), hvor Grønland har reel beslutningskraft på eget territorium. Jeg er uenig med Pia i, at vi skal gøre velfærd “først” og sikkerhed “lavspænding” som styrende doktrin — vi skal kunne levere begge dele samtidig — og jeg er uenig med Inger i et kategorisk nej til EU-midler, hvis vi kan bruge dem uden at afgive styring. Anbefalingen er derfor klar: afvis salgspræmissen og gå direkte til at lave den bindende, flerårige aftale med Grønland ved bordet fra start og med klare milepæle, ansvar og finansiering.</p>
+</div>
+        <div class="message-footer"><span class="message-model">openai/gpt-5.2</span></div>
+      </div>
+    </div>
+<div class="message-bubble expert">
+      <div class="message-avatar"><img src="avatars/45.png" alt="Pia Olsen Dyhr (SF)" /></div>
+      <div class="message-body">
+        <div class="message-header">
+          <span class="message-author">Pia Olsen Dyhr (SF)</span>
+          <span class="message-time">12. mar., 21.14</span>
+        </div>
+        <div class="message-content"><p>Svaret er et rungende nej. Som socialdemokratisk og socialistisk sindet menneske må jeg slå fast: Man kan ikke sælge et folk, og man kan ikke handle med menneskers hjem. Grønland er ikke en ejendom, vi ejer, men en nation i et ligeværdigt partnerskab i Rigsfællesskabet. Det oprindelige spørgsmål er derfor udtryk for en forældet, kolonialistisk logik, som vi alle her har afvist.</p>
+<p>Min klare anbefaling efter denne diskussion er, at vi erstatter enhver tale om salg med en bindende, 10-årig investeringsplan for Rigsfællesskabet. Jeg er enig med Mette Frederiksen og Alex Vanopslagh i, at Grønland skal have reel beslutningsmagt og vetoret, så vi ikke gentager fortidens fejl. Selvom jeg stadig mener, at velfærd og klima er fundamentet for al stabilitet, anerkender jeg modvilligt den spirende konsensus om tre parallelle spor: sikkerhed, velfærd og erhverv. Vi må dog aldrig lade sikkerhedspolitikken overskygge de grønlandske familiers behov for sundhed og uddannelse, og vi skal insistere på, at erhvervslivet kun må rykke ind, hvis det sker med respekt for miljøet og med garanti for lokale arbejdspladser. Det er den vej, vi sikrer Grønlands fremtid – ikke gennem salg, men gennem solidaritet.</p>
+</div>
+        <div class="message-footer"><span class="message-model">google/gemini-3-flash-preview</span></div>
+      </div>
+    </div>
+<div class="message-bubble expert">
+      <div class="message-avatar"><img src="avatars/54.png" alt="Lars Løkke Rasmussen (M)" /></div>
+      <div class="message-body">
+        <div class="message-header">
+          <span class="message-author">Lars Løkke Rasmussen (M)</span>
+          <span class="message-time">12. mar., 21.14</span>
+        </div>
+        <div class="message-content"><p>Svaret er nej. Danmark skal ikke sælge Grønland til USA — det er jeg enig med alle andre i. Spørgsmålet bygger på en falsk præmis: Grønland er ikke vores at sælge.</p>
+<p>Men det vigtigste ved denne diskussion er, at vi faktisk har fundet en fælles platform på tværs af partiskelister: en 10-årig, bindende aftale med tre parallelle spor, hvor Grønland sidder med ved bordet fra start og har reel indflydelse. Jeg er uenig med Inger om at afskære EU-midler kategorisk — vi skal bruge alle tilgængelige redskaber — og jeg mener Pia tager fejl ved at insistere på rangordener. Men konsensus er reel: nu handler det om at omsætte den til noget, der overlever næste finanslov.</p>
+</div>
+        <div class="message-footer"><span class="message-model">z-ai/glm-5</span></div>
+      </div>
+    </div>
+<div class="message-bubble expert">
+      <div class="message-avatar"><img src="avatars/49.png" alt="Inger Støjberg (DD)" /></div>
+      <div class="message-body">
+        <div class="message-header">
+          <span class="message-author">Inger Støjberg (DD)</span>
+          <span class="message-time">12. mar., 21.14</span>
+        </div>
+        <div class="message-content"><p>Nej, Danmark skal ikke sælge Grønland til USA – det er ikke vores at sælge, og jeg er enig med Mette, Troels, Pia og Lars i at afvise den koloniale tankegang fuldstændigt. Grønland tilhører grønlænderne, og ethvert salg ville være en krænkelse af deres selvbestemmelse og vores Rigsfællesskab.</p>
+<p>Jeg er enig med gruppen om behovet for en 10-årig bindende aftale med tre parallelle spor og Grønland i førersædet, men jeg er uenig med Lars og Mette om at involvere EU-midler, som kun vil svække dansk suverænitet. Min anbefaling er at gennemføre aftalen udelukkende med danske investeringer på mindst 5 milliarder kroner årligt, fokuseret på sikkerhed, velfærd og private jobskabelse for at sikre reel uafhængighed uden udenlandsk indblanding.</p>
+</div>
+        <div class="message-footer"><span class="message-model">x-ai/grok-4</span></div>
+      </div>
+    </div>
+<div class="message-bubble expert">
+      <div class="message-avatar"><img src="avatars/51.png" alt="Alex Vanopslagh (LA)" /></div>
+      <div class="message-body">
+        <div class="message-header">
+          <span class="message-author">Alex Vanopslagh (LA)</span>
+          <span class="message-time">12. mar., 21.15</span>
+        </div>
+        <div class="message-content"><p>Nej. Danmark skal ikke sælge Grønland til USA, fordi Grønland ikke er en vare, og fordi spørgsmålet om Grønlands fremtid tilhører grønlænderne selv. På det punkt er jeg enig med hele bordet — Mette har ret i præmissen, Troels og Lars har ret i behovet for en bindende plan, og Pia har ret i, at legitimitet kræver, at almindelige grønlændere mærker forbedringer i hverdagen. Jeg er til gengæld uenig med Inger i et kategorisk nej til enhver ekstern medfinansiering; hvis vi kan bruge midler uden at afgive styring, skal vi ikke sige nej af ideologiske grunde.</p>
+<p>Den konkrete anbefaling er derfor enkel: afvis salgsidéen blankt og indgå i stedet en 10-årig, bindende aftale med Grønland i førersædet, med tre parallelle spor for sikkerhed, civil infrastruktur/velfærd og privat erhvervsudvikling — og med klare krav om lokale jobs, ansvar og resultater. Det er den liberale og realistiske vej: mere selvbestemmelse, mindre symbolpolitik.</p>
+</div>
+        <div class="message-footer"><span class="message-model">openai/gpt-5.4</span></div>
+      </div>
+    </div>
+<div class="message-bubble summary"><div class="summary-message"><div class="message-content"><h2>Diskussionsresumé</h2>
+<h2>Vigtigste konsensus</h2>
+<p>Alle deltagere afviste et “salg” af Grønland til USA: Mette Frederiksen, Troels Lund Poulsen, Pia Olsen Dyhr, Lars Løkke Rasmussen, Inger Støjberg og Alex Vanopslagh var enige om, at Grønland ikke er dansk ejendom, og at enhver fremtidig status i sidste ende tilhører grønlænderne (selvbestemmelse). Der var bred enighed (Mette, Troels, Lars, Alex – og med tilslutning fra Pia og Inger med forbehold) om behovet for en <strong>bindende, flerårig (10-årig) rigsfællesskabsaftale</strong> med <strong>tre parallelle spor</strong>: (1) sikkerhed/beredskab, (2) civil infrastruktur/velfærd, (3) økonomisk/erhvervsmæssig udvikling – samt at <strong>Grønland skal være med fra start og have reel beslutningskraft</strong> (Mette fremhævede vetoret på centrale områder; Troels specificerede baser/arealanvendelse/miljø og lokale konsekvenser).</p>
+<h2>Uenighedsområder</h2>
+<p>Den primære uenighed stod om <strong>EU’s rolle</strong> og delvist om <strong>prioritering/rammesætning</strong>: Mette, Troels, Lars og Alex argumenterede for at kunne bruge EU-instrumenter/medfinansiering til civile formål uden at afgive styring, mens Inger afviste EU-midler kategorisk af suverænitetshensyn; Pia ønskede EU-samarbejde især til forskning/klima, men advarede mod at “sælge selvbestemmelse” til Bruxelles eller Washington. Derudover var der spænding mellem Pias ønske om at gøre <strong>velfærd/klima til “fundamentet”</strong> og en <strong>lavspændings-doktrin</strong>, versus Lars/Troels/Mette/Alex’ “både-og” tilgang, hvor sikkerhed, velfærd og erhverv bindes samtidigt uden rangorden; samtidig kritiserede Pia Troels/Alex for for stor tiltro til private investeringer, mens Alex/Troels betonede økonomisk bæredygtighed og mindre bloktilskudsafhængighed.</p>
+<h2>Vigtigste indsigter</h2>
+<p>(1) Flere pegede på, at Trump-provokationen afdækker et reelt problem: et <strong>arktisk “vakuum”</strong> skabt af årtiers underinvestering i kapaciteter, infrastruktur og ligeværdigt rigsfællesskab (Mette, Troels, Alex). (2) En konkret syntese voksede frem: <strong>10-årig aftale + tre spor + bindende milepæle/revision</strong> for at undgå hensigtserklæringer (Troels, Lars, Alex) og samtidig sikre legitimitet via <strong>reel grønlandsk medbestemmelse/vetoret</strong> (Mette, støttet af Troels og Pia). (3) Alex/Inger introducerede et operationelt princip for erhvervssporet: <strong>private investeringer kun med dokumenterbar lokal værdiskabelse</strong> (jobs, lærlingepladser, skattebetaling, miljøansvar), som også Pia efterspurgte som sociale/miljømæssige garantier.</p>
+<h2>Handlingsorienterede anbefalinger</h2>
+<ol>
+<li><strong>Afvis salgspræmissen entydigt</strong> og skift ramme til en <strong>10-årig, bindende rigsfællesskabsaftale</strong> (Mette, Troels, Lars, Alex; Pia/Inger tilslutter sig under betingelser) med tre parallelle spor: sikkerhed/beredskab, civil infrastruktur/velfærd, erhverv/uddannelse.  </li>
+<li>Etablér en <strong>fælles styringsmodel</strong> med Naalakkersuisut “ved bordet fra start” og <strong>reel beslutningsmagt</strong> (Mette/Troels), inkl. klart afgrænsede vetorets-/beslutningsområder (fx baser, arealanvendelse, miljø og lokalsamfundskonsekvenser – Troels).  </li>
+<li>Gør aftalen <strong>implementerbar</strong> med <strong>bindende milepæle, årlige statusrapporter og uafhængig revision</strong> (Troels/Lars/Alex) samt en <strong>finansieringsplan</strong>: dansk finansiering som kerne (Inger foreslog størrelsesorden og krav om parallel civil/militær indsats) og – ifølge Mette/Troels/Lars/Alex – mulighed for <strong>målrettede EU-midler til civile projekter</strong> uden styringstab, mens forsvarsdelen forankres i NATO/bilat. samarbejde med USA med Grønland inkluderet (Troels).  </li>
+<li>Indfør i erhvervssporet et “<strong>ingen fordele uden lokale effekter</strong>”-krav (Alex, støttet af Inger): skatteincitamenter/rammer for investeringer kun ved dokumenteret lokal jobskabelse, kompetenceløft og miljøansvar, for at øge økonomisk robusthed og legitimitet (Pia efterlyste tilsvarende sociale/miljømæssige garantier).</li>
+</ol>
+</div></div></div>
+  </main>
+  <footer class="export-footer">
+    <div class="credit">
+      Oprettet med <a href="https://github.com/JensRoland/mastermind-group">Mastermind Group</a> af Jens Roland
+    </div>
+    <div class="participants">
+      <strong>Deltagere:</strong>
+      <ul><li>Mette Frederiksen (S) <span class="participant-model">anthropic/claude-sonnet-4.6</span></li>
+<li>Troels Lund Poulsen (V) <span class="participant-model">openai/gpt-5.2</span></li>
+<li>Pia Olsen Dyhr (SF) <span class="participant-model">google/gemini-3-flash-preview</span></li>
+<li>Lars Løkke Rasmussen (M) <span class="participant-model">z-ai/glm-5</span></li>
+<li>Inger Støjberg (DD) <span class="participant-model">x-ai/grok-4</span></li>
+<li>Alex Vanopslagh (LA) <span class="participant-model">openai/gpt-5.4</span></li></ul>
+    </div>
+  </footer>
+</div>
+</body>
+</html>

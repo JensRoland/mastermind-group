@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Politiske løfter og slikvalg — Mastermind Group</title>
+<style>
+
+:root {
+  --color-bg-primary: #1a1d21;
+  --color-bg-secondary: #222529;
+  --color-text-primary: #d1d2d3;
+  --color-text-secondary: #ababad;
+  --color-text-bright: #ffffff;
+  --color-text-muted: #8b8f97;
+  --color-accent: #192f40;
+  --color-yellow: #ecb22e;
+  --color-border: #393c41;
+  --radius: 6px;
+  --radius-sm: 4px;
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 12px;
+  --spacing-lg: 16px;
+  --spacing-xl: 24px;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--color-bg-primary);
+  color: var(--color-text-primary);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  font-size: 15px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+.page {
+  max-width: 820px;
+  margin: 0 auto;
+  padding: var(--spacing-xl);
+}
+
+.thread-header {
+  padding-bottom: var(--spacing-xl);
+  border-bottom: 1px solid var(--color-border);
+  margin-bottom: var(--spacing-xl);
+}
+
+.thread-header h1 {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--color-text-bright);
+  margin-bottom: var(--spacing-sm);
+}
+
+.thread-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--spacing-sm);
+  font-size: 13px;
+  color: var(--color-text-secondary);
+  margin-bottom: var(--spacing-sm);
+}
+
+.thread-topic { font-style: italic; }
+.meta-separator { color: var(--color-text-muted); }
+
+.participants {
+  font-size: 13px;
+  color: var(--color-text-muted);
+  margin-top: var(--spacing-lg);
+  line-height: 1.6;
+}
+
+.participants ul {
+  list-style: none;
+  padding: 0;
+  margin: var(--spacing-sm) 0 0 0;
+}
+
+.participants li {
+  padding: 2px 0;
+}
+
+.participant-model {
+  opacity: 0.7;
+}
+
+/* Messages */
+.message-bubble {
+  display: flex;
+  gap: var(--spacing-md);
+  padding: var(--spacing-sm) 0;
+  margin-bottom: var(--spacing-sm);
+}
+
+.message-bubble + .message-bubble {
+  border-top: 1px solid rgba(255, 255, 255, 0.04);
+  padding-top: var(--spacing-md);
+}
+
+.message-avatar {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+}
+
+.message-avatar img {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius);
+  object-fit: cover;
+}
+
+.avatar-placeholder {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius);
+  background: var(--color-accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--color-text-bright);
+}
+
+.message-body { flex: 1; min-width: 0; }
+
+.message-header {
+  display: flex;
+  align-items: baseline;
+  gap: var(--spacing-sm);
+  margin-bottom: var(--spacing-xs);
+}
+
+.message-author {
+  font-weight: 700;
+  color: var(--color-text-bright);
+}
+
+.message-time {
+  font-size: 11px;
+  color: var(--color-text-muted);
+}
+
+.message-content {
+  color: var(--color-text-primary);
+  line-height: 1.6;
+  word-break: break-word;
+}
+
+.message-content p { margin-bottom: var(--spacing-sm); }
+.message-content p:last-child { margin-bottom: 0; }
+.message-content h1, .message-content h2, .message-content h3,
+.message-content h4, .message-content h5, .message-content h6 {
+  color: var(--color-text-bright);
+  margin-top: var(--spacing-lg);
+  margin-bottom: var(--spacing-sm);
+  line-height: 1.3;
+}
+.message-content h1 { font-size: 1.4em; }
+.message-content h2 { font-size: 1.25em; }
+.message-content h3 { font-size: 1.1em; }
+
+.message-content code {
+  font-family: 'SF Mono', SFMono-Regular, Consolas, 'Liberation Mono', Menlo, monospace;
+  font-size: 0.9em;
+  background: rgba(255, 255, 255, 0.06);
+  padding: 2px 6px;
+  border-radius: var(--radius-sm);
+}
+
+.message-content pre {
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: var(--radius);
+  padding: var(--spacing-md);
+  overflow-x: auto;
+  margin: var(--spacing-sm) 0;
+}
+
+.message-content pre code {
+  background: none;
+  padding: 0;
+  font-size: 0.85em;
+  line-height: 1.5;
+}
+
+.message-content blockquote {
+  border-left: 3px solid var(--color-accent);
+  padding-left: var(--spacing-md);
+  margin: var(--spacing-sm) 0;
+  color: var(--color-text-secondary);
+}
+
+.message-content ul, .message-content ol {
+  padding-left: var(--spacing-xl);
+  margin: var(--spacing-sm) 0;
+}
+
+.message-content li { margin-bottom: var(--spacing-xs); }
+
+.message-content a {
+  color: #4da6ff;
+  text-decoration: underline;
+}
+
+.message-content hr {
+  border: none;
+  border-top: 1px solid var(--color-border);
+  margin: var(--spacing-lg) 0;
+}
+
+.message-content table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: var(--spacing-sm) 0;
+}
+
+.message-content th, .message-content td {
+  border: 1px solid var(--color-border);
+  padding: var(--spacing-xs) var(--spacing-sm);
+  text-align: left;
+}
+
+.message-content th {
+  background: rgba(255, 255, 255, 0.04);
+  font-weight: 600;
+  color: var(--color-text-bright);
+}
+
+.message-content strong { color: var(--color-text-bright); }
+
+.message-footer {
+  margin-top: var(--spacing-xs);
+}
+
+.message-model {
+  font-size: 11px;
+  color: var(--color-text-muted);
+  opacity: 0.6;
+}
+
+/* System messages */
+.message-bubble.system {
+  justify-content: center;
+  padding: var(--spacing-md) 0;
+}
+
+.system-message {
+  text-align: center;
+  font-size: 13px;
+  color: var(--color-text-muted);
+  font-style: italic;
+  padding: var(--spacing-sm) var(--spacing-lg);
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: var(--radius);
+  max-width: 600px;
+}
+
+/* Summary messages */
+.message-bubble.summary {
+  justify-content: center;
+  padding: var(--spacing-lg) 0;
+}
+
+.summary-message {
+  width: 100%;
+  max-width: 720px;
+  margin: 0 auto;
+  padding: var(--spacing-lg);
+  background: rgba(255, 255, 255, 0.03);
+  border-left: 3px solid var(--color-accent);
+  border-radius: var(--radius);
+}
+
+.summary-message .message-content h2:first-child { margin-top: 0; }
+
+/* User (moderator) messages */
+.message-bubble.user .message-author { color: var(--color-yellow); }
+.message-bubble.user .avatar-placeholder {
+  background: var(--color-yellow);
+  color: var(--color-bg-primary);
+}
+
+/* Footer */
+.header-avatars {
+  display: flex;
+  justify-content: center;
+  gap: var(--spacing-sm);
+  flex-wrap: wrap;
+  margin-top: var(--spacing-lg);
+}
+
+.header-avatars img {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.header-avatars .avatar-placeholder {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--color-accent);
+  color: var(--color-bg-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.export-footer {
+  margin-top: var(--spacing-xl);
+  padding-top: var(--spacing-xl);
+  border-top: 1px solid var(--color-border);
+}
+
+.disclaimer {
+  font-size: 13px;
+  color: var(--color-text-muted);
+  background: rgba(255, 255, 255, 0.03);
+  padding: var(--spacing-lg);
+  border-radius: var(--radius);
+  margin-top: var(--spacing-lg);
+  line-height: 1.6;
+}
+
+.credit {
+  font-size: 13px;
+  color: var(--color-text-muted);
+  text-align: center;
+}
+
+.credit a {
+  color: #4da6ff;
+  text-decoration: underline;
+}
+
+@media (max-width: 600px) {
+  .page { padding: var(--spacing-md); }
+  .message-avatar { width: 28px; height: 28px; }
+  .message-avatar img { width: 28px; height: 28px; }
+  .avatar-placeholder { width: 28px; height: 28px; font-size: 11px; }
+  .message-bubble { gap: var(--spacing-sm); }
+}
+
+</style>
+</head>
+<body>
+<div class="page">
+  <header class="thread-header">
+    <h1>Politiske løfter og slikvalg</h1>
+    <div class="thread-meta">
+      <span class="thread-topic">Da Jacob Haugaard i sin tid blev valgt ind i Folketinget var det med løfter om medvind på cykelstierne og mere lakrids i Matador Mix-poserne. Her er et spørgsmål til hver af jer: Hvis dit parti kommer i regeringen, hvad kan vi så forvente at der kommer i Matador Mix-poserne?</span>
+      <span class="meta-separator">·</span>
+      <span>12. marts 2026</span>
+      <span class="meta-separator">·</span>
+      <span>7 ture</span>
+    </div>
+    <div class="disclaimer">
+      <strong>Ansvarsfraskrivelse:</strong> Dette er en simuleret rundbordsdiskussion genereret af AI. Deltagerne er fiktive personaer drevet af LLMer. Deres udtalelser repræsenterer ikke holdningerne hos nogen virkelige personer og må ikke tilskrives nogen faktiske personer, levende eller døde.
+    </div>
+    <div class="header-avatars">
+      <img src="avatars/50.png" alt="Mette Frederiksen (S)" title="Mette Frederiksen (S)" />
+<img src="avatars/53.png" alt="Pelle Dragsted (EL)" title="Pelle Dragsted (EL)" />
+<img src="avatars/45.png" alt="Pia Olsen Dyhr (SF)" title="Pia Olsen Dyhr (SF)" />
+<img src="avatars/48.png" alt="Troels Lund Poulsen (V)" title="Troels Lund Poulsen (V)" />
+<img src="avatars/54.png" alt="Lars Løkke Rasmussen (M)" title="Lars Løkke Rasmussen (M)" />
+<img src="avatars/49.png" alt="Inger Støjberg (DD)" title="Inger Støjberg (DD)" />
+<img src="avatars/47.png" alt="Franciska Rosenkilde (Å)" title="Franciska Rosenkilde (Å)" />
+    </div>
+  </header>
+  <main class="messages">
+<div class="message-bubble system"><div class="system-message">Deltagere: Mette Frederiksen (S), Pelle Dragsted (EL), Pia Olsen Dyhr (SF), Troels Lund Poulsen (V), Lars Løkke Rasmussen (M), Inger Støjberg (DD), Franciska Rosenkilde (Å)</div></div>
+<div class="message-bubble user">
+      <div class="message-avatar"><div class="avatar-placeholder">JR</div></div>
+      <div class="message-body">
+        <div class="message-header">
+          <span class="message-author">Jens Roland (Moderator)</span>
+          <span class="message-time">12. mar., 21.58</span>
+        </div>
+        <div class="message-content"><p>Da Jacob Haugaard i sin tid blev valgt ind i Folketinget var det med løfter om medvind på cykelstierne og mere lakrids i Matador Mix-poserne. Her er et spørgsmål til hver af jer: Hvis dit parti kommer i regeringen, hvad kan vi så forvente at der kommer i Matador Mix-poserne?</p>
+</div>
+        
+      </div>
+    </div>
+<div class="message-bubble expert">
+      <div class="message-avatar"><img src="avatars/50.png" alt="Mette Frederiksen (S)" /></div>
+      <div class="message-body">
+        <div class="message-header">
+          <span class="message-author">Mette Frederiksen (S)</span>
+          <span class="message-time">12. mar., 21.58</span>
+        </div>
+        <div class="message-content"><p>Jeg vil sige en ekstra rød bil.</p>
+<p>Ikke fordi det er det vigtigste politiske spørgsmål i vores tid — det er det selvfølgelig ikke — men fordi den røde bil faktisk siger noget om, hvad Socialdemokratiet handler om. Den lille røde bil er der for alle. Den er ikke forbeholdt dem, der har råd til de dyre sager. Den sidder i posen, om du er vokset op i Valby eller i Vejle, om du er håndværker eller akademiker.</p>
+<p>Det er egentlig det, vores projekt handler om: at sikre, at det fælles stadig er til stede i alles liv. At der er noget, vi deler — uanset baggrund. Matador Mix-posen er faktisk et ret godt billede på velfærdssamfundet: forskelligt indhold, men den samme pose til alle.</p>
+<p>Og så vil jeg bare tilføje — og det siger jeg i fuld alvor — at Jacob Haugaard faktisk forstod noget, mange professionelle politikere glemmer: at folk vil have politikere, der lytter til det konkrete og nære. Han vandt ikke på store abstrakte løfter. Han vandt på medvind på cykelstien. Det kan vi lære af.</p>
+</div>
+        <div class="message-footer"><span class="message-model">anthropic/claude-sonnet-4.6</span></div>
+      </div>
+    </div>
+<div class="message-bubble expert">
+      <div class="message-avatar"><img src="avatars/53.png" alt="Pelle Dragsted (EL)" /></div>
+      <div class="message-body">
+        <div class="message-header">
+          <span class="message-author">Pelle Dragsted (EL)</span>
+          <span class="message-time">12. mar., 21.58</span>
+        </div>
+        <div class="message-content"><p><strong>Pelle Dragsted (EL):</strong></p>
+<p>Mette, jeg synes godt om din metafor om den røde bil som et fælles gode — men du glemmer noget afgørende: hvem producerer den? Hvem ejer fabrikken? Det er netop problemet med dit socialdemokratiske projekt. Du vil gerne fordele posens indhold mere retfærdigt, men du lader kapitalejerne beholde kontrol over hele produktionen.</p>
+<p>Hvis Enhedslisten kommer i regering, så kommer der <em>mere lakrids i posen</em>. Ikke fordi lakrids er vigtigere end andre bolsjer — men fordi lakridsen ofte bliver sorteret fra og afskrevet som &quot;upopulær.&quot; Det er et billede på den arbejde og de arbejdere, som skaber velfærdssamfundets grundlag, men sjældent får del i udbyttet: rengøringsassistenterne, lagerarbejderne, dem der holder samfundet kørende uden at blive hørt.</p>
+<p>Men her er den egentlige forskel: Vi vil ikke bare fordele bolsjerne anderledes. Vi vil demokratisere selve posen. Løntagerfonde, medejerskab, cooperativer — så arbejderne selv har indflydelse på, hvad der produceres, og hvordan overskuddet fordeles. Den røde bil er ikke nok, hvis den stadig kører i et system, hvor en lille elite bestemmer destinationen.</p>
+</div>
+        <div class="message-footer"><span class="message-model">z-ai/glm-5</span></div>
+      </div>
+    </div>
+<div class="message-bubble expert">
+      <div class="message-avatar"><img src="avatars/45.png" alt="Pia Olsen Dyhr (SF)" /></div>
+      <div class="message-body">
+        <div class="message-header">
+          <span class="message-author">Pia Olsen Dyhr (SF)</span>
+          <span class="message-time">12. mar., 21.58</span>
+        </div>
+        <div class="message-content"><p>Metaforer er fine, men lad os nu tale om virkeligheden for de familier, der rent faktisk køber de her poser. Mette, den røde bil er meget sød, men hvis du fortsætter din kurs, så ender den bil som en luksusvare, fordi uligheden stiger. Og Pelle, din lakrids-demokratisering lyder smuk i teorien, men vi har brug for løsninger, der virker her og nu for den almindelige dansker, der prøver at få hverdagen til at hænge sammen.</p>
+<p>Hvis SF kommer i regering, så kommer der <strong>grønne vingummier</strong> i posen. Og nej, det er ikke bare for at matche mit logo. Det er fordi den grønne omstilling er den absolutte forudsætning for, at vi overhovedet har en pose om ti eller tyve år. Det handler om, at vi skal have råd til velfærd, mens vi redder planeten. Den grønne vingummi symboliserer, at vi investerer i fremtiden – i billigere, grønnere energi og i natur, vores børn rent faktisk kan lege i. Det er ikke et valg mellem rød bil eller grøn vingummi; det er en kamp for at sikre, at velfærden bliver bæredygtig.</p>
+<p>Og så er jeg nødt til at adressere Pelle: Det nytter ikke noget at overtage fabrikken, hvis fabrikken er ved at brænde ned på grund af klimaforandringer. Din analyse af ejerskab er interessant, men vi skal bruge markedskræfterne og tvinge dem i en grøn retning gennem benhård regulering, fremfor at vente på en systemisk revolution. Vi skal have handling nu, ikke kun en debat om produktionsmidlerne.</p>
+<p>Mette, du taler om det nære og håndgribelige, men sandheden er, at mange mærker, at velfærdsstaten slår revner. Det nytter ikke at have en pose med det samme indhold til alle, hvis indholdet er blevet mindre og mindre for hvert år. Vi skal turde sige, at de rigeste skal bidrage mere, så vi kan få råd til flere pædagoger og en ordentlig psykiatri. Det er det, der gør Matador-mixen værd at dele: At vi rent faktisk prioriterer de svageste frem for skattelettelser i toppen.</p>
+</div>
+        <div class="message-footer"><span class="message-model">google/gemini-3-flash-preview</span></div>
+      </div>
+    </div>
+<div class="message-bubble expert">
+      <div class="message-avatar"><img src="avatars/48.png" alt="Troels Lund Poulsen (V)" /></div>
+      <div class="message-body">
+        <div class="message-header">
+          <span class="message-author">Troels Lund Poulsen (V)</span>
+          <span class="message-time">12. mar., 21.59</span>
+        </div>
+        <div class="message-content"><p>Hvis Venstre kommer i regering, så kan du forvente, at der kommer <strong>en ekstra karamel</strong> i Matador Mix-posen. Ikke fordi karamellen er finere end den røde bil eller den grønne vingummi, men fordi den er et meget konkret billede på det, der skal til for at finansiere velfærden: <strong>flere virksomheder der tør investere, flere der kan se en gevinst ved at tage en ekstra vagt, og færre regler der æder tiden</strong>. Velfærdssamfundet bliver ikke stærkere af, at vi skændes om fordelingen af en pose, der bliver mindre—det bliver stærkere af, at vi får økonomien til at vokse og flere i arbejde.</p>
+<p>Mette, jeg forstår pointen om “samme pose til alle”, men når Pia siger, at posen bliver mindre, så er det præcis derfor, jeg bliver skeptisk over for svaret, der altid ender i “de rigeste skal betale mere”. Der er en grænse for, hvor meget man kan hente, uden at det rammer arbejdslyst og investeringer—og så står vi med færre job og mindre skattegrundlag. Og Pelle: idéen om at “demokratisere posen” lyder flot, men i praksis risikerer du at gøre det mindre attraktivt at starte og skalere virksomheder i Danmark. Vi har allerede medarbejderindflydelse og en stærk model på arbejdsmarkedet; problemet i dag er ikke for lidt kollektiv styrke, men for meget bureaukrati og for få hænder.</p>
+<p>Pia, den grønne vingummi er jeg med på i målet—men midlet skal være <strong>teknologi, tempo og fornuftige incitamenter</strong>, ikke en reguleringsmaskine, der især rammer produktionsarbejdspladser og almindelige familier på el- og varmeprisen. Hvis vi skal være konkrete næste skridt, så er min opskrift: hurtigere myndighedsgodkendelser til grøn energi og net, lavere afgifter på el, mere fokus på erhvervsuddannelser og mangel på arbejdskraft—og en skarp oprydning i regler og dokumentationskrav, så både private og offentlige kan bruge tiden på kerneopgaven. Det er den karamel, der faktisk kan mærkes.</p>
+</div>
+        <div class="message-footer"><span class="message-model">openai/gpt-5.2</span></div>
+      </div>
+    </div>
+<div class="message-bubble expert">
+      <div class="message-avatar"><img src="avatars/54.png" alt="Lars Løkke Rasmussen (M)" /></div>
+      <div class="message-body">
+        <div class="message-header">
+          <span class="message-author">Lars Løkke Rasmussen (M)</span>
+          <span class="message-time">12. mar., 21.59</span>
+        </div>
+        <div class="message-content"><p>Jeg må sige, Jacob Haugaard faktisk ramte noget væsentligt dengang — folk husker medvinden på cykelstien mere end de fleste partiprogrammer. Der ligger en lektie der.</p>
+<p>Men hvis Moderaterne kommer i regering, så kommer der <strong>en pose hvor indholdet faktisk hænger sammen</strong>. Se, det er det problem vi har lige nu: Mette vil have den røde bil, Pia vil have den grønne vingummi, Troels vil have karamellen, Pelle vil overtage produktionen — og Inger og Franciska har sikkert deres favoritter. Men når alle insisterer på deres del, så ender vi med en pose hvor bolsjerne ligger i hver deres hjørne og slet ikke taler sammen.</p>
+<p>Det er præcis det billede vi har af dansk politik i dag. Vi har skabt et system hvor rød og blå nærmest ikke kan sidde i samme køkken. Det har kostet os dyrt. Jeg har siddet i regering på tværs af blokkene — både med S og med de blå — og jeg kan sige jer: de store løsninger kommer ikke når man insisterer på ideologisk renhed. De kommer når man finder de kompromisser som faktisk virker.</p>
+<p>Så min &quot;lakrids&quot; er denne: Vi skal have en regering som tør blande posen op. Ikke for at udvande, men for at styrke. Den røde bil SKAL være der — velfærd til alle er rygraden. Men vi har også brug for Troels&#39; karamel, for uden økonomisk fundament kan vi ikke finansiere velfærden. Og Pias grønne vingummi? Den er ikke valgfri, den er en forudsætning. Spørgsmålet er ikke hvilken bolsje der vinder — spørgsmålet er om vi kan blive enige om en pose der dur.</p>
+</div>
+        <div class="message-footer"><span class="message-model">z-ai/glm-5</span></div>
+      </div>
+    </div>
+<div class="message-bubble expert">
+      <div class="message-avatar"><img src="avatars/49.png" alt="Inger Støjberg (DD)" /></div>
+      <div class="message-body">
+        <div class="message-header">
+          <span class="message-author">Inger Støjberg (DD)</span>
+          <span class="message-time">12. mar., 22.00</span>
+        </div>
+        <div class="message-content"><p>Lyt, det er sjovt med alle de her bolsjer, men lad os være ærlige: Mette, din røde bil er fin nok som symbol på velfærd, men vi har set, hvordan dit parti har ladet posen blive udvandet af immigranter, der ikke bidrager – de tager bolsjerne uden at putte noget tilbage. Og Pelle, mere lakrids til arbejderne ved at &quot;demokratisere posen&quot;? Det lyder som dit sædvanlige socialistiske eventyr, hvor alt deles uden at tænke på, hvem der betaler regningen – især når vi har tusindvis fra ikke-vestlige lande, der lever på overførsler i stedet for at arbejde. Det er ikke retfærdigt mod de almindelige danskere, der slaver for at holde det hele kørende.</p>
+<p>Hvis Danmarksdemokraterne kommer i regering, så kommer der <strong>stærk sort lakrids</strong> i posen – ikke mere af Pias grønne vingummier, der prioriterer klima over kultur, eller Troels&#39; karamel, der bare handler om vækst uden at sikre, at det er danskerne, der nyder godt af det. Den sorte lakrids skal minde os om, at vi skal holde fast i vores danske værdier: frihed, ligestilling og et velfærdssamfund, der ikke bliver undermineret af masseindvandring. Det betyder strammere asylregler, som min smykkelov – ingen gratis bolsjer til dem, der ikke integrerer sig og respekterer vores regler. Og Lars, din idé om at blande posen op er typisk for dig – altid kompromisser, men det ender ofte med, at danskernes identitet bliver fortyndet.</p>
+<p>Lad os syntetisere det her: Vi er alle enige om, at posen skal være til almindelige danskere, men hvis vi ikke adresserer immigration som den største trussel mod velfærden, så ryger hele posen. Næste skridt? Lad os diskutere konkrete politikker til at begrænse indvandring, så vi kan fokusere på at styrke danske arbejdspladser og familier i stedet for flere abstrakte bolsjer.</p>
+</div>
+        <div class="message-footer"><span class="message-model">x-ai/grok-4</span></div>
+      </div>
+    </div>
+<div class="message-bubble expert">
+      <div class="message-avatar"><img src="avatars/47.png" alt="Franciska Rosenkilde (Å)" /></div>
+      <div class="message-body">
+        <div class="message-header">
+          <span class="message-author">Franciska Rosenkilde (Å)</span>
+          <span class="message-time">12. mar., 22.01</span>
+        </div>
+        <div class="message-content"><p> Hvis Alternativet kommer i regering, så kommer der <strong>en socialøkonomisk produceret bolsje med ukendt smag</strong> i posen – ja, måske endda ét lavet af overskudsgrønt fra lokale haver. For vi har brug for noget, der bryder med forventningen om, at politik handler om at vælge mellem færdige varer. Det handler om at designe nye løsninger, vi ikke kan forestille os endnu, og her tænker jeg både grønt og socialt.</p>
+<p>Inger, jeg må sige dig direkte imod: Din &quot;sorte lakrids&quot; er en designfejl. Når du sætter &quot;danskere&quot; mod &quot;ikke-danskere&quot;, dræner du den tillid, som hele velfærdssamfundet hviler på. Vi bliver ikke stærkere af at ekskludere, men af at turde inkludere og udnytte mangfoldigheden kreativt. Mette, den røde bil er et smukt signal om fællesskab, men hvis vi bliver ved med at dele ud fra Christiansborg uden at spørge folk, hvad de faktisk har brug for, ender vi med en folkevogn, nogen har bedt om, og en Ferrari, ingen kan bruge.</p>
+<p>Lars, du taler om at blande posen op, men vi skal også turde spørge: Hvem har lavet posen, og under hvilke forhold? Pia, din grønne vingummi er uomgængelig, men vi når ikke i mål med regulering alene – vi skal have <strong>civile laboratorier</strong>, hvor borgere, socialøkonomiske virksomheder og kommuner sammen eksperimenterer med cirkulære løsninger. Så bliver den grønne omstilling ikke en byrde, men et fælles projekt, der skaber lokale arbejdspladser. Næste skridt må være at etablere tre &quot;fremtidslaboratorier&quot; i forskellige landsdele, hvor vi tester, hvordan vi omdanner klimaudfordringer til sociale iværksætterprojekter – så går vi fra at skændes om abstrakte bolsjer til at skabe noget nyt sammen.</p>
+</div>
+        <div class="message-footer"><span class="message-model">moonshotai/kimi-k2.5</span></div>
+      </div>
+    </div>
+  </main>
+  <footer class="export-footer">
+    <div class="credit">
+      Oprettet med <a href="https://github.com/JensRoland/mastermind-group">Mastermind Group</a> af Jens Roland
+    </div>
+    <div class="participants">
+      <strong>Deltagere:</strong>
+      <ul><li>Mette Frederiksen (S) <span class="participant-model">anthropic/claude-sonnet-4.6</span></li>
+<li>Pelle Dragsted (EL) <span class="participant-model">z-ai/glm-5</span></li>
+<li>Pia Olsen Dyhr (SF) <span class="participant-model">google/gemini-3-flash-preview</span></li>
+<li>Troels Lund Poulsen (V) <span class="participant-model">openai/gpt-5.2</span></li>
+<li>Lars Løkke Rasmussen (M) <span class="participant-model">z-ai/glm-5</span></li>
+<li>Inger Støjberg (DD) <span class="participant-model">x-ai/grok-4</span></li>
+<li>Franciska Rosenkilde (Å) <span class="participant-model">moonshotai/kimi-k2.5</span></li></ul>
+    </div>
+  </footer>
+</div>
+</body>
+</html>

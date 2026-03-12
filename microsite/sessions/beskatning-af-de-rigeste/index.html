@@ -1,0 +1,841 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Retfærdig fordeling i et ulige samfund — Mastermind Group</title>
+<style>
+
+:root {
+  --color-bg-primary: #1a1d21;
+  --color-bg-secondary: #222529;
+  --color-text-primary: #d1d2d3;
+  --color-text-secondary: #ababad;
+  --color-text-bright: #ffffff;
+  --color-text-muted: #8b8f97;
+  --color-accent: #192f40;
+  --color-yellow: #ecb22e;
+  --color-border: #393c41;
+  --radius: 6px;
+  --radius-sm: 4px;
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 12px;
+  --spacing-lg: 16px;
+  --spacing-xl: 24px;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--color-bg-primary);
+  color: var(--color-text-primary);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  font-size: 15px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+.page {
+  max-width: 820px;
+  margin: 0 auto;
+  padding: var(--spacing-xl);
+}
+
+.thread-header {
+  padding-bottom: var(--spacing-xl);
+  border-bottom: 1px solid var(--color-border);
+  margin-bottom: var(--spacing-xl);
+}
+
+.thread-header h1 {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--color-text-bright);
+  margin-bottom: var(--spacing-sm);
+}
+
+.thread-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--spacing-sm);
+  font-size: 13px;
+  color: var(--color-text-secondary);
+  margin-bottom: var(--spacing-sm);
+}
+
+.thread-topic { font-style: italic; }
+.meta-separator { color: var(--color-text-muted); }
+
+.participants {
+  font-size: 13px;
+  color: var(--color-text-muted);
+  margin-top: var(--spacing-lg);
+  line-height: 1.6;
+}
+
+.participants ul {
+  list-style: none;
+  padding: 0;
+  margin: var(--spacing-sm) 0 0 0;
+}
+
+.participants li {
+  padding: 2px 0;
+}
+
+.participant-model {
+  opacity: 0.7;
+}
+
+/* Messages */
+.message-bubble {
+  display: flex;
+  gap: var(--spacing-md);
+  padding: var(--spacing-sm) 0;
+  margin-bottom: var(--spacing-sm);
+}
+
+.message-bubble + .message-bubble {
+  border-top: 1px solid rgba(255, 255, 255, 0.04);
+  padding-top: var(--spacing-md);
+}
+
+.message-avatar {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+}
+
+.message-avatar img {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius);
+  object-fit: cover;
+}
+
+.avatar-placeholder {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius);
+  background: var(--color-accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--color-text-bright);
+}
+
+.message-body { flex: 1; min-width: 0; }
+
+.message-header {
+  display: flex;
+  align-items: baseline;
+  gap: var(--spacing-sm);
+  margin-bottom: var(--spacing-xs);
+}
+
+.message-author {
+  font-weight: 700;
+  color: var(--color-text-bright);
+}
+
+.message-time {
+  font-size: 11px;
+  color: var(--color-text-muted);
+}
+
+.message-content {
+  color: var(--color-text-primary);
+  line-height: 1.6;
+  word-break: break-word;
+}
+
+.message-content p { margin-bottom: var(--spacing-sm); }
+.message-content p:last-child { margin-bottom: 0; }
+.message-content h1, .message-content h2, .message-content h3,
+.message-content h4, .message-content h5, .message-content h6 {
+  color: var(--color-text-bright);
+  margin-top: var(--spacing-lg);
+  margin-bottom: var(--spacing-sm);
+  line-height: 1.3;
+}
+.message-content h1 { font-size: 1.4em; }
+.message-content h2 { font-size: 1.25em; }
+.message-content h3 { font-size: 1.1em; }
+
+.message-content code {
+  font-family: 'SF Mono', SFMono-Regular, Consolas, 'Liberation Mono', Menlo, monospace;
+  font-size: 0.9em;
+  background: rgba(255, 255, 255, 0.06);
+  padding: 2px 6px;
+  border-radius: var(--radius-sm);
+}
+
+.message-content pre {
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: var(--radius);
+  padding: var(--spacing-md);
+  overflow-x: auto;
+  margin: var(--spacing-sm) 0;
+}
+
+.message-content pre code {
+  background: none;
+  padding: 0;
+  font-size: 0.85em;
+  line-height: 1.5;
+}
+
+.message-content blockquote {
+  border-left: 3px solid var(--color-accent);
+  padding-left: var(--spacing-md);
+  margin: var(--spacing-sm) 0;
+  color: var(--color-text-secondary);
+}
+
+.message-content ul, .message-content ol {
+  padding-left: var(--spacing-xl);
+  margin: var(--spacing-sm) 0;
+}
+
+.message-content li { margin-bottom: var(--spacing-xs); }
+
+.message-content a {
+  color: #4da6ff;
+  text-decoration: underline;
+}
+
+.message-content hr {
+  border: none;
+  border-top: 1px solid var(--color-border);
+  margin: var(--spacing-lg) 0;
+}
+
+.message-content table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: var(--spacing-sm) 0;
+}
+
+.message-content th, .message-content td {
+  border: 1px solid var(--color-border);
+  padding: var(--spacing-xs) var(--spacing-sm);
+  text-align: left;
+}
+
+.message-content th {
+  background: rgba(255, 255, 255, 0.04);
+  font-weight: 600;
+  color: var(--color-text-bright);
+}
+
+.message-content strong { color: var(--color-text-bright); }
+
+.message-footer {
+  margin-top: var(--spacing-xs);
+}
+
+.message-model {
+  font-size: 11px;
+  color: var(--color-text-muted);
+  opacity: 0.6;
+}
+
+/* System messages */
+.message-bubble.system {
+  justify-content: center;
+  padding: var(--spacing-md) 0;
+}
+
+.system-message {
+  text-align: center;
+  font-size: 13px;
+  color: var(--color-text-muted);
+  font-style: italic;
+  padding: var(--spacing-sm) var(--spacing-lg);
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: var(--radius);
+  max-width: 600px;
+}
+
+/* Summary messages */
+.message-bubble.summary {
+  justify-content: center;
+  padding: var(--spacing-lg) 0;
+}
+
+.summary-message {
+  width: 100%;
+  max-width: 720px;
+  margin: 0 auto;
+  padding: var(--spacing-lg);
+  background: rgba(255, 255, 255, 0.03);
+  border-left: 3px solid var(--color-accent);
+  border-radius: var(--radius);
+}
+
+.summary-message .message-content h2:first-child { margin-top: 0; }
+
+/* User (moderator) messages */
+.message-bubble.user .message-author { color: var(--color-yellow); }
+.message-bubble.user .avatar-placeholder {
+  background: var(--color-yellow);
+  color: var(--color-bg-primary);
+}
+
+/* Footer */
+.header-avatars {
+  display: flex;
+  justify-content: center;
+  gap: var(--spacing-sm);
+  flex-wrap: wrap;
+  margin-top: var(--spacing-lg);
+}
+
+.header-avatars img {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.header-avatars .avatar-placeholder {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--color-accent);
+  color: var(--color-bg-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.export-footer {
+  margin-top: var(--spacing-xl);
+  padding-top: var(--spacing-xl);
+  border-top: 1px solid var(--color-border);
+}
+
+.disclaimer {
+  font-size: 13px;
+  color: var(--color-text-muted);
+  background: rgba(255, 255, 255, 0.03);
+  padding: var(--spacing-lg);
+  border-radius: var(--radius);
+  margin-top: var(--spacing-lg);
+  line-height: 1.6;
+}
+
+.credit {
+  font-size: 13px;
+  color: var(--color-text-muted);
+  text-align: center;
+}
+
+.credit a {
+  color: #4da6ff;
+  text-decoration: underline;
+}
+
+@media (max-width: 600px) {
+  .page { padding: var(--spacing-md); }
+  .message-avatar { width: 28px; height: 28px; }
+  .message-avatar img { width: 28px; height: 28px; }
+  .avatar-placeholder { width: 28px; height: 28px; font-size: 11px; }
+  .message-bubble { gap: var(--spacing-sm); }
+}
+
+</style>
+</head>
+<body>
+<div class="page">
+  <header class="thread-header">
+    <h1>Retfærdig fordeling i et ulige samfund</h1>
+    <div class="thread-meta">
+      <span class="thread-topic">I et samfund med stigende ulighed, hvordan sikrer vi at de som har mest bidrager forholdsmæssigt til fællesskabet?</span>
+      <span class="meta-separator">·</span>
+      <span>12. marts 2026</span>
+      <span class="meta-separator">·</span>
+      <span>25 ture</span>
+    </div>
+    <div class="disclaimer">
+      <strong>Ansvarsfraskrivelse:</strong> Dette er en simuleret rundbordsdiskussion genereret af AI. Deltagerne er fiktive personaer drevet af LLMer. Deres udtalelser repræsenterer ikke holdningerne hos nogen virkelige personer og må ikke tilskrives nogen faktiske personer, levende eller døde.
+    </div>
+    <div class="header-avatars">
+      <img src="avatars/51.png" alt="Alex Vanopslagh (LA)" title="Alex Vanopslagh (LA)" />
+<img src="avatars/52.png" alt="Morten Messerschmidt (DF)" title="Morten Messerschmidt (DF)" />
+<img src="avatars/45.png" alt="Pia Olsen Dyhr (SF)" title="Pia Olsen Dyhr (SF)" />
+<img src="avatars/53.png" alt="Pelle Dragsted (EL)" title="Pelle Dragsted (EL)" />
+<img src="avatars/44.png" alt="Mona Juul (K)" title="Mona Juul (K)" />
+    </div>
+  </header>
+  <main class="messages">
+<div class="message-bubble system"><div class="system-message">Deltagere: Alex Vanopslagh (LA), Morten Messerschmidt (DF), Pia Olsen Dyhr (SF), Pelle Dragsted (EL), Mona Juul (K)</div></div>
+<div class="message-bubble user">
+      <div class="message-avatar"><div class="avatar-placeholder">JR</div></div>
+      <div class="message-body">
+        <div class="message-header">
+          <span class="message-author">Jens Roland (Moderator)</span>
+          <span class="message-time">12. mar., 21.32</span>
+        </div>
+        <div class="message-content"><p>I et samfund med stigende ulighed, hvordan sikrer vi at de som har mest bidrager forholdsmæssigt til fællesskabet?</p>
+</div>
+        
+      </div>
+    </div>
+<div class="message-bubble expert">
+      <div class="message-avatar"><img src="avatars/51.png" alt="Alex Vanopslagh (LA)" /></div>
+      <div class="message-body">
+        <div class="message-header">
+          <span class="message-author">Alex Vanopslagh (LA)</span>
+          <span class="message-time">12. mar., 21.32</span>
+        </div>
+        <div class="message-content"><p>Hvis vi mener det alvorligt, skal vi starte med at skelne mellem to ting, som ofte bliver blandet sammen: at bidrage meget og at blive beskattet hårdt. I Danmark bidrager de højeste indkomster allerede massivt i kroner og øre. Spørgsmålet er derfor ikke bare, om vi kan hæve skatten yderligere, men om det gør samfundet rigere eller bare skubber investeringer, arbejdsudbud og talent i den forkerte retning.</p>
+<p>Jeg er uenig med den refleks, som især Pelle og Pia typisk har, hvor løsningen næsten altid er mere omfordeling ovenfra. Problemet med stigende ulighed løses ikke bedst ved at gøre succes mere strafbar. Det løses ved at gøre det lettere for flere at skabe velstand: bedre skoler, mindre regulering, lavere skat på arbejde og investeringer, og et system hvor det altid kan betale sig at tage ansvar. Hvis en iværksætter skaber 200 arbejdspladser, er det et enormt bidrag til fællesskabet — også selvom vedkommende bliver rig imens.</p>
+<p>Der er dog et legitimt punkt i selve spørgsmålet: Folk accepterer kun forskelle, hvis de oplever, at spillereglerne er fair. Så lad os gå efter fair contribution frem for symbolpolitik: luk særordninger og favorisering, bekæmp skattetænkning, som kun de mest velrådgivne har adgang til, og sørg for, at kapital beskattes enklere og mere neutralt. Men lad være med at bilde danskerne ind, at vi kan beskatte os til mere dynamik. Hvis vi vil have et stærkt fællesskab, skal vi først have et samfund, der er stærkt nok til at skabe værdierne.</p>
+</div>
+        <div class="message-footer"><span class="message-model">openai/gpt-5.4</span></div>
+      </div>
+    </div>
+<div class="message-bubble expert">
+      <div class="message-avatar"><img src="avatars/52.png" alt="Morten Messerschmidt (DF)" /></div>
+      <div class="message-body">
+        <div class="message-header">
+          <span class="message-author">Morten Messerschmidt (DF)</span>
+          <span class="message-time">12. mar., 21.33</span>
+        </div>
+        <div class="message-content"><p>Alex, du har ret i, at de højindkomstgrupper allerede bidrager massivt i kroner og øre, og det er absurd at gøre succes strafbar gennem endeløs omfordeling – det er præcis den slags venstreorienteret refleks, som Pelle og Pia ofte falder i. Men lad os ikke glemme, at en del af uligheden stammer fra globale kræfter, som EU og fri bevægelighed skubber på: Multinationale selskaber og udenlandske investorer udnytter danske skattefordele uden at give tilbage til det danske fællesskab. Dit fokus på mindre regulering er fint, men det må ikke betyde, at vi åbner sluserne for billig importeret arbejdskraft, der undergraver danske lønninger og forstærker uligheden.</p>
+<p>Jeg er uenig med din antagelse om, at lavere skatter automatisk skaber dynamik for alle – i praksis har vi set, hvordan det ofte gavner de globale elite mere end den danske arbejderklasse. Lad os i stedet kræve forholdsmæssigt bidrag ved at stramme op på immigrationspolitikken: De, der kommer udefra og bliver rige her, skal bidrage fuldt ud til velfærdsstaten, uden særordninger. Og ja, luk hullerne i skattesystemet, som du nævner, men lad os koble det til national suverænitet: Vi skal tage kontrollen tilbage fra Bruxelles og sikre, at bidraget går til danske borgere, ikke til at finansiere EU&#39;s fantasiprojekter.</p>
+<p>For at syntetisere: Vi er enige om fair bidrag uden symbolpolitik, men lad os udvide det til et nationalt fokus – foreslå en gennemgang af skatteloopholes for udenlandske aktører og strengere krav til immigrantbidrag. Det ville være et konkret skridt mod at mindske ulighed uden at straffe dansk iværksætteri.</p>
+</div>
+        <div class="message-footer"><span class="message-model">x-ai/grok-4</span></div>
+      </div>
+    </div>
+<div class="message-bubble expert">
+      <div class="message-avatar"><img src="avatars/45.png" alt="Pia Olsen Dyhr (SF)" /></div>
+      <div class="message-body">
+        <div class="message-header">
+          <span class="message-author">Pia Olsen Dyhr (SF)</span>
+          <span class="message-time">12. mar., 21.33</span>
+        </div>
+        <div class="message-content"><p>Alex, når du taler om, at det ikke må være strafbart at have succes, så overser du fundamentet for den succes: nemlig vores fællesskab. En iværksætter skaber ikke 200 arbejdspladser i et vakuum. Det sker, fordi vi har sunde og uddannede medarbejdere, en infrastruktur der virker, og en tryghed der gør, at folk tør satse. Det er investeringer, vi har finansieret i fællesskab. Når uligheden stiger, knækker den sociale sammenhængskraft, og så forsvinder den tillid, som dit liberale marked i virkeligheden lever af. Det handler ikke om at &quot;straffe&quot;, men om at dem med de bredeste skuldre bærer mest, så vi kan investere i den næste generation.</p>
+<p>Morten, jeg er helt enig i, at vi skal lukke skattehuller for multinationale selskaber, men din evige automatreaktion med at give EU eller indvandrere skylden for alt flytter fokus fra det reelle problem: at kapital beskattes alt for lempeligt sammenlignet med almindeligt arbejde. Det er ikke en polsk håndværker, der truer vores velfærdsmodel, men derimod at vi tillader en økonomisk elite at trække enorme gevinster ud af boligmarkedet og aktiegevinster med en langt lavere skatteprocent end den sygeplejerske, der tager en ekstra nattevagt.</p>
+<p>Vi ser ind i en tid, hvor den grønne omstilling kræver massive investeringer. Hvis vi følger Alex&#39; vej med skattelettelser i toppen, har vi ikke råd til den grønne industri eller til at løfte folkeskolen. Og hvis vi følger Mortens vej og isolerer os, mister vi den indflydelse, der skal til for at tvinge de multinationale tech-giganter til at betale deres fair andel via f.eks. en global minimumsskat eller EU-koordination. Det er naivt at tro, at Danmark kan løse international skatteunddragelse alene.</p>
+<p>Jeg foreslår, at vi konkret kigger på en omlægning af skatten, så vi beskatte de allerstørste formuer og gevinster på kapital hårdere, og bruger provenuet på at sænke skatten på den laveste arbejdsindkomst. Det vil både øge incitamentet til at arbejde, som Alex efterlyser, og mindske uligheden, som er afgørende for sammenhængskraften. Lad os starte med at fjerne de mest åbenlyse rabatter til de rigeste – som for eksempel de groteske formueskatte-fordele ved generationsskifte i de allerstørste virksomheder. Det er her, vi finder pengene til velfærden.</p>
+</div>
+        <div class="message-footer"><span class="message-model">google/gemini-3-flash-preview</span></div>
+      </div>
+    </div>
+<div class="message-bubble expert">
+      <div class="message-avatar"><img src="avatars/53.png" alt="Pelle Dragsted (EL)" /></div>
+      <div class="message-body">
+        <div class="message-header">
+          <span class="message-author">Pelle Dragsted (EL)</span>
+          <span class="message-time">12. mar., 21.34</span>
+        </div>
+        <div class="message-content"><p>Alex, din ramme fejler fundamentalist. Du indkredser problemet som om det handler om at &quot;straffe succes&quot; — men det er en falsk modsætning. De rigeste i Danmark har øget deres formuer eksplosivt de sidste årtier, mens skattetrykket reelt er faldet for kapital. Det er ikke et spørgsmål om at gøre det &quot;strafbart&quot; at tjene penge, men om at sikre, at de værdier, der skabes i fællesskab, også fordeles så fællesskabet kan reproducere sig selv.</p>
+<p>Pia har ret i analysen af kapitalbeskatningen, men jeg vil gå længere: Problemet er ikke bare skattesatser, men ejerskabsstrukturen. I <em>Nordisk socialisme</em> viser jeg, at de nordiske lande faktisk har en unik historisk tradition for kollektivt ejerskab — andelsbevægelsen, folkepensionen, de offentlige forsyningsvirksomheder. Det er den egentlige vej til at sikre, at værdiskabelse kommer fællesskabet til gode, ikke blot via beskatning af private gevinster bagefter.</p>
+<p>Morten, din nationalisme er en blindegyde. Ulighed skyldes ikke polske håndværkere eller EU-byråkrati, men at kapitalen er blevet ekstremt koncentreret, og at de institutioner, der engang modvægtede den — fagforeninger, kooperativer, offentlig sektor — er blevet svækket. Hvis vi vil have, at de med mest bidrager forholdsmæssigt, skal vi genopbygge de kollektive mekanismer, der sikrer det: Lønmodtagerfonde, styrket faglig organisering, og demokratisering af virksomhedsstrukturen.</p>
+<p>Konkret foreslår jeg, at vi ser på hvordan vi kan udvide det kollektive ejerskab af produktiv kapital — ikke som et angreb på iværksættere, men som en måde at sikre at værdiskabelsen automatisk kommer samfundet til gode, uden at vi skal jagte skatteindtægter år for år.</p>
+</div>
+        <div class="message-footer"><span class="message-model">z-ai/glm-5</span></div>
+      </div>
+    </div>
+<div class="message-bubble expert">
+      <div class="message-avatar"><img src="avatars/44.png" alt="Mona Juul (K)" /></div>
+      <div class="message-body">
+        <div class="message-header">
+          <span class="message-author">Mona Juul (K)</span>
+          <span class="message-time">12. mar., 21.34</span>
+        </div>
+        <div class="message-content"><p>Pelle, din vision om kollektivt ejerskab og &quot;nordisk socialisme&quot; lyder i mine ører som et eksperiment, der historisk set aldrig har ført til mere vækst eller bedre velfærd – tværtimod. At ville demokratisere virksomhedsstrukturer ved tvang er det direkte modsvar til den personlige ansvarlighed, som er kernen i vores samfund. Det er netop det private initiativ, der driver innovationen, og hvis vi fjerner incitamentet for den enkelte til at bygge noget op, så ender vi med et fattigere samfund for alle.</p>
+<p>Pia, jeg er enig i, at sammenhængskraft er afgørende for et konservativt hjerte, men din analyse af generationsskiftebeskatningen er faktuelt problematisk. At kalde det &quot;groteske fordele&quot;, når vi forsøger at sikre, at danske familievirksomheder ikke skal drænes for likviditet og arbejdspladser, blot fordi en ejer dør, er skadeligt for dansk erhvervsliv. Hvis vi beskatter generationsskiftet hårdere, ender vi med, at virksomhederne bliver solgt til udenlandske kapitalfonde. Det gavner hverken velfærden eller sammenhængskraften – det svækker tværtimod det lokale fundament under Danmark.</p>
+<p>Alex, jeg deler din modstand mod at &quot;straffe succes&quot;, men du overser en vigtig konservativ pointe: For at markedet skal have legitimitet, skal det opleves som retfærdigt. Derfor er jeg enig med dig i, at vi skal rydde op i særordninger. Men vi må også erkende, at ulighed ikke kun handler om Gini-koefficienter; det handler om muligheden for at rykke sig socialt. Vi skal ikke bare sænke skatten for de rigeste; vi skal investere i de institutioner, der skaber ligeværd: en stærk folkeskole og et sundhedsvæsen, der virker. Det er her, bidraget fra de bredeste skuldre skal gøre gavn.</p>
+<p>Morten, din fokus på national suverænitet er vigtig, men at tro, vi kan løse multinationale selskabers skattetænkning uden om EU, er naivt. Vi har brug for det internationale samarbejde for at sikre, at giganter som Google og Amazon betaler deres andel. Min konkrete anbefaling er, at vi fokuserer på en <strong>provenuneutral skatteomlægning</strong>: Lad os lukke de komplekse fradragsskel og særregler, som Morten og Alex nævner, og bruge pengene på at lette skatten på den flittige dansker i bunden og midten. Det vil skabe den dynamik, Alex efterspørger, og den retfærdighed, Pia råber på, uden at vi ødelægger de virksomheder, der bærer os.</p>
+</div>
+        <div class="message-footer"><span class="message-model">google/gemini-3-flash-preview</span></div>
+      </div>
+    </div>
+<div class="message-bubble expert">
+      <div class="message-avatar"><img src="avatars/51.png" alt="Alex Vanopslagh (LA)" /></div>
+      <div class="message-body">
+        <div class="message-header">
+          <span class="message-author">Alex Vanopslagh (LA)</span>
+          <span class="message-time">12. mar., 21.34</span>
+        </div>
+        <div class="message-content"><p>Pia, du har ret i én ting: Velstand bliver ikke skabt i et vakuum. Selvfølgelig bygger virksomheder på et samfund med uddannelse, infrastruktur og retsstat. Men derfra og til at konkludere, at løsningen er højere skat på kapital og formuer, er der et spring, du ikke dokumenterer. Hvis vi gør det dyrere at investere, eje og bygge virksomheder op i Danmark, så får vi ikke bare mindre “ulighed” på papiret — vi får også færre virksomheder, lavere produktivitet og på sigt mindre at finansiere velfærden med. Det er den regning venstrefløjen altid glemmer at tage med.</p>
+<p>Pelle, dit svar bekræfter egentlig problemet. Når du taler om lønmodtagerfonde og kollektivt ejerskab som standardsvar, så er det jo bare en pænere måde at sige, at man vil flytte magt og kapital fra dem, der skaber virksomhederne, til politisk designede kollektiver. Det svækker incitamentet til at tage risikoen i første omgang. Mona har ret her: Hvis målet er mere social mobilitet og større legitimitet om markedsøkonomien, så er vejen ikke tvangskollektivisering, men fair spilleregler, færre særordninger og stærke kerneinstitutioner.</p>
+<p>Morten har en pointe om, at særordninger for udenlandske aktører og internationale skattehuller skal lukkes, men han overvurderer, hvor meget nationalt brystværn løser alene. På det punkt har både Pia og Mona faktisk ret: noget kræver international koordinering. Så der tegner sig en brugbar fællesnævner her: enklere og mere neutralt skattesystem, færre smuthuller, hårdere mod aggressiv skatteplanlægning, og skattelettelser målrettet lave og mellemste arbejdsindkomster. Det er langt klogere end at jage overskrifter med formueskat eller eksperimentere med kollektivt ejerskab.</p>
+<p>Hvis vi skal videre konkret, så er mit bud tre spor: 1) ryd op i fradrag, rabatter og nicheordninger, også dér hvor de begunstiger de mest velrådgivne, 2) sænk skatten på arbejde i bunden og midten, så flere kan løfte sig, og 3) målret de offentlige investeringer langt hårdere mod det, der faktisk virker — folkeskole, faglært uddannelse og basal sundhed — i stedet for at tro, at enhver ekstra skat automatisk bliver til retfærdighed. Det er sådan, man får de stærkeste til at bidrage uden at gøre det dummere at skabe velstand.</p>
+</div>
+        <div class="message-footer"><span class="message-model">openai/gpt-5.4</span></div>
+      </div>
+    </div>
+<div class="message-bubble expert">
+      <div class="message-avatar"><img src="avatars/52.png" alt="Morten Messerschmidt (DF)" /></div>
+      <div class="message-body">
+        <div class="message-header">
+          <span class="message-author">Morten Messerschmidt (DF)</span>
+          <span class="message-time">12. mar., 21.35</span>
+        </div>
+        <div class="message-content"><p>Pia, din insisteren på, at succes bygger på fællesskabet, er rigtig nok, men du ignorerer, hvordan netop det fællesskab undergraves af masseindvandring og EU&#39;s fri bevægelighed, der presser lønninger ned og øger belastningen på velfærden. Det er ikke kun kapitalbeskatning, der er problemet – det er også, at udenlandske arbejdere og selskaber suger ressourcer uden at bidrage forholdsmæssigt. Jeg er uenig med din tro på EU-koordination mod tech-giganter; Bruxelles har vist sig ude af stand til at håndhæve reel retfærdighed, og det ender altid med at Danmark betaler regningen for sydeuropæiske underskud.</p>
+<p>Pelle, din vision om kollektivt ejerskab lyder som gammel marxistisk utopi, der ignorerer, hvordan det i praksis kvæler dansk initiativ og innovation – Mona har fuldstændig ret i, at det fjerner personlig ansvarlighed. Og nej, uligheden skyldes ikke kun koncentreret kapital, men også globaliseringens nedbrydning af nationale grænser, som din internationalisme blindt omfavner. Alex, din tre-spors model er et godt udgangspunkt, men du undervurderer behovet for national beskyttelse: Lad os tilføje et fjerde spor med strengere krav til udenlandske investorer, så de ikke kan udnytte danske loopholes uden at investere i dansk velfærd.</p>
+<p>For at syntetisere den voksende konsensus om at lukke huller i skattesystemet: Vi er flere, der ser værdi i en enklere, fair beskatning, der rammer særordninger og aggressiv planlægning – fra Pias omlægning til Monas provenuneutralitet og Alex&#39; fradragsrydning. Lad os konkret foreslå en arbejdsgruppe til at udarbejde en lovpakke, der inkluderer nationalt binding af udenlandske bidrag, sænkning af arbejdsskat i bunden og et moratorium på EU-finansierede projekter, indtil vi har sikret, at provenuet går til danske borgere. Det ville være et reelt skridt mod at genskabe tillid uden at ofre suverænitet.</p>
+</div>
+        <div class="message-footer"><span class="message-model">x-ai/grok-4</span></div>
+      </div>
+    </div>
+<div class="message-bubble expert">
+      <div class="message-avatar"><img src="avatars/45.png" alt="Pia Olsen Dyhr (SF)" /></div>
+      <div class="message-body">
+        <div class="message-header">
+          <span class="message-author">Pia Olsen Dyhr (SF)</span>
+          <span class="message-time">12. mar., 21.35</span>
+        </div>
+        <div class="message-content"><p>Nu må vi lige stoppe op, Morten. Din idé om et &quot;moratorium på EU-projekter&quot; som løsning på ulighed er simpelthen en afsporing. Hvis vi melder os ud af det europæiske samarbejde om skattelovgivning, så overlader vi banen totalt til de multinationale selskaber. Det er kun gennem bindende internationale regler, at vi kan ramme tech-giganterne. At tro, at Danmark alene kan tvinge Google til truget, er ikke bare naivt – det er at svigte de danske skatteydere.</p>
+<p>Mona, jeg må udfordre dig på generationsskiftet. Det er ikke de små lokale tømrermestre, jeg taler om. Det er de absolut rigeste familier i Danmark, som har fået foræret en skatterabat, der koster fællesskabet milliarder. Når du kalder det &quot;dræn af likviditet&quot;, glemmer du, at almindelige lønmodtagere betaler deres skat hver eneste måned uden de samme sofistikerede fradragsordninger. Hvis vi skal have den retfærdighed, du selv efterspørger for at bevare markedets legitimitet, så dur det ikke med særregler for de få i toppen.</p>
+<p>Alex, du efterlyser dokumentation for, at højere kapitalskat virker. Prøv at se på de sidste 20 år: Uligheden er steget, formuerne i toppen er eksploderet, og samtidig er skatten på kapital faldet. Det har ikke ført til det investeringseventyr for almindelige mennesker, som du lovede – det har ført til en skævvridning af vores samfund, hvor det bedre kan betale sig at spekulere i mursten og aktier end at gå på arbejde.</p>
+<p>Jeg ser dog en åbning for enighed her i gruppen, som vi bør forfølge: <strong>En gennemgribende sanering af skattesystemets særordninger og fradrag.</strong> Alex vil have neutralitet, Mona vil have enkelhed, Morten vil ramme dem, der udnytter systemet, og jeg vil have retfærdighed.</p>
+<p>Lad os foreslå en konkret model:</p>
+<ol>
+<li><strong>Luk de dyre erhvervsstøtteordninger og skatterabatter</strong>, som primært gavner de største virksomheder og de mest velhavende (herunder de mest vidtgående rabatter ved generationsskifte for milliardformuer).</li>
+<li><strong>Brug provenuet direkte på at sænke skatten på de laveste arbejdsindkomster</strong>, så det for alvor kan betale sig for kasseassistenten eller pædagogen at tage en ekstra tørn.</li>
+<li><strong>Indfør en national &quot;fair bidrag&quot;-kontrol</strong>, der sikrer, at virksomheder i Danmark ikke kan trække overskud ud til skattely, parallelt med at vi presser på for en højere global minimumsskat i EU/OECD.</li>
+</ol>
+<p>Det her er ikke &quot;straf&quot;, Alex – det er at rydde op i et system, der er blevet for komplekst og for skævt. Pelle, jeg deler din lyst til demokratisering, men lad os starte med at sikre, at pengene overhovedet lander i fælleskassen, før vi diskuterer ejerskabsmodeller. Er vi enige om, at en sanering af fradrag til fordel for bunden er det første store skridt?</p>
+</div>
+        <div class="message-footer"><span class="message-model">google/gemini-3-flash-preview</span></div>
+      </div>
+    </div>
+<div class="message-bubble expert">
+      <div class="message-avatar"><img src="avatars/53.png" alt="Pelle Dragsted (EL)" /></div>
+      <div class="message-body">
+        <div class="message-header">
+          <span class="message-author">Pelle Dragsted (EL)</span>
+          <span class="message-time">12. mar., 21.35</span>
+        </div>
+        <div class="message-content"><p>Mona, din karakteristik af kollektivt ejerskab som et &quot;eksperiment, der aldrig har ført til vækst&quot; er historisk forkert. De danske andelsmejerier, andelsboligforeningerne, Arbejdernes Landsbank — disse institutioner var motoren bag dansk velstand i det 20. århundrede. De blev skabt af folk, der forstod, at demokratisk kontrol over kapital ikke kvæler initiativ, men frigør det fra spekulanter. Det er ikke marxistisk utopi, Morten — det er dansk historie, som du ellers plejer at værdsætte.</p>
+<p>Jeg kan tilslutte mig Pias tre punkter som et <em>første</em> skridt. Men lad os ikke bilde os selv ind, at det løser strukturel ulighed. At lukke særordninger og sænke skatten i bunden er nødvendigt, men ikke tilstrækkeligt. Problemets kerne er, at dem der ejer produktiv kapital, trækker en stadig større andel af samfundets samlede indkomst — og det kan vi ikke beskatte os ud af på sigt.</p>
+<p>Derfor vil jeg tilføje et fjerde punkt til Pias model: <strong>En gradvis opbygning af kollektiv kapital i fællesskabets eje</strong> — eksempelvis gennem en moderniseret version af lønmodtagerfonde, hvor en del af virksomhedernes overskud automatisk afsettes i fonde styret af medarbejdere og det offentlige. Det ville sikre, at værdiskabelsen løbende kommer fællesskabet til gode, uden at vi skal føre skattekrige hvert eneste år. Alex kalder det &quot;tvang&quot; — jeg kalder det at institutionalisere det fællesskab, som han selv indrømmer er forudsætningen for velstand.</p>
+</div>
+        <div class="message-footer"><span class="message-model">z-ai/glm-5</span></div>
+      </div>
+    </div>
+<div class="message-bubble expert">
+      <div class="message-avatar"><img src="avatars/44.png" alt="Mona Juul (K)" /></div>
+      <div class="message-body">
+        <div class="message-header">
+          <span class="message-author">Mona Juul (K)</span>
+          <span class="message-time">12. mar., 21.35</span>
+        </div>
+        <div class="message-content"><p>Pelle, din historiske reference til andelsbevægelsen er sympatisk, men du begår en tankefejl, når du vil gøre det til en statslig eller tvungen model. Andelsbevægelsen var drevet af <em>frivillighed</em> og privat initiativ fra bunden – det er det stik modsatte af de lønmodtagerfonde, du foreslår, som i praksis er konfiskation af ejerskab. Det vil ikke skabe vækst; det vil skabe flugt af kapital og kompetencer. Vi skal bygge på det, der virker, ikke genoplive 70&#39;ernes ideologiske blindgyder.</p>
+<p>Pia, vi er enige om målet – sammenhængskraft – men din insisteren på at ramme generationsskiftet i de største virksomheder vidner om en manglende forståelse for, hvad de virksomheder betyder for Danmark. Det er ikke &quot;milliardrabatter&quot;; det er et spørgsmål om at bevare danske arbejdspladser og lokalt engagement. Hvis vi beskatter dem ihjel ved et ejerskifte, ender vi med anonyme kapitalfonde, der er totalt ligeglade med om deres underleverandør ligger i Ringkøbing eller i Rumænien. Det svækker netop den retfærdighedsfølelse, du efterlyser.</p>
+<p>Når det er sagt, så ser jeg en tydelig vej frem, som Alex også skitserer, og som kan forene os: <strong>En gennemgribende sanering af skattesystemet.</strong> </p>
+<p>Lad os konkretisere det næste skridt:</p>
+<ol>
+<li><strong>Sanering af erhvervsstøtte og fradragsjungle:</strong> Vi har i dag over 40 milliarder kroner i erhvervsstøtte. Lad os luge ud i de mest konkurrenceforvridende særordninger. Det vil skabe den neutralitet, Alex ønsker, og fjerne de smuthuller, Morten og Pia kritiserer.</li>
+<li><strong>Sænkelse af skatten på arbejde fra bunden:</strong> Ved at bruge provenuet fra saneringen til at hæve beskæftigelsesfradraget markant, sikrer vi, at de der yder en indsats, får mere mellem hænderne. Det er den bedste vej til social mobilitet.</li>
+<li><strong>Styrket indsats mod grænseoverskridende skattespekulation:</strong> Her må jeg give Pia ret; det kræver internationalt samarbejde. Men vi skal gøre det uden at opbygge nye EU-bureaukratier, som Morten frygter.</li>
+</ol>
+<p>Alex, kan vi blive enige om, at en sanering af erhvervsstøtten er prisen værd, hvis vi til gengæld får en markant lavere skat på arbejde? Og Pia, kan du acceptere, at vi lader generationsskiftebeskatningen være i fred, hvis vi til gengæld lukker de andre huller, som de absolut rigeste bruger til aggressiv skatteplanlægning? Det ville være en pragmatisk, borgerlig vej til et mere retfærdigt bidrag.</p>
+</div>
+        <div class="message-footer"><span class="message-model">google/gemini-3-flash-preview</span></div>
+      </div>
+    </div>
+<div class="message-bubble expert">
+      <div class="message-avatar"><img src="avatars/51.png" alt="Alex Vanopslagh (LA)" /></div>
+      <div class="message-body">
+        <div class="message-header">
+          <span class="message-author">Alex Vanopslagh (LA)</span>
+          <span class="message-time">12. mar., 21.36</span>
+        </div>
+        <div class="message-content"><p>Ja, Mona — hvis vi skal finde et sted, hvor diskussionen bliver konkret i stedet for ideologisk rundgang, så er sanering af erhvervsstøtte og fradragsjungle et oplagt sted at starte. Der er alt for mange ordninger, som i praksis belønner dem, der har de bedste rådgivere, ikke dem der skaber mest værdi. Hvis vi kan omsætte det provenu til en markant lavere skat på arbejde, især i bunden og midten, så får vi både mere retfærdighed og bedre incitamenter. Det er mere seriøst end Pelles idé om lønmodtagerfonde, som stadig bare er tvungen omfordeling i ny emballage.</p>
+<p>Pia, jeg kan godt gå med til din pointe om, at systemet er blevet for skævt og komplekst, og at kapital ikke skal have særlige VIP-indgange til lavere effektiv beskatning end lønarbejde. Men du bliver nødt til at skelne mellem at fjerne reelle skævridninger og at føre symbolpolitik mod ejerskab som sådan. Hvis du vil ramme de største og mest åbenlyse særfordele, så fint — men hvis du gør generationsskifte til hovedslagmarken, risikerer du præcis det, Mona advarer om: mere udenlandsk opkøb og mindre dansk forankring. Der bør vi arbejde mere kirurgisk og mindre ideologisk.</p>
+<p>Morten har ret i, at udenlandske aktører ikke skal kunne bruge Danmark som gennemfartsland for profit uden ordentligt bidrag. Men et “moratorium på EU-projekter” løser jo intet her; det er bare en anden debat forklædt som skattepolitik. Den spirende konsensus er faktisk ret tydelig nu: ryd op i særordninger, styrk indsatsen mod aggressiv skatteplanlægning, og brug provenuet på lavere skat på arbejde og stærkere kernevelfærd, der faktisk virker. Hvis vi kan blive enige om det som første fase, så har vi et reformspor, der både adresserer ulighed og bevarer lysten til at skabe virksomheder og arbejdspladser.</p>
+<p>Mit forslag til næste skridt er derfor en konkret prioritering: 1) uafhængigt eftersyn af alle erhvervsstøtteordninger og skattefradrag med ét kriterium — skaber de dokumenterbar samfundsværdi? 2) automatisk sunset-klausul på nye særordninger, så de ikke bliver permanente lobbysejre, og 3) hele provenuet fra oprydningen øremærkes til lavere skat på arbejde og målrettede investeringer i folkeskole og erhvervsuddannelser. Så tvinger vi os selv væk fra symbolkamp og over i reformer, der faktisk kan mærkes.</p>
+</div>
+        <div class="message-footer"><span class="message-model">openai/gpt-5.4</span></div>
+      </div>
+    </div>
+<div class="message-bubble expert">
+      <div class="message-avatar"><img src="avatars/52.png" alt="Morten Messerschmidt (DF)" /></div>
+      <div class="message-body">
+        <div class="message-header">
+          <span class="message-author">Morten Messerschmidt (DF)</span>
+          <span class="message-time">12. mar., 21.36</span>
+        </div>
+        <div class="message-content"><p>Pia, ditt fokus på EU som redningen mod multinationale selskaber er præcis den slags blåøjet internationalisme, der har ladet Danmark blive et offer for Bruxelles&#39; ineffektive regler – vi har set, hvordan deres &quot;globale minimumsskat&quot; bliver udvandet til ingenting, mens danske borgere betaler prisen. Jeg er uenig med din afvisning af national kontrol; et moratorium på EU-finansierede projekter er ikke afsporing, det er en nødvendighed for at sikre, at danske skatteindtægter bliver i Danmark, ikke sendes til sydeuropæiske underskud. Mona, du har ret i at generationsskiftebeskatning skal beskyttes for at holde danske virksomheder danske, men din tro på internationalt samarbejde uden EU-bureaukrati er naiv – det ender altid med mere suverænitetsafgivelse.</p>
+<p>Pelle, din tilføjelse af kollektive lønmodtagerfonde som &quot;fjerde punkt&quot; er en farlig genvej til statsstyret økonomi, der ignorerer, hvordan andelsbevægelsen lykkedes netop fordi den var frivillig, ikke tvungen som dine marxistiske idéer. Det er ikke dansk historie, du bygger på, men en socialistisk perversion af den – Mona har fuldstændig ret i, at det leder til kapitalflugt. Lad os holde os til Pias oprindelige tre punkter uden dine eksperimenter, for de løser intet om ulighed, men undergraver dansk initiativ.</p>
+<p>Alex, din prioritering med uafhængigt eftersyn og sunset-klausuler er et solidt fundament, men du undervurderer truslen fra udenlandske aktører – lad os udvide det tredje punkt til at inkludere en national &quot;bidragspligt&quot; for udenlandske investorer, der kræver fuld skattetilknytning før overskud kan trækkes ud. For at forfine den voksende konsensus om sanering af særordninger og sænkning af arbejdsskat: Vi ser enigheder mellem Alex&#39; neutralitet, Monas pragmatisme og Pias retfærdighed – lad os foreslå en national kommission, der gennemgår alle fradrag med fokus på dansk suverænitet, og præsenterer en lovpakke inden årsskiftet, inklusive beskyttelse mod EU-indblanding. Det ville være et konkret skridt mod reel forholdsmæssig bidrag uden at ofre national identitet.</p>
+</div>
+        <div class="message-footer"><span class="message-model">x-ai/grok-4</span></div>
+      </div>
+    </div>
+<div class="message-bubble expert">
+      <div class="message-avatar"><img src="avatars/45.png" alt="Pia Olsen Dyhr (SF)" /></div>
+      <div class="message-body">
+        <div class="message-header">
+          <span class="message-author">Pia Olsen Dyhr (SF)</span>
+          <span class="message-time">12. mar., 21.37</span>
+        </div>
+        <div class="message-content"><p>Morten, nu må du altså stoppe med at male fanden på væggen over for EU. En &quot;national bidragspligt&quot; lyder besnærende i en DF-tale, men i den virkelige verden vil det blot føre til, at virksomheder flygter fra Danmark, fordi vi bryder de internationale spilleregler. Hvis vi vil ramme de multinationale selskaber, der flytter overskud ud af landet, er vejen frem <em>mere</em> og tættere samarbejde i EU og OECD om en global minimumskat. Alt andet er at stikke folk blår i øjnene.</p>
+<p>Mona, jeg køber ikke dit præmis om, at generationsskiftebeskatning &quot;dræber&quot; virksomheder. Vi taler om en lille elite af de allerrigeste familier, som i dag betaler en markant lavere procentsats af deres formueoverførsel, end en almindelig arving gør af et hus i Valby. Det er selve definitionen på ulighed. Men jeg hører, hvad du og Alex siger om behovet for en bredere sanering. Jeg er villig til at diskutere en samlet pakke, hvor vi kigger på <em>alle</em> de måder, de rigeste undgår skat på – de komplekse holdingselskabskonstruktioner, de skattefri aktiegevinster og fradragsfinterne – hvis vi til gengæld får en massiv lettelse i bunden af indkomstskalaen.</p>
+<p>Pelle, jeg forstår din idealisme omkring kollektivt ejerskab, men vi må være pragmatiske her. Hvis vi vil have resultater nu, skal vi fokusere på det, der skaber flertal. En demokratisering af økonomien starter med, at vi overhovedet får inddrevet pengene fra dem, der har mest, så vi kan investere i det fællesskab, der gør os alle rigere.</p>
+<p>Vi har en gylden mulighed for en historisk aftale her i Mastermind-gruppen. Lad os samle os om tre helt konkrete anbefalinger:</p>
+<ol>
+<li><strong>Den Store Sanering:</strong> En uafhængig gennemgang af samtlige 40+ milliarder i erhvervsstøtte og de hundredvis af skattefradrag. Alt, der ikke beviseligt skaber bred samfundsværdi, men kun gavner de få, skal væk.</li>
+<li><strong>Arbejdslivets Førsteret:</strong> Hver eneste krone, vi sparer på saneringen, skal bruges direkte på at hæve beskæftigelsesfradraget markant for lave og mellemstore indkomster. Det vil mindske uligheden og give det incitament til arbejde, som Alex og Mona efterlyser.</li>
+<li><strong>Værn mod Skattespekulation:</strong> Danmark skal gå forrest i EU for at lukke hullerne for tech-giganterne og indføre en effektiv, højere global minimumskat, så kapitalen ikke kan flygte fra sit sociale ansvar.</li>
+</ol>
+<p>Det her er ikke symbolpolitik. Det er en gennemgribende modernisering af vores velfærdssamfund, der både sikrer dynamik og retfærdighed. Kan vi blive enige om, at dette er den vej, vi skal gå?</p>
+</div>
+        <div class="message-footer"><span class="message-model">google/gemini-3-flash-preview</span></div>
+      </div>
+    </div>
+<div class="message-bubble expert">
+      <div class="message-avatar"><img src="avatars/53.png" alt="Pelle Dragsted (EL)" /></div>
+      <div class="message-body">
+        <div class="message-header">
+          <span class="message-author">Pelle Dragsted (EL)</span>
+          <span class="message-time">12. mar., 21.37</span>
+        </div>
+        <div class="message-content"><p>Jeg kan stemme for Pias trepunkts-program som et konkret første skridt — med én vigtig præcisering.</p>
+<p>Morten, din vedholdenhed i at gøre EU til skurken forhindrer os i at løse det reelle problem. De multinationale tech-giganter betaler i dag effektiv selskabsskat på under 5% i Danmark gennem komplekse koncerninterne transaktioner. Det er ikke Bruxelles&#39; skyld — det er manglen på internationale regler, som kun EU eller OECD kan levere. Din nationalisme er her en <em>hindre</em> for retfærdig beskatning, ikke en vej til den.</p>
+<p>Til punkterne: Jeg vil understrege, at &quot;Den Store Sanering&quot; skal rammesættes rigtigt. Det handler ikke bare om at &quot;rydde op&quot; — det handler om at identificere de mekanismer, der systematisk tillader kapital at akkumulere i toppen uden modsvarende bidrag. Når Mona og Alex forsvarer generationsskifterabatterne, overser de, at disse ordninger i praksis betyder, at dynastiske formuer videreføres skattefrit, mens en almindelig lønmodtager betaler fuld skat af hver tjent krone. Det er ikke &quot;beskyttelse af danske virksomheder&quot; — det er institutionaliseret ulighed.</p>
+<p>Men jeg vil ikke lade det perfekte være det godes fjende. Pia har formuleret en reformpakke, der kan samle bred opbakning og faktisk gøre en forskel. Jeg tilføjer blot: Når vi har gennemført denne første fase, skal vi evaluere effekten på den faktiske ulighed — og hvis koncentrationen af kapital fortsætter uafbrudt, så er spørgsmålet om ejerskabsstrukturer stadig på dagsordenen.</p>
+</div>
+        <div class="message-footer"><span class="message-model">z-ai/glm-5</span></div>
+      </div>
+    </div>
+<div class="message-bubble expert">
+      <div class="message-avatar"><img src="avatars/44.png" alt="Mona Juul (K)" /></div>
+      <div class="message-body">
+        <div class="message-header">
+          <span class="message-author">Mona Juul (K)</span>
+          <span class="message-time">12. mar., 21.37</span>
+        </div>
+        <div class="message-content"><p>Pelle, jeg noterer mig din &quot;evaluering&quot; som en slet skjult dør på klem for fremtidig socialisme, men lad os holde os til det, der faktisk kan samle os nu. Det glæder mig, at vi bevæger os mod en erkendelse af, at det komplekse system er ulighedens bedste ven, fordi det kun er de færreste, der har råd til de rådgivere, der kan navigere i det.</p>
+<p>Pia, jeg anerkender din håndsrækning om en samlet pakke. Men jeg må holde fast: Generationsskiftebeskatning er ikke en &quot;rabat&quot; til eliten; det er et værn mod, at sunde danske virksomheder bliver kapitalfondsmad. Hvis vi beskatter substansen i en virksomhed, beskatter vi dens evne til at investere i nye maskiner og medarbejdere. Det er ikke retfærdighed – det er at save den gren over, vi alle sidder på. Lad os i stedet kigge på de &quot;skattefrie aktiegevinster&quot; og &quot;holdingselskabsfinter&quot;, du nævner. Der er masser af gråzoner, hvor passiv formue plejes uden at skabe værdi for samfundet. Det er dér, vi skal sætte ind.</p>
+<p>Alex, din idé om en &quot;sunset-klausul&quot; er fremragende. Den tvinger politikerne til løbende at bevise, at en særordning stadig gavner fællesskabet. Det skaber den dynamik, vi har brug for. Morten, jeg forstår din skepsis over for EU, men lad os bruge arbejdsgruppen til at sikre, at vi implementerer de internationale regler på en måde, der prioriterer dansk konkurrenceevne, frem for blindt at overimplementere bureaukrati.</p>
+<p>Vi har nu et fundament for en <strong>Mastermind-anbefaling</strong>:</p>
+<ol>
+<li><strong>Sanerings-kommissionen:</strong> Et uafhængigt eftersyn af alle 40+ mia. kr. i erhvervsstøtte og fradrag. Fokus skal være på at fjerne ordninger, der subsidierer passiv formue eller skaber skæv konkurrence.</li>
+<li><strong>Beskæftigelsesløftet:</strong> Hver eneste krone fra saneringen føres tilbage til borgerne via et forhøjet beskæftigelsesfradrag, der målrettes bunden og midten. Det gør det mere attraktivt at arbejde frem for at stå udenfor.</li>
+<li><strong>Hårde regler mod skattetænkning:</strong> Vi styrker kontrollen med multinationale selskabers overførsel af overskud, herunder en aktiv rolle i OECD-samarbejdet, så vi sikrer, at overskud beskattes, hvor det skabes – i Danmark.</li>
+</ol>
+<p>Dette er en vej, der respekterer ejendomsretten og virksomhedernes overlevelse, men som stopper de uretfærdige smutveje. Det er konservativ snusfornuft i praksis. Kan vi sende det her videre som vores fælles konklusion?</p>
+</div>
+        <div class="message-footer"><span class="message-model">google/gemini-3-flash-preview</span></div>
+      </div>
+    </div>
+<div class="message-bubble user">
+      <div class="message-avatar"><div class="avatar-placeholder">JR</div></div>
+      <div class="message-body">
+        <div class="message-header">
+          <span class="message-author">Jens Roland (Moderator)</span>
+          <span class="message-time">12. mar., 21.39</span>
+        </div>
+        <div class="message-content"><p>Nogle sf de forslag som har været diskuteret på det seneste, er beskatning på henholdsvis formuer og på gevinst ved boligsalg. Hvordan stiller I jer hver især til de to forslag?</p>
+</div>
+        
+      </div>
+    </div>
+<div class="message-bubble expert">
+      <div class="message-avatar"><img src="avatars/51.png" alt="Alex Vanopslagh (LA)" /></div>
+      <div class="message-body">
+        <div class="message-header">
+          <span class="message-author">Alex Vanopslagh (LA)</span>
+          <span class="message-time">12. mar., 21.40</span>
+        </div>
+        <div class="message-content"><p>På formueskat er jeg grundlæggende imod. Ikke fordi de rigeste ikke skal bidrage, men fordi formueskat rammer værdier, der ofte allerede er beskattet én gang, og fordi den beskatter beholdning frem for afkast. Det lyder enkelt i en overskrift, men i praksis betyder det, at man kan blive tvunget til at betale skat af illikvide værdier — familieejede virksomheder, ejerandele, jord — uden at der nødvendigvis er kontanter til det. Resultatet er ofte mindre dansk ejerskab, mere kapitalflugt og dårligere investeringsincitamenter. Hvis Pia og Pelle vil have de rigeste til at bidrage mere, så skal de i det mindste vælge redskaber, der ikke straffer opsparing og langsigtet ejerskab mere blindt end nødvendigt.</p>
+<p>Beskatning af gevinst ved boligsalg er jeg også meget skeptisk over for, især hvis man forestiller sig en bred model på den primære bolig. Vi har i forvejen et boligmarked, der er gennemreguleret og beskattet på alle mulige led. En gevinstskat på boligsalg vil ramme mobiliteten, gøre folk mere tilbageholdende med at flytte efter job eller familiesituation og i mange tilfælde beskatte inflation lige så meget som reel værdistigning. Hvis man vil adressere skævheder på boligmarkedet, er det mere ærligt at se på den løbende boligbeskatning og på planregulering, som holder udbuddet nede — ikke at indføre endnu et lag beskatning ved salget.</p>
+<p>Hvis jeg skal være konstruktiv, så er der dog en reel frustration bag begge forslag: mange oplever, at arbejde beskattes hårdere end formuegevinster. Det problem løser man bare ikke bedst med to nye skatter, der er økonomisk klodsede. Den bedre vej er stadig det spor, vi faktisk er begyndt at nærme os: færre særordninger, mere neutral beskatning af kapitalafkast, mindre favorisering af bestemte aktivtyper, og lavere skat på arbejde. Hvis Jens vil have en skarp anbefaling, så er min: nej til formueskat, nej til generel skat på boliggevinst ved salg af primær bolig, men ja til at rydde op i de skæve regler, der i dag gør systemet unødigt gunstigt for dem med de dygtigste rådgivere.</p>
+</div>
+        <div class="message-footer"><span class="message-model">openai/gpt-5.4</span></div>
+      </div>
+    </div>
+<div class="message-bubble expert">
+      <div class="message-avatar"><img src="avatars/52.png" alt="Morten Messerschmidt (DF)" /></div>
+      <div class="message-body">
+        <div class="message-header">
+          <span class="message-author">Morten Messerschmidt (DF)</span>
+          <span class="message-time">12. mar., 21.41</span>
+        </div>
+        <div class="message-content"><p>Alex, din kritik af formueskat er spot on i, at den ofte rammer allerede beskattede værdier og risikerer at tvinge danske familier til at sælge ud af virksomheder eller jord, der har været i generationer – det undergraver netop den nationale forankring, der holder Danmark sammen. Jeg er fundamentalt imod en bred formueskat, fordi den straffer langsigtet dansk opsparing og ejerskab, mens den lader globale finanshajer slippe gennem maskerne via internationale smutveje. Men lad os udvide det: Hvis vi skal have nogen form for formuebeskatning, må den begrænses til udenlandske investorer og multinationale selskaber, der udnytter dansk jord og aktiver uden at bidrage til velfærden – et nationalt &quot;suverænitetsbidrag&quot; for at lukke hullerne, som din neutralitet ignorerer.</p>
+<p>På beskatning af gevinst ved boligsalg er jeg endnu mere uenig med ideen; det ville være et angreb på den danske drøm om at eje sit eget hjem, ramme almindelige familier, der flytter for arbejde eller familie, og forstærke uligheden ved at gøre det sværere for danskere at bygge formue i en tid med stigende priser. Du nævner regulering som alternativ, men du overser, hvordan EU&#39;s fri bevægelighed har drevet boligpriserne op via udenlandsk spekulation – lad os i stedet beskatte gevinster fra udenlandske boligejere hårdere, mens vi beskytter danske borgere. Det er ikke fair bidrag, hvis det rammer os selv, mens udlændinge ler hele vejen til banken.</p>
+<p>For at syntetisere: Vi er enige om nej til bred formueskat og boliggevinstskat, men lad os foreslå en målrettet variant – en arbejdsgruppe, der udarbejder regler mod udenlandsk udnyttelse af danske formuer og boliger, koblet til sænkning af arbejdsskat for danskere. Det ville sikre forholdsmæssigt bidrag uden at ofre national suverænitet.</p>
+</div>
+        <div class="message-footer"><span class="message-model">x-ai/grok-4</span></div>
+      </div>
+    </div>
+<div class="message-bubble expert">
+      <div class="message-avatar"><img src="avatars/45.png" alt="Pia Olsen Dyhr (SF)" /></div>
+      <div class="message-body">
+        <div class="message-header">
+          <span class="message-author">Pia Olsen Dyhr (SF)</span>
+          <span class="message-time">12. mar., 21.41</span>
+        </div>
+        <div class="message-content"><p>Morten, nu må du altså lægge den pladespiller væk. At foreslå særskatter kun for udlændinge er juridisk og økonomisk i øst og vest – det svarer til at pisse i bukserne for at holde varmen; det ender med, at ingen tør investere i Danmark, og så ryger arbejdspladserne.</p>
+<p>Alex, du kalder formueskat og boliggevinstskat for &quot;økonomisk klodsede&quot;, men det, der er rigtig klodset, er et samfund, hvor uligheden galoperer afsted, fordi vi har fredet de største formuer. Når værdien af folks boliger i København stiger med flere millioner, uden at de løfter en finger, mens en sosu-assistent i provinsen betaler topskat af sine overtimer, så knækker retfærdighedsfølelsen. Det er dér, uligheden gør ondt.</p>
+<p>Lad os være konkrete på Jens&#39; spørgsmål:</p>
+<ol>
+<li><strong>Gevinst ved boligsalg:</strong> Jeg foreslår ikke en skat på den almindelige familie, der flytter fra et rækkehus til et andet. Men vi skal turde tale om en <strong>beskatning af de helt store gevinster</strong> – f.eks. over 5 millioner kroner i ren profit. Det er ikke &quot;den danske drøm&quot;, det er en lotto-gevinst, som fællesskabet bør få en lille del af for at finansiere vores fælles velfærd. Det vil også dæmpe den overophedning, der gør det umuligt for unge at komme ind på markedet.</li>
+<li><strong>Formueskat:</strong> Vi skal ikke tilbage til 80’ernes model, men vi har brug for en <strong>moderne formueskat på de allerstørste formuer</strong>. Hvis man ejer værdier for over 100 millioner kroner, har man råd til at bidrage lidt ekstra til det samfund, der har gjort rigdommen mulig. Alex, du nævner likviditetsproblemer – det kan løses teknisk med henstand eller afdrag. Problemet er ikke teknikken, men viljen til at lade de bredeste skuldre bære mest.</li>
+</ol>
+<p>Mona, du taler om &quot;passiv formue&quot;. Det er præcis det, jeg rammer her. Vi kan ikke bare nøjes med at &quot;rydde op i fradrag&quot;. Hvis vi for alvor skal give de laveste indkomster et løft, som vi snakkede om før, så skal pengene findes, hvor de er: i de massive værdistigninger på bolig- og aktiemarkedet.</p>
+<p>Jeg foreslår derfor, at vi i vores anbefaling tilføjer et punkt om <strong>kapitalharmoniseringsskat</strong>: Lad os beskatte store kapitalgevinster og enorme boligprofitter i toppen mere ligeligt med arbejdsindkomst. Det vil finansiere det massive løft af beskæftigelsesfradraget, som vi alle (måske på nær Pelle) kan se ideen i. Kan vi mødes her? En model, der skåner den almindelige husejer og småsparer, men som tør tage fat i toppen?</p>
+</div>
+        <div class="message-footer"><span class="message-model">google/gemini-3-flash-preview</span></div>
+      </div>
+    </div>
+<div class="message-bubble expert">
+      <div class="message-avatar"><img src="avatars/53.png" alt="Pelle Dragsted (EL)" /></div>
+      <div class="message-body">
+        <div class="message-header">
+          <span class="message-author">Pelle Dragsted (EL)</span>
+          <span class="message-time">12. mar., 21.41</span>
+        </div>
+        <div class="message-content"><p>Alex, din argumentation om &quot;dobbeltbeskatning&quot; er en klassisk liberal tænketåbe. Formuer vokser jo netop <em>fordi</em> de er investeret i samfundets fælles infrastruktur, uddannede arbejdere, og juridiske beskyttelse. Når en formue vokser med 10% årligt uden at dens ejer løfter en finger, er det ikke &quot;allerede beskattet&quot; — det er ufordelt afkast af fællesskabets investeringer. En formueskat er således ikke dobbeltbeskatning, men en retfærdig andel af løbende værdiskabelse.</p>
+<p>Pia har ret i at skelne mellem almindelige boligejere og de store gevinster. Jeg vil tilføje: Problemet med boligmarkedet er ikke kun gevinsterne ved salg, men at boligen er blevet en spekulationsaktiv i stedet for et hjem. En progressiv boliggevinstskat med høje fradrag for den primære bolig ville både dæmpe spekulation og skabe provenu til velfærd. Samtidig kunne man overveje en forøget ejendomsskat på meget værdifulde boliger — det rammer dem, der har allermest, uden at berøre almindelige husejere.</p>
+<p>Morten, dit forsøg på at gøre formueskat til et nationalt spørgsmål er en blindegyde. De største danske formuer er i dag placeret i holdingselskaber, investeringsfonde og aktier — ikke i &quot;dansk jord og virksomheder&quot; som i 1950&#39;erne. En moderne formueskat skal ramme <em>kapitalen</em>, uanset om ejeren er dansk eller udenlandsk, og uanset om den er placeret i mursten eller aktier.</p>
+<p>Konkret: Jeg støtter en progressiv formueskat fra ca. 10-15 millioner kroner med stigende satser opad, og en boliggevinstskat med et højt bundfradrag på f.eks. 2-3 millioner til beskyttelse af almindelige familiers flytninger. Det finansierer både det beskæftigelsesløft, vi diskuterer, og sender et signal om, at ekstrem velstand kommer med ekstrem forpligtelse.</p>
+</div>
+        <div class="message-footer"><span class="message-model">z-ai/glm-5</span></div>
+      </div>
+    </div>
+<div class="message-bubble expert">
+      <div class="message-avatar"><img src="avatars/44.png" alt="Mona Juul (K)" /></div>
+      <div class="message-body">
+        <div class="message-header">
+          <span class="message-author">Mona Juul (K)</span>
+          <span class="message-time">12. mar., 21.41</span>
+        </div>
+        <div class="message-content"><p>Pelle, din idé om, at en formue vokser, uden at ejeren &quot;løfter en finger&quot;, er en dybt forældet beskrivelse af, hvordan kapital fungerer. Kapital er opsparet arbejde, og det er risiko. Når en familieejet virksomhed geninvesterer sit overskud i stedet for at trække det ud til forbrug, så arbejder de penge for samfundet ved at skabe arbejdspladser og innovation. At lægge en løbende skat på den formue – uanset om virksomheden har haft overskud eller ej – er den sikreste måde at kvæle investeringslysten på. Det er ikke &quot;retfærdig andel&quot;; det er en straf for at udvise rettidig omhu og langsigtet ansvarlighed.</p>
+<p>Pia, jeg må advare kraftigt mod din model for boliggevinstskat, selv med et højt bundfradrag. Det vil skabe en fastlåsningseffekt på boligmarkedet. Hvis folk ved, at de skal aflevere en stor luns af deres provenu til staten ved salg, så lader de være med at sætte til salg. Det vil mindske udbuddet af store boliger til børnefamilier og gøre det endnu sværere for unge at komme ind på markedet. Vi har lige indført et nyt ejendomsskattesystem, der netop skal sikre, at skatten følger værdistigningen løbende. Lad os nu give det system ro til at virke i stedet for at kaste boligejerne ud i ny usikkerhed.</p>
+<p>Alex, jeg er enig med dig i, at vi skal passe på med at indføre nye, klodsede skatter. Men vi må også være ærlige: Den nuværende beskatning af visse kapitalgevinster <em>er</em> meget lav sammenlignet med skatten på den sygeplejerske, jeg nævnte før. Som konservativ mener jeg, at vi skal værne om flid. Derfor er jeg åben for at se på, om vi kan harmonisere beskatningen af visse typer af passiv kapitalafkast, f.eks. ved at fjerne de mest kreative fradragsmuligheder i holdingselskaber, mod at vi til gengæld letter skatten på arbejde markant.</p>
+<p>Jens, mit svar på dine to spørgsmål er derfor et klart <strong>nej</strong> til en formueskat, da den dræner virksomheder for likviditet og skader dansk ejerskab. Og et <strong>nej</strong> til en generel skat på boliggevinst, da det skader mobiliteten og straffer almindelig opsparing i mursten. </p>
+<p>I stedet vil jeg foreslå, at vi holder fast i vores spirende konsensus:</p>
+<ol>
+<li><strong>Ingen nye særskatter</strong>, der skaber bureaukrati og kapitalflugt.</li>
+<li><strong>Sanering af de huller</strong>, hvor meget store kapitalgevinster kan gemmes væk (f.eks. ved at stramme reglerne for aktiesparekonti eller holdingselskabers spekulation, som ikke er kerneforretning).</li>
+<li><strong>Fokus på &quot;Arbejdslivets Førsteret&quot;</strong>: Brug hver en krone fra saneringen på at sænke topskatten og hæve beskæftigelsesfradraget. Det er her, vi skaber reel social mobilitet og sikrer, at flid altid betaler sig bedre end passiv formuepleje.</li>
+</ol>
+<p>Morten, kan vi være enige om, at vi skal beskytte den danske boligejer mod nye skatter, men at vi til gengæld skal være benårde over for dem, der bruger det danske system til ren spekulation uden at skabe værdi?</p>
+</div>
+        <div class="message-footer"><span class="message-model">google/gemini-3-flash-preview</span></div>
+      </div>
+    </div>
+<div class="message-bubble system"><div class="system-message">Jens Roland har bedt gruppen om at afslutte. Hver deltager bør give deres afsluttende tanker, vigtigste pointer og eventuelle handlingsorienterede anbefalinger. Vær koncis og direkte.</div></div>
+<div class="message-bubble expert">
+      <div class="message-avatar"><img src="avatars/51.png" alt="Alex Vanopslagh (LA)" /></div>
+      <div class="message-body">
+        <div class="message-header">
+          <span class="message-author">Alex Vanopslagh (LA)</span>
+          <span class="message-time">12. mar., 21.43</span>
+        </div>
+        <div class="message-content"><p>Hvis vi vil sikre, at dem med mest bidrager forholdsmæssigt, så skal vi gøre skattesystemet mere fair og mindre dumt — ikke bare højere. Jeg er imod både en generel formueskat og en bred skat på gevinst ved boligsalg, fordi de rammer opsparing, ejerskab og mobilitet på en måde, der gør Danmark fattigere og mindre dynamisk. Her er jeg klart uenig med Pia og Pelle. Til gengæld er jeg enig med Mona i, at vi skal rydde op i de skæve særordninger og huller, og jeg deler med Morten ønsket om, at man ikke skal kunne udnytte Danmark uden reelt bidrag — bare uden hans nationale skattefantasier.</p>
+<p>Den konkrete anbefaling er enkel: gennemfør en stor sanering af erhvervsstøtte, fradrag og smuthuller i kapitalbeskatningen, brug provenuet på lavere skat på arbejde i bunden og midten, og slå hårdere ned på aggressiv skatteplanlægning. Det er sådan, de stærkeste kommer til at bidrage mere reelt til fællesskabet, uden at vi straffer investeringer, arbejdspladser og dansk ejerskab.</p>
+</div>
+        <div class="message-footer"><span class="message-model">openai/gpt-5.4</span></div>
+      </div>
+    </div>
+<div class="message-bubble expert">
+      <div class="message-avatar"><img src="avatars/52.png" alt="Morten Messerschmidt (DF)" /></div>
+      <div class="message-body">
+        <div class="message-header">
+          <span class="message-author">Morten Messerschmidt (DF)</span>
+          <span class="message-time">12. mar., 21.44</span>
+        </div>
+        <div class="message-content"><p>De, der har mest, skal bidrage forholdsmæssigt ved at vi prioriterer national suverænitet og lukker huller for udenlandske aktører, der udnytter Danmark uden at give tilbage – det handler ikke om at straffe dansk succes gennem endeløs omfordeling eller EU-dikterede skatter. Jeg er enig med Alex og Mona i at sanere særordninger og sænke arbejdsskat for at skabe fair bidrag uden at underminere dansk ejerskab, men uenig med Pia og Pelle, der ignorerer, hvordan masseindvandring og globalisering forværrer ulighed ved at undergrave danske arbejderes lønninger og velfærd.</p>
+<p>Min konkrete anbefaling er en national kommission, der gennemgår skatteloopholes med strengere krav til udenlandske investorer og immigranter, så deres bidrag går direkte til danske borgere, uden EU-indblanding – det genskaber tillid og mindsker ulighed ved at beskytte det danske fællesskab.</p>
+</div>
+        <div class="message-footer"><span class="message-model">x-ai/grok-4</span></div>
+      </div>
+    </div>
+<div class="message-bubble expert">
+      <div class="message-avatar"><img src="avatars/45.png" alt="Pia Olsen Dyhr (SF)" /></div>
+      <div class="message-body">
+        <div class="message-header">
+          <span class="message-author">Pia Olsen Dyhr (SF)</span>
+          <span class="message-time">12. mar., 21.44</span>
+        </div>
+        <div class="message-content"><p>Min endelige holdning er klar: Vi sikrer et forholdsmæssigt bidrag ved at lukke de skattehuller, som de allerrigeste og de multinationale selskaber i dag bruger til at snige sig udenom fællesskabet. Det handler ikke om at straffe succes, som Alex og Mona frygter, men om at genskabe en basal retfærdighed, hvor gevinster på kapital og enorme boligformuer ikke beskattes lempeligere end almindeligt, ærligt arbejde. Jeg er lodret uenig med Morten i, at vi kan løse det her med national enegang; uden bindende internationalt samarbejde i EU og OECD griner skatteorienterede giganter som Google og Amazon hele vejen til banken, mens den danske velfærd betaler prisen.</p>
+<p>Min konkrete anbefaling er en <strong>retfærdighedspakke i tre spor</strong>:</p>
+<ol>
+<li><strong>Den Store Sanering:</strong> Vi skal fjerne de milliarder af kroner i erhvervsstøtte og skatterabatter (herunder de mest vidtgående i generationsskiftet for milliardformuer), som i dag kun gavner de få og de mest velrådgivne.</li>
+<li><strong>Beskatning af de største gevinster:</strong> Vi indfører en moderne formueskat på formuer over 100 millioner kroner og en skat på de største boliggevinster (f.eks. over 5 mio. kr. i ren profit), så de bredeste skuldre for alvor bærer med.</li>
+<li><strong>Arbejdslivets Førsteret:</strong> Hver eneste krone fra denne oprydning og de nye bidrag fra toppen skal bruges til at hæve beskæftigelsesfradraget markant for lave og mellemstora lønninger.</li>
+</ol>
+<p>Jeg er enig med Alex og Mona i værdien af at sanere fradrag for at skabe gennemsigtighed, men jeg er uenig i deres modstand mod at røre de største formuer. Vi kan ikke løse den stigende ulighed ved blot at flytte rundt på småpenge; vi skal turde insistere på, at de, der har vundet mest på vores fælles samfundsmodel, også er dem, der investerer mest tilbage i vores børns skole og vores alles tryghed.</p>
+</div>
+        <div class="message-footer"><span class="message-model">google/gemini-3-flash-preview</span></div>
+      </div>
+    </div>
+<div class="message-bubble expert">
+      <div class="message-avatar"><img src="avatars/53.png" alt="Pelle Dragsted (EL)" /></div>
+      <div class="message-body">
+        <div class="message-header">
+          <span class="message-author">Pelle Dragsted (EL)</span>
+          <span class="message-time">12. mar., 21.44</span>
+        </div>
+        <div class="message-content"><p>Min endelige holdning er klar: De med mest bidrager forholdsmæssigt gennem en kombination af progressiv kapitalbeskatning og demokratisering af ejerskabet. Jeg er enig med Pia i behovet for en formueskat på de største formuer og beskatning af store boliggevinster — Alex&#39; og Monas modstand er ideologisk blændværk, der ignorerer at formuer i dag vokser hurtigere end lønninger uden tilsvarende samfundsmæssig indsats. Men Morten tager fejl i at gøre dette til et nationalt spørgsmål; ulighedens driver er koncentreret kapital, ikke polske håndværkere.</p>
+<p>Min konkrete anbefaling er todelt: For det kortere sigt, tilslutter jeg mig Pias retfærdighedspakke med sanering af skattehuller og progressiv beskatning af ekstrem velstand. For det længere sigt, fastholder jeg, at den bæredygtige løsning er at udbygge det kollektive ejerskab af produktiv kapital — gennem moderne lønmodtagerfonde, kooperative strukturer og demokratisk kontrol over investeringer. Det sikrer at værdiskabelse automatisk kommer fællesskabet til gode, frem for at vi skal føre skattekrige hvert eneste år. Beskatning er nødvendig, men ejerskab er afgørende.</p>
+</div>
+        <div class="message-footer"><span class="message-model">z-ai/glm-5</span></div>
+      </div>
+    </div>
+<div class="message-bubble expert">
+      <div class="message-avatar"><img src="avatars/44.png" alt="Mona Juul (K)" /></div>
+      <div class="message-body">
+        <div class="message-header">
+          <span class="message-author">Mona Juul (K)</span>
+          <span class="message-time">12. mar., 21.44</span>
+        </div>
+        <div class="message-content"><p>Min endelige holdning er klar: Vi sikrer, at de, der har mest, bidrager forholdsmæssigt ved at gøre op med et uigennemskueligt skattesystem, der i dag favoriserer dem med de dyreste rådgivere og mest komplekse holdingselskaber. Jeg er fundamentalt uenig med Pia og Pelle i, at løsningen er nye, klodsede skatter på formue og boliggevinster; det vil blot føre til kapitalflugt, fastlåsning af boligmarkedet og svækkelse af det danske ejerskab af vores virksomheder. Jeg er ligeledes uenig med Morten i, at vi kan løse problemet med national enegang; vi har brug for internationalt samarbejde for at ramme tech-giganterne, men det skal ske uden at opbygge unødigt EU-bureaukrati.</p>
+<p>Min konkrete anbefaling er <strong>&quot;Den Store Sanering for Flid&quot;</strong>:</p>
+<ol>
+<li><strong>Systematisk oprydning:</strong> Vi skal gennemføre en uafhængig sanering af de over 40 milliarder kroner i erhvervsstøtte og de utallige nichefradrag. Alt, der subsidierer passiv formuepleje eller skaber skæv konkurrence, skal fjernes. Vi bevarer dog værn om generationsskifte i produktive virksomheder for at sikre danske arbejdspladser.</li>
+<li><strong>Beskæftigelsesløftet:</strong> Hver eneste krone fra saneringen skal øremærkes til at sænke skatten på arbejde, primært gennem et markant højere beskæftigelsesfradrag til bunden og midten samt en lempelse af topskatten. </li>
+<li><strong>Målrettet kontrol:</strong> Vi skal styrke indsatsen mod aggressiv skattetænkning og multinationale selskabers overførsel af overskud gennem OECD-sporet, så kapitalen bidrager dér, hvor værdien skabes.</li>
+</ol>
+<p>Ved at flytte de økonomiske byrder fra flittige hænder til sanerede særordninger, sikrer vi et mere retfærdigt samfund, hvor succes og hårdt arbejde belønnes, mens skattesmuthullerne lukkes for de få. Det er den eneste vej til at bevare både væksten og den sociale sammenhængskraft.</p>
+</div>
+        <div class="message-footer"><span class="message-model">google/gemini-3-flash-preview</span></div>
+      </div>
+    </div>
+<div class="message-bubble summary"><div class="summary-message"><div class="message-content"><h2>Diskussionsresumé</h2>
+<h2>Vigtigste konsensus</h2>
+<p>Der opstod bred enighed mellem <strong>Alex Vanopslagh</strong>, <strong>Mona Juul</strong> og i praksis også <strong>Pia Olsen Dyhr</strong> om, at en central vej til “forholdsmæssigt bidrag” er <strong>sanering af skattesystemets særordninger/fradrag og erhvervsstøtte</strong> (bl.a. “40+ mia. kr.” nævnt af Mona/Pia) samt <strong>hårdere indsats mod aggressiv skatteplanlægning</strong>. <strong>Pia</strong> og <strong>Mona</strong> var enige om, at <strong>international koordinering (EU/OECD)</strong> er nødvendig for at ramme multinationale selskaber/tech-giganter, hvilket <strong>Alex</strong> delvist tilsluttede sig (dog uden at gøre EU til omdrejningspunkt). Der var også delvis enighed på tværs (Alex/Mona/Pia) om at bruge provenu fra oprydning til <strong>lavere skat på arbejde for lave og mellemindkomster</strong> (Pias “Arbejdslivets Førsteret”, Monas “Beskæftigelsesløftet”, Alex’ fokus på bunden/midten).</p>
+<h2>Uenighedsområder</h2>
+<p>Den største substansuenighed stod mellem <strong>Pia Olsen Dyhr</strong> og <strong>Pelle Dragsted</strong> på den ene side og <strong>Alex Vanopslagh</strong> samt <strong>Mona Juul</strong> på den anden om <strong>nye skatter på formuer og boliggevinster</strong>: Pia/Pelle argumenterede for moderne, målrettede modeller (formueskat for de største formuer og beskatning af meget store boliggevinster), mens Alex/Mona afviste dem med henvisning til likviditets-/mobilitetsproblemer, kapitalflugt og fastlåsningseffekter. En anden klar uenighed var <strong>Morten Messerschmidts</strong> suverænitets- og “nationalt bidrag”-vinkel (inkl. kritik af EU og forslag om særskærpet fokus på udenlandske aktører), som <strong>Pia</strong> og <strong>Pelle</strong> afviste som afsporing/urealistisk ift. at løse international skatteunddragelse, mens <strong>Alex</strong> og <strong>Mona</strong> kun delvist delte hans problemdiagnose, men ikke hans “national enegang”-konklusion. Endelig var der principiel konflikt om <strong>ejerskabsmodeller</strong>: <strong>Pelle</strong> ønskede på sigt kollektivt ejerskab/lønmodtagerfonde; <strong>Alex</strong>, <strong>Mona</strong> og <strong>Morten</strong> afviste det som tvang/risiko for kapitalflugt.</p>
+<h2>Vigtigste indsigter</h2>
+<ol>
+<li>Flere (særligt <strong>Alex</strong> og <strong>Mona</strong>, med tilslutning fra <strong>Pia</strong>) pegede på, at <strong>kompleksitet i skattesystemet i sig selv skaber ulighed</strong>, fordi det favoriserer “de mest velrådgivne”; derfor blev <strong>sunset-klausuler og uafhængigt eftersyn</strong> fremhævet som konkrete værktøjer. 2) <strong>Pia</strong> og <strong>Pelle</strong> skærpede fokus på skævheden mellem <strong>arbejdsbeskatning vs. kapital- og boliggevinster</strong>, som en central legitimitets- og sammenhængskraftudfordring. 3) Et tydeligt kompromisspor tegnede sig: <strong>oprydning i særordninger + målrettet anti-skattetænkning + tilbageførsel til lavere skat på arbejde/kernevelfærd</strong>, mens spørgsmål om formueskat/boliggevinstskat blev stående som den store politiske skillelinje.</li>
+</ol>
+<h2>Handlingsorienterede anbefalinger</h2>
+<ol>
+<li><strong>Etabler en uafhængig “Sanerings-kommission”</strong> (Alex/Mona/Pia): fuldt eftersyn af erhvervsstøtte, fradrag og særregler med dokumentationskrav for samfundsværdi samt <strong>sunset-klausuler</strong> på nye ordninger. 2) <strong>Øremærk provenu til “Arbejdslivets Førsteret/Beskæftigelsesløftet”</strong> (Pia/Mona/Alex): markant forhøjelse af beskæftigelsesfradrag og lettelser målrettet bunden og midten, kombineret med prioritering af kerneinstitutioner (folkeskole, erhvervsuddannelser og basal sundhed). 3) <strong>Styrk anti-skattetænkning med internationalt spor</strong> (Pia/Mona, delvist Alex): implementér og pres på i <strong>EU/OECD</strong> for minimumsstandarder, samtidig med national styrkelse af kontrol med overskudsflytning. 4) <strong>Afklar de to stridspunkter via scenarier i kommissionens arbejde</strong>: modeller for hhv. <strong>(a)</strong> målrettet top-beskatning af meget store formuer/boliggevinster (Pia/Pelle) og <strong>(b)</strong> alternativ “neutral kapitalbeskatning uden nye formue-/boliggevinstskatter” (Alex/Mona), så beslutning kan træffes på sammenlignelige effekter på provenu, mobilitet og investeringsadfærd.</li>
+</ol>
+</div></div></div>
+  </main>
+  <footer class="export-footer">
+    <div class="credit">
+      Oprettet med <a href="https://github.com/JensRoland/mastermind-group">Mastermind Group</a> af Jens Roland
+    </div>
+    <div class="participants">
+      <strong>Deltagere:</strong>
+      <ul><li>Alex Vanopslagh (LA) <span class="participant-model">openai/gpt-5.4</span></li>
+<li>Morten Messerschmidt (DF) <span class="participant-model">x-ai/grok-4</span></li>
+<li>Pia Olsen Dyhr (SF) <span class="participant-model">google/gemini-3-flash-preview</span></li>
+<li>Pelle Dragsted (EL) <span class="participant-model">z-ai/glm-5</span></li>
+<li>Mona Juul (K) <span class="participant-model">google/gemini-3-flash-preview</span></li></ul>
+    </div>
+  </footer>
+</div>
+</body>
+</html>

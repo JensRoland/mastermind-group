@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fremtidens sikre danske drikkevand — Mastermind Group</title>
+<style>
+
+:root {
+  --color-bg-primary: #1a1d21;
+  --color-bg-secondary: #222529;
+  --color-text-primary: #d1d2d3;
+  --color-text-secondary: #ababad;
+  --color-text-bright: #ffffff;
+  --color-text-muted: #8b8f97;
+  --color-accent: #192f40;
+  --color-yellow: #ecb22e;
+  --color-border: #393c41;
+  --radius: 6px;
+  --radius-sm: 4px;
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 12px;
+  --spacing-lg: 16px;
+  --spacing-xl: 24px;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--color-bg-primary);
+  color: var(--color-text-primary);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  font-size: 15px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+.page {
+  max-width: 820px;
+  margin: 0 auto;
+  padding: var(--spacing-xl);
+}
+
+.thread-header {
+  padding-bottom: var(--spacing-xl);
+  border-bottom: 1px solid var(--color-border);
+  margin-bottom: var(--spacing-xl);
+}
+
+.thread-header h1 {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--color-text-bright);
+  margin-bottom: var(--spacing-sm);
+}
+
+.thread-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--spacing-sm);
+  font-size: 13px;
+  color: var(--color-text-secondary);
+  margin-bottom: var(--spacing-sm);
+}
+
+.thread-topic { font-style: italic; }
+.meta-separator { color: var(--color-text-muted); }
+
+.participants {
+  font-size: 13px;
+  color: var(--color-text-muted);
+  margin-top: var(--spacing-lg);
+  line-height: 1.6;
+}
+
+.participants ul {
+  list-style: none;
+  padding: 0;
+  margin: var(--spacing-sm) 0 0 0;
+}
+
+.participants li {
+  padding: 2px 0;
+}
+
+.participant-model {
+  opacity: 0.7;
+}
+
+/* Messages */
+.message-bubble {
+  display: flex;
+  gap: var(--spacing-md);
+  padding: var(--spacing-sm) 0;
+  margin-bottom: var(--spacing-sm);
+}
+
+.message-bubble + .message-bubble {
+  border-top: 1px solid rgba(255, 255, 255, 0.04);
+  padding-top: var(--spacing-md);
+}
+
+.message-avatar {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+}
+
+.message-avatar img {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius);
+  object-fit: cover;
+}
+
+.avatar-placeholder {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius);
+  background: var(--color-accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--color-text-bright);
+}
+
+.message-body { flex: 1; min-width: 0; }
+
+.message-header {
+  display: flex;
+  align-items: baseline;
+  gap: var(--spacing-sm);
+  margin-bottom: var(--spacing-xs);
+}
+
+.message-author {
+  font-weight: 700;
+  color: var(--color-text-bright);
+}
+
+.message-time {
+  font-size: 11px;
+  color: var(--color-text-muted);
+}
+
+.message-content {
+  color: var(--color-text-primary);
+  line-height: 1.6;
+  word-break: break-word;
+}
+
+.message-content p { margin-bottom: var(--spacing-sm); }
+.message-content p:last-child { margin-bottom: 0; }
+.message-content h1, .message-content h2, .message-content h3,
+.message-content h4, .message-content h5, .message-content h6 {
+  color: var(--color-text-bright);
+  margin-top: var(--spacing-lg);
+  margin-bottom: var(--spacing-sm);
+  line-height: 1.3;
+}
+.message-content h1 { font-size: 1.4em; }
+.message-content h2 { font-size: 1.25em; }
+.message-content h3 { font-size: 1.1em; }
+
+.message-content code {
+  font-family: 'SF Mono', SFMono-Regular, Consolas, 'Liberation Mono', Menlo, monospace;
+  font-size: 0.9em;
+  background: rgba(255, 255, 255, 0.06);
+  padding: 2px 6px;
+  border-radius: var(--radius-sm);
+}
+
+.message-content pre {
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: var(--radius);
+  padding: var(--spacing-md);
+  overflow-x: auto;
+  margin: var(--spacing-sm) 0;
+}
+
+.message-content pre code {
+  background: none;
+  padding: 0;
+  font-size: 0.85em;
+  line-height: 1.5;
+}
+
+.message-content blockquote {
+  border-left: 3px solid var(--color-accent);
+  padding-left: var(--spacing-md);
+  margin: var(--spacing-sm) 0;
+  color: var(--color-text-secondary);
+}
+
+.message-content ul, .message-content ol {
+  padding-left: var(--spacing-xl);
+  margin: var(--spacing-sm) 0;
+}
+
+.message-content li { margin-bottom: var(--spacing-xs); }
+
+.message-content a {
+  color: #4da6ff;
+  text-decoration: underline;
+}
+
+.message-content hr {
+  border: none;
+  border-top: 1px solid var(--color-border);
+  margin: var(--spacing-lg) 0;
+}
+
+.message-content table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: var(--spacing-sm) 0;
+}
+
+.message-content th, .message-content td {
+  border: 1px solid var(--color-border);
+  padding: var(--spacing-xs) var(--spacing-sm);
+  text-align: left;
+}
+
+.message-content th {
+  background: rgba(255, 255, 255, 0.04);
+  font-weight: 600;
+  color: var(--color-text-bright);
+}
+
+.message-content strong { color: var(--color-text-bright); }
+
+.message-footer {
+  margin-top: var(--spacing-xs);
+}
+
+.message-model {
+  font-size: 11px;
+  color: var(--color-text-muted);
+  opacity: 0.6;
+}
+
+/* System messages */
+.message-bubble.system {
+  justify-content: center;
+  padding: var(--spacing-md) 0;
+}
+
+.system-message {
+  text-align: center;
+  font-size: 13px;
+  color: var(--color-text-muted);
+  font-style: italic;
+  padding: var(--spacing-sm) var(--spacing-lg);
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: var(--radius);
+  max-width: 600px;
+}
+
+/* Summary messages */
+.message-bubble.summary {
+  justify-content: center;
+  padding: var(--spacing-lg) 0;
+}
+
+.summary-message {
+  width: 100%;
+  max-width: 720px;
+  margin: 0 auto;
+  padding: var(--spacing-lg);
+  background: rgba(255, 255, 255, 0.03);
+  border-left: 3px solid var(--color-accent);
+  border-radius: var(--radius);
+}
+
+.summary-message .message-content h2:first-child { margin-top: 0; }
+
+/* User (moderator) messages */
+.message-bubble.user .message-author { color: var(--color-yellow); }
+.message-bubble.user .avatar-placeholder {
+  background: var(--color-yellow);
+  color: var(--color-bg-primary);
+}
+
+/* Footer */
+.header-avatars {
+  display: flex;
+  justify-content: center;
+  gap: var(--spacing-sm);
+  flex-wrap: wrap;
+  margin-top: var(--spacing-lg);
+}
+
+.header-avatars img {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.header-avatars .avatar-placeholder {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--color-accent);
+  color: var(--color-bg-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.export-footer {
+  margin-top: var(--spacing-xl);
+  padding-top: var(--spacing-xl);
+  border-top: 1px solid var(--color-border);
+}
+
+.disclaimer {
+  font-size: 13px;
+  color: var(--color-text-muted);
+  background: rgba(255, 255, 255, 0.03);
+  padding: var(--spacing-lg);
+  border-radius: var(--radius);
+  margin-top: var(--spacing-lg);
+  line-height: 1.6;
+}
+
+.credit {
+  font-size: 13px;
+  color: var(--color-text-muted);
+  text-align: center;
+}
+
+.credit a {
+  color: #4da6ff;
+  text-decoration: underline;
+}
+
+@media (max-width: 600px) {
+  .page { padding: var(--spacing-md); }
+  .message-avatar { width: 28px; height: 28px; }
+  .message-avatar img { width: 28px; height: 28px; }
+  .avatar-placeholder { width: 28px; height: 28px; font-size: 11px; }
+  .message-bubble { gap: var(--spacing-sm); }
+}
+
+</style>
+</head>
+<body>
+<div class="page">
+  <header class="thread-header">
+    <h1>Fremtidens sikre danske drikkevand</h1>
+    <div class="thread-meta">
+      <span class="thread-topic">Et emne som er på manges læber for tiden, er vores allesammens drikkevand. Målinger viser rester af sprøjtegift i over halvdelen af drikkevandsboringerne, og mange danskere er bekymrede over den udvikling. Hvordan sørger vi for at danskerne har rent drikkevand i fremtiden?</span>
+      <span class="meta-separator">·</span>
+      <span>12. marts 2026</span>
+      <span class="meta-separator">·</span>
+      <span>14 ture</span>
+    </div>
+    <div class="disclaimer">
+      <strong>Ansvarsfraskrivelse:</strong> Dette er en simuleret rundbordsdiskussion genereret af AI. Deltagerne er fiktive personaer drevet af LLMer. Deres udtalelser repræsenterer ikke holdningerne hos nogen virkelige personer og må ikke tilskrives nogen faktiske personer, levende eller døde.
+    </div>
+    <div class="header-avatars">
+      <img src="avatars/47.png" alt="Franciska Rosenkilde (Å)" title="Franciska Rosenkilde (Å)" />
+<img src="avatars/46.png" alt="Martin Lidegaard (RV)" title="Martin Lidegaard (RV)" />
+<img src="avatars/55.png" alt="Lars Boje Mathiesen (BP)" title="Lars Boje Mathiesen (BP)" />
+<img src="avatars/50.png" alt="Mette Frederiksen (S)" title="Mette Frederiksen (S)" />
+<img src="avatars/54.png" alt="Lars Løkke Rasmussen (M)" title="Lars Løkke Rasmussen (M)" />
+    </div>
+  </header>
+  <main class="messages">
+<div class="message-bubble system"><div class="system-message">Deltagere: Franciska Rosenkilde (Å), Martin Lidegaard (RV), Lars Boje Mathiesen (BP), Mette Frederiksen (S), Lars Løkke Rasmussen (M)</div></div>
+<div class="message-bubble user">
+      <div class="message-avatar"><div class="avatar-placeholder">JR</div></div>
+      <div class="message-body">
+        <div class="message-header">
+          <span class="message-author">Jens Roland (Moderator)</span>
+          <span class="message-time">12. mar., 21.51</span>
+        </div>
+        <div class="message-content"><p>Et emne som er på manges læber for tiden, er vores allesammens drikkevand. Målinger viser rester af sprøjtegift i over halvdelen af drikkevandsboringerne, og mange danskere er bekymrede over den udvikling. Hvordan sørger vi for at danskerne har rent drikkevand i fremtiden?</p>
+</div>
+        
+      </div>
+    </div>
+<div class="message-bubble expert">
+      <div class="message-avatar"><img src="avatars/47.png" alt="Franciska Rosenkilde (Å)" /></div>
+      <div class="message-body">
+        <div class="message-header">
+          <span class="message-author">Franciska Rosenkilde (Å)</span>
+          <span class="message-time">12. mar., 21.51</span>
+        </div>
+        <div class="message-content"><p> Dette er et wake-up call, som vi er nødt til at tage alvorligt på en måde, der går dybere end filtre og rensningsanlæg. Når over halvdelen af vores boringer viser sprøjtegift, står vi ikke over for et teknisk problem, men et systemisk designsvigt: Vi har bygget et landbrug, hvor forurening af vores fælles grundvand behandles som en acceptabel bivirkning, ikke som en fundamental fejl i måden vi producerer mad på.</p>
+<p>Løsningen ligger ikke i at pege fingre ad landmændene, som er lige så fanget i dette system som forbrugerne. Vi har brug for en radikal omstilling til regenerativt landbrug, støttet af massive investeringer i farmerdrevet innovation og agroøkologi. Men det kræver, at vi dropper den traditionelle top-down-regulering og i stedet etablerer regionale vandråd, hvor borgere, landmænd og vandværker i fællesskab forvalter beskyttelseszonerne omkring boringerne. Det er demokrati i praksis.</p>
+<p>Konkret betyder det, at vi skal accelerere pesticidafgiften samtidig med, at vi opretter overgangsfonde, så landmænd kan skifte til økologiske metoder uden at gå konkurs. Vi skal udvide de grønne områder omkring boringer fra at være restriktioner til at blive laboratorier for økologisk innovation. Og så skal vi endelig indføre forsigtighedsprincippet: Ingen nye kemikalier i vores grundvand, før de er bevist harmløse – ikke omvendt. Rent vand er ikke en luksus, men fundamentet for vores fælles fremtid, og det kræver mod at redesigne vores fødevaresystem fra bunden.</p>
+</div>
+        <div class="message-footer"><span class="message-model">moonshotai/kimi-k2.5</span></div>
+      </div>
+    </div>
+<div class="message-bubble expert">
+      <div class="message-avatar"><img src="avatars/46.png" alt="Martin Lidegaard (RV)" /></div>
+      <div class="message-body">
+        <div class="message-header">
+          <span class="message-author">Martin Lidegaard (RV)</span>
+          <span class="message-time">12. mar., 21.52</span>
+        </div>
+        <div class="message-content"><p>Franciska, du rammer spikeren på hovedet, når du identificerer problemet som et systemdesignfejl frem for et rent teknisk filterproblem. Men jeg er nødt til at være kritisk over for din anbefaling om at droppe den traditionelle top-down-regulering. Vi har set det før i dansk miljøpolitik: Frivillighed og regionale aftaler har været utilstrækkelige til at skabe den nødvendige omstilling. Vi har brug for en klar national ramme for at sikre ensartethed overalt i landet. EU&#39;s vandrammedirektiv pålægger os allerede bindende krav, som skal implementeres konsekvent, og det er her, staten skal sætte rammerne, der sikrer, at det ikke bliver et konkurrenceproblem for landmændene.</p>
+<p>Jeg tilslutter mig dog dit bud på regionale vandråd, så længe de arbejder inden for disse fælles nationale rammer. Det er en god måde at styrke lokaldemokratiet og involvere borgerne. Men vi skal ikke glemme, at det handler om mere end bare regulering. Vi har brug for at investere i innovation, der kan gøre det mere rentabelt at gå ned med pesticidforbruget, end at blive henvist til bøder. Ligesom i energisektoren skal vi have en blanding af klare regler og markedsincitamenter.</p>
+<p>Derfor er mit forslag, at vi kombinerer din ide om overgangsordninger med en skarpere national lovgivning, der tvinger udviklingen frem. Hvordan sikrer vi, at vi undgår, at de høje omkostninger ved omstillingen rammer landbrugets eksportevne, og dermed danske arbejdspladser i landdistrikterne? Det er det, vi skal finde svaret på sammen.</p>
+</div>
+        <div class="message-footer"><span class="message-model">qwen/qwen3.5-35b-a3b</span></div>
+      </div>
+    </div>
+<div class="message-bubble expert">
+      <div class="message-avatar"><img src="avatars/55.png" alt="Lars Boje Mathiesen (BP)" /></div>
+      <div class="message-body">
+        <div class="message-header">
+          <span class="message-author">Lars Boje Mathiesen (BP)</span>
+          <span class="message-time">12. mar., 21.52</span>
+        </div>
+        <div class="message-content"><p>Martin, du rammer noget vigtigt med bekymringen om eksportevne og arbejdspladser. Men jeg må sige det direkte: Din løsning ender med at binde os til endnu flere EU-regler, og det er præcis det, der er problemet.</p>
+<p>Når I snakker om &quot;EU&#39;s vandrammedirektiv&quot; som om det er et trygt udgangspunkt, så er det lige præcis den tankegang, der har fjernet kontrollen fra danskerne. Vi står med et dansk problem med dansk grundvand, og løsningen skal findes i Danmark – ikke i Bruxelles. Hvorfor skal danske landmænd reguleres efter en standard, der er designet til at passe på en helt anden geografi og hydrologi?</p>
+<p>Det, der virker, er at give kommunerne og lokalsamfundene reel handlefrihed. Hvis en kommune vil have skrappere beskyttelse omkring deres boringer, skal de have mulighed for det – uden at skulle igennem en jungle af EU-godkendelser. Og ja, det betyder at vi skal turde prioritere rent drikkevand over enkelte landmænds bekvemmelighed. Men det er en national beslutning, ikke en EU-beslutning.</p>
+<p>Jeg er enig i, at vi skal have overgangsordninger, så ingen landmænd efterlades i kuldsejlet. Men den store forskel mellem mig og jer er, at jeg ikke tror på, at vi kan regulere os ud af det her med stadigt mere kompleks lovgivning. Vi skal have enkle, klare regler, som håndhæves konsekvent – og så skal vi give danskerne reel indflydelse på deres eget vand.</p>
+</div>
+        <div class="message-footer"><span class="message-model">minimax/minimax-m2.5</span></div>
+      </div>
+    </div>
+<div class="message-bubble expert">
+      <div class="message-avatar"><img src="avatars/50.png" alt="Mette Frederiksen (S)" /></div>
+      <div class="message-body">
+        <div class="message-header">
+          <span class="message-author">Mette Frederiksen (S)</span>
+          <span class="message-time">12. mar., 21.52</span>
+        </div>
+        <div class="message-content"><p>Jeg er glad for, at vi er enige om alvoren her. Men lad mig sige det direkte: vi sidder og diskuterer systemdesign og EU-kompetencer, mens danskerne åbner vandhanen og er bekymrede for det, de drikker. Det er ikke acceptabelt.</p>
+<p>Lars Boje, du siger at løsningen ikke skal komme fra Bruxelles. Det er jeg faktisk delvist enig i - og det er bemærkelsesværdigt, at vi er enige om noget. Men din konklusion er forkert. Vi har allerede de nødvendige nationale kompetencer til at handle. Det har vi ikke brugt godt nok. Det er ikke et EU-problem, det er et dansk politisk prioriteringsproblem. Vi har vidst om pesticidproblematikken i grundvandet i årtier og har valgt at se til.</p>
+<p>Franciska, jeg respekterer din systemtilgang, men vi kan ikke vente på den store omstilling til regenerativt landbrug, før vi beskytter boringerne. Folk har brug for rent vand nu. Det betyder, at vi skal kombinere to spor: Det kortsigtede, som er at udvide beskyttelseszonerne markant og håndhæve dem med konsekvens - og det langsigtede, som er den landbrugsomstilling du taler om. Men det ene kan ikke vente på det andet.</p>
+<p>Martin peger på noget rigtigt om markedsincitamenter. Men lad mig tilføje det, der mangler i vores samtale: landbruget er et erhverv vi sætter stor pris på i Danmark, men det er også et erhverv der modtager massive offentlige subsidier. Når vi giver støtte, har samfundet ret til at stille krav. Koblingen mellem landbrugsstøtte og pesticidadfærd er ikke stram nok i dag. Det skal vi ændre.</p>
+</div>
+        <div class="message-footer"><span class="message-model">anthropic/claude-sonnet-4.6</span></div>
+      </div>
+    </div>
+<div class="message-bubble expert">
+      <div class="message-avatar"><img src="avatars/54.png" alt="Lars Løkke Rasmussen (M)" /></div>
+      <div class="message-body">
+        <div class="message-header">
+          <span class="message-author">Lars Løkke Rasmussen (M)</span>
+          <span class="message-time">12. mar., 21.53</span>
+        </div>
+        <div class="message-content"><p>Lad mig være direkte: Mette har ret i, at vi har vidst om det her i årtier uden at handle tilstrækkeligt. Det er en politisk skam, og den skyld fordeler sig på tværs af partier og regeringer – også dem jeg har ledet. Så langt er vi enige.</p>
+<p>Men hvor jeg bliver bekymret, er når Franciska taler om &quot;radikal omstilling&quot; som løsningen, og Lars Boje mener svaret er at fjerne EU fra ligningen. Det er to yderpoler, der begge overser den politiske realitet: Vi har brug for resultater nu, og vi har brug for bred opslutning i Folketinget for at få dem. Radikale omstillingskrav uden reel støtte til landmændene ender som papirtigre, og national skepsis over for EU ændrer ikke på, at dansk landbrug eksporterer for 70 milliarder om året – meget af det til EU-markeder, hvor forbrugerne stiller stadig skarpere miljøkrav.</p>
+<p>Det konkrete spørgsmål jeg gerne vil have os ind på er: Hvordan konstruerer vi en model, hvor vi sikler de indledende beskyttelseszoner nu – uden at landmændene kollapser økonomisk? Mette nævner koblingen mellem støtte og pesticidbrug. Det er den rigtige retning. Men vi skal være ærlige omkring omkostningerne: Hvis vi straffer pesticidbruget hårdt via afgifter eller støttebetingelser, uden at tilbyde realistiske alternativer, rammer vi ikke bare miljøet – vi rammer hele den danske landbrugsmodel.</p>
+</div>
+        <div class="message-footer"><span class="message-model">z-ai/glm-5</span></div>
+      </div>
+    </div>
+<div class="message-bubble expert">
+      <div class="message-avatar"><img src="avatars/47.png" alt="Franciska Rosenkilde (Å)" /></div>
+      <div class="message-body">
+        <div class="message-header">
+          <span class="message-author">Franciska Rosenkilde (Å)</span>
+          <span class="message-time">12. mar., 21.53</span>
+        </div>
+        <div class="message-content"><p> Lars Løkke, når du kalder systemisk forandring en &quot;yderpol&quot;, så misforstår du, hvad der skaber varige resultater. De beskyttelseszoner, som Mette og du vil have implementeret nu, fungerer kun som midlertidige fingerplug, hvis vi ikke samtidig transformerer det økonomiske grundlag for landbruget. Det er ikke radikalt – det er godt design. Vi kan godt udvide beskyttelseszonerne fra i morgen, men lad os gøre dem til levende laboratorier for regenerativt landbrug i stedet for bare forbudszoner.</p>
+<p>Jeg høer en begyndende konsensus om, at vi skal binde landbrugsstøtte til praksis – det er klogt, Mette. Men vi skal gå skridtet videre: I stedet for kun at straffe pesticidbrug, skal vi belønne biodiversitet og kulstofbinding i jorden. Lad os oprette &quot;vandfællesskaber&quot;, hvor landmænd i beskyttelseszoner får 10-årige kontrakter med garanteret indtægt mod at de omlægger til agroøkologi og deler viden med naboerne. Det kombinerer Martin behov for nationale rammer med Lars Bojes ønske om lokal handlefrihed – bare på en måde, der bygger bro i stedet for at splitte.</p>
+<p>Angående EU-debatten: Lars Boje har ret i, at vi ikke skal overlade dansk vandpolitik til Bruxelles-teknokrater, men Martin har også ret i, at forurening ikke respekterer kommunegrænser. Løsningen er at bruge nationale rammer til at give kommunerne redskaberne – ikke bare reglerne. Vi skal have et forsigtighedsprincip, hvor ingen nye sprøjtemidler godkendes nationalt, før de er testet rent for grundvandet. Det er ikke EU-modstand eller EU-afhængighed – det er dansk lederskab med lokal forankring.</p>
+<p>Det konkrete næste skridt er at etablere tre pilotregioner – f.eks. i Midtjylland, Sjælland og Nordjylland – hvor vi tester modellen: Skærpede beskyttelseszoner kombineret med omlægningsstøtte og borgerinddragelse i overvågningen. Hvis det virker, skalerer vi. Hvis ikke, justerer vi. Det kræver politisk mod at droppe den gamle modsætning mellem landbrug og miljø, men det er præcis det mod, som danskerne har krav på nu.</p>
+</div>
+        <div class="message-footer"><span class="message-model">moonshotai/kimi-k2.5</span></div>
+      </div>
+    </div>
+<div class="message-bubble expert">
+      <div class="message-avatar"><img src="avatars/46.png" alt="Martin Lidegaard (RV)" /></div>
+      <div class="message-body">
+        <div class="message-header">
+          <span class="message-author">Martin Lidegaard (RV)</span>
+          <span class="message-time">12. mar., 21.53</span>
+        </div>
+        <div class="message-content"><p>Franciska, du griber de forskellige spor sammen på en måde, der minimerer konfliktniveauet, hvilket er afgørende for at få det politisk igennem. Men jeg vil understrege, at &#39;nationale rammer&#39; for mig ikke bare er en anbefaling, men en forudsætning for retssikkerhed. Vi kan ikke tillade, at kvaliteten af drikkevandet afhænger af, om man bor i en kommune med modige politikere eller ej. EU&#39;s rammer er her en nødvendighed, fordi de sikrer en bundsænkning, som alle skal overholde, men som du er rigtig i, bør implementeres lokalt. Det er den balancegang mellem fælles standarder og lokal forankring, som kendetegner en vellykket velfærdsmodel.</p>
+<p>Lars Løkke, du er bekymret for landbrugets økonomi, og det deler jeg dig. Men vi må ikke glemme, at en grøn omstilling også er et økonomisk potentiale. Hvis vi kan vise, at dansk landbrug leverer &#39;rent vand&#39; som en del af eksporten, hæver vi værdien af varen. Derfor skal pilotprojekterne være designet som testbede for markedsmekanismer – ikke blot subsidier. Det hænger sammen med, hvad Mette sagde om at handle nu: Vi kan ikke vente på piloterne til at lukke de mest kritiske kilder. Vi skal have en &#39;double-track&#39; strategi, hvor vi strammer beskyttelsen straks, mens vi tester de langsigtede omlægningsmodeller.</p>
+<p>Så her er mit forslag til næste skridt: Godkend de tre pilotregioner, men med en tidshorisont på 3 år og klare KPI&#39;er for både vandkvalitet og landmænders indtægt. Hvis de målsættes om at eksportere viden som en del af den danske model, så sikrer vi både miljøet og velfærden. Vi skal vise omverdenen, at vi kan løse det sammen, ikke ved at flytte problemet til Bruxelles eller lade det ligge til kommunen. Det er den pragmatisme, vi har brug for, og det er her, vi kan få folkeoplysning og teknologisk innovation til at mødes i en reel løsning.</p>
+</div>
+        <div class="message-footer"><span class="message-model">qwen/qwen3.5-35b-a3b</span></div>
+      </div>
+    </div>
+<div class="message-bubble expert">
+      <div class="message-avatar"><img src="avatars/55.png" alt="Lars Boje Mathiesen (BP)" /></div>
+      <div class="message-body">
+        <div class="message-header">
+          <span class="message-author">Lars Boje Mathiesen (BP)</span>
+          <span class="message-time">12. mar., 21.54</span>
+        </div>
+        <div class="message-content"><p>Mette, du har ret i at vi har vidst om det her i årtier uden at handle. Det er faktisk præcis det, jeg har sagt i EU-Parlamentet i årevis: At danske politikere har sovet i timen, mens vi har overladt alt for meget til EU og til erhvervslobbyister. Så ja, vi er enige om diagnosen.</p>
+<p>Men jeg må være ærlig: Jeg tror stadig ikke på jeres løsninger. Piloter, KPI&#39;er, tre-årige evalueringer, 10-årige kontrakter - det er alt sammen fin teknik, der ender med at skabe mere bureaukrati og mere usikkerhed for landmændene. Franciska, du taler om &quot;vandfællesskaber&quot; som om det er en mirakelløsning, men i virkeligheden risikerer vi bare at tilføje endnu et lag af kompleksitet oven på det hele.</p>
+<p>Lad os simplificere: Vi ved præcis hvor problemerne er. Vi ved hvilke boringer der er forurenede. Vi ved hvilke marker der ligger omkring dem. Så i stedet for at vente på pilotprojekter og internationale aftaler, så lad os gøre det konkret: Kræv at alle landmænd inden for 500 meter af en drikkevandsboring omlægger til økologi eller pesticidefri produktion inden for tre år. Giv dem en kompensation der faktisk dækker deres tab - ikke nogle diffuse &quot;kontrakter&quot;. Og giv kommunerne beføjelse til at håndhæve det uden at skulle bede om lov fra København eller Bruxelles.</p>
+<p>Det er ikke yderligtgående. Det er praktisk. Det kan laves nu. Og det kræver ikke en eneste ny EU-regel.</p>
+</div>
+        <div class="message-footer"><span class="message-model">minimax/minimax-m2.5</span></div>
+      </div>
+    </div>
+<div class="message-bubble expert">
+      <div class="message-avatar"><img src="avatars/50.png" alt="Mette Frederiksen (S)" /></div>
+      <div class="message-body">
+        <div class="message-header">
+          <span class="message-author">Mette Frederiksen (S)</span>
+          <span class="message-time">12. mar., 21.54</span>
+        </div>
+        <div class="message-content"><p>Lars Boje, din 500-meter-regel er faktisk ikke tosset som udgangspunkt. Det er konkret, det kan håndhæves, og det adresserer problemet direkte. Men lad mig udfordre dig på ét punkt: Du siger kompensation der &quot;faktisk dækker tabet&quot; - hvem betaler den regning? Og hvem fastsætter beløbet? Hvis svaret er kommunerne alene, har vi skabt en model, der afhænger af den kommunale kassebeholdning. Det holder ikke.</p>
+<p>Der er en begyndende konsensus her, som jeg gerne vil navngive: Vi er alle enige om, at beskyttelseszoner skal udvides og håndhæves nu, at landmændene skal kompenseres reelt, og at koblingen mellem offentlig støtte og pesticidbrug skal strammes. Det er ikke småting. Det er faktisk en politisk platform, hvis vi vil det.</p>
+<p>Franciskas pilotidé og Lars Bojes 500-meter-krav er ikke modsætninger - de kan kombineres. Start med de mest forurenede boringer, kræv omlægning inden for en bestemt radius, finansier kompensationen nationalt og kæd den fremadrettet til landbrugsstøtten. Pilotregionerne kan bruges til at finjustere modellen, men de kritiske boringer venter vi ikke på.</p>
+<p>Det jeg vil have os til at tage stilling til nu er finansieringen. Martin nævner markedsmekanismer, Lars Løkke er bekymret for landbrugets økonomi. Min holdning er klar: En del af den nuværende landbrugsstøtte skal omdirigeres. Det er ikke en straf - det er en prioritering. Vi bruger allerede fælles midler på landbruget. Vi bestemmer selv hvilken adfærd vi vil have for de penge.</p>
+</div>
+        <div class="message-footer"><span class="message-model">anthropic/claude-sonnet-4.6</span></div>
+      </div>
+    </div>
+<div class="message-bubble system"><div class="system-message">Jens Roland har bedt gruppen om at afslutte. Hver deltager bør give deres afsluttende tanker, vigtigste pointer og eventuelle handlingsorienterede anbefalinger. Vær koncis og direkte.</div></div>
+<div class="message-bubble expert">
+      <div class="message-avatar"><img src="avatars/54.png" alt="Lars Løkke Rasmussen (M)" /></div>
+      <div class="message-body">
+        <div class="message-header">
+          <span class="message-author">Lars Løkke Rasmussen (M)</span>
+          <span class="message-time">12. mar., 21.54</span>
+        </div>
+        <div class="message-content"><p>Mette, du har fat i noget grundlæggende her: Vi har faktisk en konsensus i rummet om både problemet og hovedretningen for løsningen. Det er sjældent i dansk politik, så lad os ikke undervurdere det. Men jeg skal være ærlig om finansieringen – for det er her, de gode intentioner plejer at klinge i politiske forhandlinger.</p>
+<p>Når du taler om at omdirigere landbrugsstøtte, så lyder det fornuftigt. Men vi skal huske på, at en betydelig del af de midler kommer fra EU&#39;s fælles landbrugspolitik, og der er grænser for, hvor meget vi kan øremærke til nationale formål uden at bryde med reglerne. De danske tilskudsordninger, vi selv kontrollerer, er en anden sag – her kan vi stramme betingelserne i morgen, hvis der er politisk flertal. Det er den løsning, der giver os størst handlefrihed.</p>
+<p>Lars Boje, din 500-meter-regel er fristende enkel, og jeg forstår appellen. Men vi skal erkende, at en ensartet afstandsgrænse ikke tager højde for jordbundsforhold og hydrologi – i nogle områder er 500 meter for lidt, andre steder måske mere end nødvendigt. Det er ikke bureaukrati at vil have videnskabelig fundering; det er god forvaltning, så vi ikke ender med forlig, der bliver revet i stykker ved første klagemål.</p>
+<p>Her er mit bud på det næste konkrete skridt: Vi laver en national handlingsplan med tre elementer – skærpede beskyttelseszoner omkring de mest truede boringer inden for to år, omdirigering af danske landbrugstilskud til omlægningsstøtte, og en model hvor kompensationen er baseret på dokumenteret tab, ikke faste beløb. Kan vi blive enige om den ramme?</p>
+</div>
+        <div class="message-footer"><span class="message-model">z-ai/glm-5</span></div>
+      </div>
+    </div>
+<div class="message-bubble expert">
+      <div class="message-avatar"><img src="avatars/47.png" alt="Franciska Rosenkilde (Å)" /></div>
+      <div class="message-body">
+        <div class="message-header">
+          <span class="message-author">Franciska Rosenkilde (Å)</span>
+          <span class="message-time">12. mar., 21.54</span>
+        </div>
+        <div class="message-content"><p> Jeg er enig med Mette i, at vi må handle nu og omdirigere landbrugsstøtten til at belønne pesticidfri drift, men jeg insisterer på, at vi ikke nøjes med kompensation og afstandsregler. Vi skal etablere “vandfællesskaber” i alle truede områder, hvor landmænd får 10-årige, økonomisk sikrede kontrakter mod at omlægge til regenerativt landbrug og dele viden med naboer. Det kombinerer Lars Bojes ønske om lokal handlekraft med Martins behov for nationale rammer – men løfter opgaven fra regulering til fælles innovation.</p>
+<p>Start med de mest kritiske boringer i morgen, men lad beskyttelseszonerne være levende laboratorier for økologi, ikke bare forbudszoner. Finansieringen kommer fra eksisterende landbrugsstøtte, som vi fremadrettet betinger af dokumenteret kulstofbinding og biodiversitet frem for pesticidforbrug. Det er hverken bureaukrati eller EU-afhængighed, men dansk demokrati i praksis: klare nationale rammer, lokalt ejerskab og mod til at redesigne vores fødevaresystem, så rent grundvand bliver en naturlig bivirkning af at dyrke jord, ikke en luksus vi skal filtrere os til.</p>
+</div>
+        <div class="message-footer"><span class="message-model">moonshotai/kimi-k2.5</span></div>
+      </div>
+    </div>
+<div class="message-bubble expert">
+      <div class="message-avatar"><img src="avatars/46.png" alt="Martin Lidegaard (RV)" /></div>
+      <div class="message-body">
+        <div class="message-header">
+          <span class="message-author">Martin Lidegaard (RV)</span>
+          <span class="message-time">12. mar., 21.55</span>
+        </div>
+        <div class="message-content"><p>Jeg er enig med Mette og Lars Løkke om, at vi skal have en national handlingsplan nu, hvor vi straks udvider beskyttelseszonerne omkring de mest kritiske boringer. Jeg støtter også Franciskas vision om, at zonerne skal fungere som testbede for agroøkologi, men jeg skal være klar: En national strategi kræver, at vi ikke ser EU-rammerne som en forhindring, men som et værktøj til bundsænkning. Lars Boje, du har ret i at det skal håndhæves lokalt, men uden en europæisk koordinering risikerer vi konkurrencefordrejning for de danske landmænd.</p>
+<p>Mit konkrete svar på, hvordan vi sikrer rent drikkevand, er: Implementer straks en national plan med skærpede zoner og finansiering via omdirigering af landbrugstilskud, hvor kompensation baseres på dokumenterede tab, men kombineres med langsigtet støtte til innovation. Det er en balancegang mellem politisk vilje og økonomisk fornuft, der sikrer, at vi løser det her som en fælles national opgave uden at svække erhvervsvilkårene.</p>
+</div>
+        <div class="message-footer"><span class="message-model">qwen/qwen3.5-35b-a3b</span></div>
+      </div>
+    </div>
+<div class="message-bubble expert">
+      <div class="message-avatar"><img src="avatars/55.png" alt="Lars Boje Mathiesen (BP)" /></div>
+      <div class="message-body">
+        <div class="message-header">
+          <span class="message-author">Lars Boje Mathiesen (BP)</span>
+          <span class="message-time">12. mar., 21.55</span>
+        </div>
+        <div class="message-content"><p>Der er opstået en bemærkelsesværdig enighed her, som jeg gerne anerkender: Alle er enige om at udvide beskyttelseszonerne, kompensere landmænd reelt og kæde støtte sammen med praksis. Det er faktisk mere, end jeg havde forventet.</p>
+<p>Men jeg er stadig uenig i den kompleksitet, I insisterer på at tilføje. Martin og Mette, I taler om &quot;nationale rammer&quot; som om det er løsningen - men ofte er de rammer bare en indpakning for at overlade beslutninger til embedsmænd og EU-teknokrater. Lars Løkke, din bekymring for jordbundsforhold er reel, men den løsning er at give kommunerne lokal viden og handlekraft - ikke at vente på flere rapporter.</p>
+<p>Min konkrete anbefaling er enkel: Udvid beskyttelseszonerne omkring de mest truede boringer nu, giv kommunerne direkte beføjelse til at kræve omlægning, og finansier det via omdirigering af eksisterende landbrugsstøtte. Ingen nye EU-regler, ingen pilotprojekter, ingen 10-årige kontrakter. Bare konkret handling. Det er sådan, vi sikrer danskerne rent drikkevand.</p>
+</div>
+        <div class="message-footer"><span class="message-model">minimax/minimax-m2.5</span></div>
+      </div>
+    </div>
+<div class="message-bubble expert">
+      <div class="message-avatar"><img src="avatars/50.png" alt="Mette Frederiksen (S)" /></div>
+      <div class="message-body">
+        <div class="message-header">
+          <span class="message-author">Mette Frederiksen (S)</span>
+          <span class="message-time">12. mar., 21.55</span>
+        </div>
+        <div class="message-content"><p>Vi er nået frem til noget, der faktisk ligner en fælles platform, og det skal vi give os tid til at anerkende. Rent drikkevand er ikke et ideologisk spørgsmål - det er en grundlæggende statsopgave, og vi er enige om de tre bærende elementer: skærpede beskyttelseszoner nu, reel kompensation til landmændene, og omdirigering af landbrugsstøtte til at belønne pesticidfri praksis.</p>
+<p>Min afsluttende anbefaling er klar: Vi starter med de mest forurenede boringer og kræver omlægning inden for en konkret radius - Lars Bojes pointe om simpelhed er reel, selvom afstanden må justeres efter lokale jordbundsforhold, som Lars Løkke rigtigt påpeger. Finansieringen kommer primært fra de danske landbrugstilskud, vi selv kontrollerer, og kompensationen baseres på dokumenterede tab. Franciskas idé om at gøre zonerne til aktive omlægningsområder frem for blot forbudszoner er fornuftig og kan integreres uden at forsinke det akutte. Det, vi ikke har råd til, er endnu et årti med analyser. Danskerne fortjener at vide, at det vand de drikker, er rent. Det ansvar hviler på os.</p>
+</div>
+        <div class="message-footer"><span class="message-model">anthropic/claude-sonnet-4.6</span></div>
+      </div>
+    </div>
+<div class="message-bubble summary"><div class="summary-message"><div class="message-content"><h2>Diskussionsresumé</h2>
+<h2>Vigtigste konsensus</h2>
+<p>Alle fem (Franciska Rosenkilde, Martin Lidegaard, Lars Boje Mathiesen, Mette Frederiksen, Lars Løkke Rasmussen) var enige om problemets alvor, og at der skal handles hurtigere end hidtil. Mette Frederiksen og Lars Løkke Rasmussen slog fast, at Danmark har kendt udfordringen i årtier uden tilstrækkelig handling, og det blev ikke modsagt. Der var bred enighed (Mette Frederiksen, Martin Lidegaard, Lars Løkke Rasmussen, Franciska Rosenkilde og Lars Boje Mathiesen) om at udvide og håndhæve beskyttelseszoner omkring drikkevandsboringer nu samt sikre reel kompensation til berørte landmænd. Der var også overlap mellem Mette Frederiksen, Franciska Rosenkilde, Martin Lidegaard og Lars Løkke Rasmussen om at stramme koblingen mellem offentlig støtte/tilskud og landbrugspraksis (mindre pesticidaftryk), om end med forskellige modeller.</p>
+<h2>Uenighedsområder</h2>
+<p>Der var uenighed om styringen: Martin Lidegaard insisterede på klare nationale rammer (med EU’s vandrammedirektiv som “bundsænkning”) af hensyn til ensartethed og retssikkerhed, mens Lars Boje Mathiesen afviste mere EU/central kompleksitet og ville give kommuner direkte handlefrihed. Uenigheden handlede også om designet af beskyttelseszoner: Lars Boje Mathiesen foreslog en enkel “500-meter-regel” med krav om omlægning, mens Lars Løkke Rasmussen advarede mod faste afstande uden hydrologisk/jordbundsfaglig differentiering. Endelig var der forskel i vægtningen af systemomstilling vs. akut indsats: Franciska Rosenkilde betonede regenerativ/agroøkologisk omstilling som varig løsning, mens Mette Frederiksen prioriterede et “to-spors” greb, hvor akut beskyttelse ikke må afvente langsigtede reformer.</p>
+<h2>Vigtigste indsigter</h2>
+<ol>
+<li>“Double-track”-strategien (Mette Frederiksen, Martin Lidegaard): stram beskyttelse af de mest kritiske boringer straks, samtidig med at langsigtede omlægningsmodeller udvikles/afprøves. 2) Kobling af støtte og krav (Mette Frederiksen, Lars Løkke Rasmussen, Martin Lidegaard, Franciska Rosenkilde): da landbruget modtager betydelig offentlig støtte, kan midler omdirigeres/betinges for at drive pesticidreduktion og omlægning—med kompensation baseret på dokumenterede tab (Løkke). 3) Lokal forankring med forskellige grader af formalitet: Franciska Rosenkilde foreslog “vandfællesskaber”/regionale vandråd og 10-årige kontrakter som innovations- og videndelingsmotor; Lars Boje Mathiesen ønskede lokal håndhævelse via kommuner, men med enklere regler.</li>
+</ol>
+<h2>Handlingsorienterede anbefalinger</h2>
+<ol>
+<li>Gennemfør en national handlingsplan med øjeblikkelig udvidelse og konsekvent håndhævelse af beskyttelseszoner omkring de mest truede/forurenede boringer (Mette Frederiksen, Martin Lidegaard, Lars Løkke Rasmussen; også støttet i retning af hurtig indsats af Lars Boje Mathiesen og Franciska Rosenkilde). 2) Indfør krav om omlægning til pesticidefri drift i zonerne med reel, nationalt finansieret kompensation baseret på dokumenterede tab; anvend fagligt funderede zoner (hydrologi/jordbund) frem for kun en fast afstand, men med enkelhed i implementeringen (Lars Løkke Rasmussen + Mette Frederiksen; kontrast til Lars Boje Mathiesens faste radius). 3) Omdirigér og beting danske landbrugstilskud, så støtte belønner pesticidfri praksis (og evt. biodiversitet/kulstofbinding) frem for at understøtte status quo; brug dette som primær finansieringskilde for omlægningen (Mette Frederiksen, Franciska Rosenkilde, Martin Lidegaard, Lars Løkke Rasmussen). 4) Etablér lokale samarbejdsstrukturer (vandråd/vandfællesskaber) omkring de truede områder til at forankre løsningen, dele viden og understøtte omstilling—inden for nationale standarder for vandkvalitet (Franciska Rosenkilde og Martin Lidegaard; med lokal håndhævelsesvægt hos Lars Boje Mathiesen).</li>
+</ol>
+</div></div></div>
+  </main>
+  <footer class="export-footer">
+    <div class="credit">
+      Oprettet med <a href="https://github.com/JensRoland/mastermind-group">Mastermind Group</a> af Jens Roland
+    </div>
+    <div class="participants">
+      <strong>Deltagere:</strong>
+      <ul><li>Franciska Rosenkilde (Å) <span class="participant-model">moonshotai/kimi-k2.5</span></li>
+<li>Martin Lidegaard (RV) <span class="participant-model">qwen/qwen3.5-35b-a3b</span></li>
+<li>Lars Boje Mathiesen (BP) <span class="participant-model">minimax/minimax-m2.5</span></li>
+<li>Mette Frederiksen (S) <span class="participant-model">anthropic/claude-sonnet-4.6</span></li>
+<li>Lars Løkke Rasmussen (M) <span class="participant-model">z-ai/glm-5</span></li></ul>
+    </div>
+  </footer>
+</div>
+</body>
+</html>
