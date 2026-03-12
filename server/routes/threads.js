@@ -464,7 +464,7 @@ router.get('/:id/export-html', (req, res) => {
 
     const modelHtml = msg.llm_model ? `<span class="message-model">${escapeHtml(msg.llm_model)}</span>` : '';
     const time = msg.created_at ? new Date(msg.created_at + 'Z').toLocaleString(lang.dateLocale, {
-      month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true
+      month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit'
     }) : '';
 
     return `<div class="message-bubble ${msg.role}">
