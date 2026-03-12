@@ -64,7 +64,7 @@ export default function MessageBubble(props) {
   const msg = () => props.message;
 
   if (msg().role === 'system') {
-    const isSummary = () => msg().content?.startsWith('## Discussion Summary');
+    const isSummary = () => msg().content?.startsWith('## ');
     return (
       <div class={`message-bubble ${isSummary() ? 'summary' : 'system'}`}>
         {isSummary() ? (
