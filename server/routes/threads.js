@@ -872,20 +872,37 @@ router.post('/:id/rollback', (req, res) => {
     ).get(thread.id, messageId);
 
     // If the wrap-up message survived the rollback, preserve wrapping_up state
-    const hasWrapupMessage = db.prepare(
-      "SELECT 1 FROM messages WHERE thread_id = ? AND message_type = 'wrapup' AND id <= ?"
+    // and recalculate max_turns to match the original wrap-up schedule:
+    // each expert gets exactly one final turn after the wrap-up point.
+    const wrapupMessage = db.prepare(
+      "SELECT id FROM messages WHERE thread_id = ? AND message_type = 'wrapup' AND id <= ? LIMIT 1"
     ).get(thread.id, messageId);
-    const wrappingUp = hasWrapupMessage ? 1 : 0;
+    const wrappingUp = wrapupMessage ? 1 : 0;
 
-    db.prepare('UPDATE threads SET status = ?, current_turn = ?, wrapping_up = ? WHERE id = ?')
-      .run('paused', newTurn, wrappingUp, thread.id);
+    let newMaxTurns = thread.max_turns;
+    if (wrappingUp) {
+      const { count: turnAtWrapup } = db.prepare(
+        "SELECT COUNT(*) as count FROM messages WHERE thread_id = ? AND role = 'expert' AND id < ?"
+      ).get(thread.id, wrapupMessage.id);
+      const { count: expertCount } = db.prepare(
+        'SELECT COUNT(*) as count FROM thread_experts WHERE thread_id = ?'
+      ).get(thread.id);
+      newMaxTurns = turnAtWrapup + expertCount;
+    }
 
-    return newTurn;
+    // If still in wrap-up phase with turns remaining, stay active so the
+    // orchestrator continues the wrap-up round and generates the summary.
+    const newStatus = (wrappingUp && newTurn < newMaxTurns) ? 'active' : 'paused';
+
+    db.prepare('UPDATE threads SET status = ?, current_turn = ?, max_turns = ?, wrapping_up = ? WHERE id = ?')
+      .run(newStatus, newTurn, newMaxTurns, wrappingUp, thread.id);
+
+    return { newTurn, newStatus, newMaxTurns };
   });
 
-  const newTurn = rollback();
+  const { newTurn, newStatus, newMaxTurns } = rollback();
 
-  console.log(`${threadTag(thread)} Rolled back to message ${messageId} (turn ${newTurn})`);
+  console.log(`${threadTag(thread)} Rolled back to message ${messageId} (turn ${newTurn}/${newMaxTurns}, status ${newStatus})`);
 
   broadcast(thread.id, {
     type: 'messages_rollback',
@@ -897,8 +914,8 @@ router.post('/:id/rollback', (req, res) => {
   broadcast(thread.id, {
     type: 'thread_status',
     threadId: thread.id,
-    status: 'paused',
-    max_turns: thread.max_turns,
+    status: newStatus,
+    max_turns: newMaxTurns,
     current_turn: newTurn,
   });
 
