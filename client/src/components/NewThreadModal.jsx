@@ -9,15 +9,21 @@ export default function NewThreadModal(props) {
   const [maxTurnsText, setMaxTurnsText] = createSignal(String(DEFAULT_MAX_TURNS));
   const [selectedExperts, setSelectedExperts] = createSignal(new Set());
   const [experts, setExperts] = createSignal([]);
+  const [languages, setLanguages] = createSignal([]);
+  const [language, setLanguage] = createSignal('en');
   const [creating, setCreating] = createSignal(false);
   const [error, setError] = createSignal('');
 
   onMount(async () => {
     try {
-      const data = await api.getExperts();
-      setExperts(data);
+      const [expertsData, langsData] = await Promise.all([
+        api.getExperts(),
+        api.getLanguages(),
+      ]);
+      setExperts(expertsData);
+      setLanguages(langsData);
     } catch (err) {
-      console.error('Failed to load experts:', err);
+      console.error('Failed to load data:', err);
     }
   });
 
@@ -81,6 +87,7 @@ export default function NewThreadModal(props) {
         topic: topic().trim(),
         expertIds: Array.from(selectedExperts()),
         maxTurns: maxTurns(),
+        language: language(),
       });
       props.onCreated(result.id);
     } catch (err) {
@@ -105,6 +112,21 @@ export default function NewThreadModal(props) {
               autofocus
             />
           </div>
+
+          <Show when={languages().length > 1}>
+            <div class="form-group">
+              <label>Discussion Language</label>
+              <select
+                value={language()}
+                onChange={(e) => setLanguage(e.target.value)}
+              >
+                <For each={languages()}>
+                  {(lang) => <option value={lang.code}>{lang.label}</option>}
+                </For>
+              </select>
+              <div class="form-hint">The language used for system prompts and summaries. Experts will respond in this language.</div>
+            </div>
+          </Show>
 
           <div class="form-group">
             <label>Invite Experts (min. 2)</label>
