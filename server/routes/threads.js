@@ -875,7 +875,7 @@ router.post('/:id/rollback', (req, res) => {
     // and recalculate max_turns to match the original wrap-up schedule:
     // each expert gets exactly one final turn after the wrap-up point.
     const wrapupMessage = db.prepare(
-      "SELECT id FROM messages WHERE thread_id = ? AND message_type = 'wrapup' AND id <= ? LIMIT 1"
+      "SELECT id FROM messages WHERE thread_id = ? AND message_type = 'wrapup' AND id <= ? ORDER BY id ASC LIMIT 1"
     ).get(thread.id, messageId);
     const wrappingUp = wrapupMessage ? 1 : 0;
 

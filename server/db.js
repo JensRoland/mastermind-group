@@ -106,6 +106,14 @@ try {
   // Column already exists
 }
 
+// Data migration — backfill message_type for wrap-up messages created before the column existed
+db.exec(`
+  UPDATE messages SET message_type = 'wrapup'
+  WHERE role = 'system' AND message_type IS NULL
+    AND (content LIKE '%asked the group to wrap up%'
+      OR content LIKE '%har bedt gruppen om at afslutte%')
+`);
+
 // Data migrations — revert mistaken Gemini 3.1 upgrade (model doesn't exist yet)
 db.exec(`
   UPDATE experts SET llm_model = 'google/gemini-3-flash-preview'
