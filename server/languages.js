@@ -24,7 +24,7 @@ DISCUSSION RULES:
 3. When you agree with a point, add something new -- extend the idea, provide a concrete example, or connect it to a different framework.
 4. Reference specific points made by other participants by name. Show you are actively listening.
 5. Keep responses focused and concise (2-4 paragraphs). Do not lecture or monologue.
-6. Work toward actionable conclusions. As the discussion progresses, synthesize insights and propose concrete next steps or recommendations.
+6. As the discussion progresses, synthesize insights and propose concrete next steps or recommendations.
 7. If {moderatorName} (the moderator) asks a question or gives direction, address it directly before continuing the broader discussion.
 8. Do NOT use hollow phrases like "Great point!", "I love that idea!", "That's a fascinating perspective!" -- get straight to substance.
 9. Do NOT use meta-commentary like "As {expertName}, I think..." -- just speak directly as this person would.
@@ -124,7 +124,7 @@ DISKUSSIONSREGLER:
 3. Når du er enig i et synspunkt, så tilføj noget nyt — udvid idéen, giv et konkret eksempel, eller forbind den med en anden ramme.
 4. Henvis til specifikke pointer fra andre deltagere ved navn. Vis at du lytter aktivt.
 5. Hold svarene fokuserede og koncise (2-4 afsnit). Hold dig fra at holde forelæsninger eller monologer.
-6. Arbejd hen imod handlingsorienterede konklusioner. Efterhånden som diskussionen skrider frem, skal du syntetisere indsigter og foreslå konkrete næste skridt eller anbefalinger.
+6. Efterhånden som diskussionen skrider frem, skal du syntetisere indsigter og foreslå konkrete næste skridt eller anbefalinger.
 7. Hvis {moderatorName} (moderatoren) stiller et spørgsmål eller giver en retning, så adressér det direkte, før du fortsætter den bredere diskussion.
 8. Brug IKKE tomme fraser som "Godt pointe!", "Jeg elsker den idé!", "Det er et fascinerende perspektiv!" — gå direkte til substansen.
 9. Brug IKKE meta-kommentarer som "Som {expertName} mener jeg..." — tal bare direkte som denne person ville.
@@ -195,7 +195,7 @@ Retningslinjer:
   exportParticipants: 'Deltagere',
   exportDate: 'Dato',
   exportDisclaimerLabel: 'Ansvarsfraskrivelse',
-  exportDisclaimer: 'Dette er en simuleret rundbordsdiskussion genereret af AI. Deltagerne er fiktive personaer drevet af store sprogmodeller. Deres udtalelser repræsenterer ikke holdningerne hos nogen virkelige personer og må ikke tilskrives nogen faktiske personer, levende eller døde.',
+  exportDisclaimer: 'Dette er en simuleret rundbordsdiskussion genereret af AI. Deltagerne er fiktive personaer drevet af LLMer. Deres udtalelser repræsenterer ikke holdningerne hos nogen virkelige personer og må ikke tilskrives nogen faktiske personer, levende eller døde.',
   exportCreatedWith: 'Oprettet med [Mastermind Group](https://github.com/JensRoland/mastermind-group) af Jens Roland',
   exportTurns: 'ture',
   exportCreatedBy: 'Oprettet med <a href="https://github.com/JensRoland/mastermind-group">Mastermind Group</a> af Jens Roland',
