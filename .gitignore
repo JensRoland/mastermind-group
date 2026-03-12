@@ -8,6 +8,7 @@ public/avatars/*.jpeg
 public/avatars/*.webp
 public/avatars/*.avif
 .context/
+microsite/sessions/*/
 
 # macOS
 .DS_Store
