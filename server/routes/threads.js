@@ -1,4 +1,9 @@
 import { Router } from 'express';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import archiver from 'archiver';
+import { marked } from 'marked';
 import db from '../db.js';
 import { broadcast, broadcastGlobal } from '../ws.js';
 import { getThinkingExpert } from '../orchestrator.js';
@@ -6,6 +11,11 @@ import { DEFAULT_MAX_TURNS } from '../config.js';
 import { getModeratorName } from '../auth.js';
 import { callLLM } from '../llm.js';
 import { getLanguage, getAvailableLanguages, t } from '../languages.js';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const avatarDir = path.join(__dirname, '..', '..', 'public', 'avatars');
+
+marked.setOptions({ breaks: true, gfm: true });
 
 const TITLE_MODEL = 'google/gemini-3.1-flash-lite-preview';
 
@@ -392,6 +402,456 @@ router.get('/:id/export', (req, res) => {
   res.setHeader('Content-Disposition', `attachment; filename="${filename}.md"`);
   res.send(md);
 });
+
+// GET /api/threads/:id/export-html — download thread as a static HTML ZIP
+router.get('/:id/export-html', (req, res) => {
+  const thread = db.prepare('SELECT * FROM threads WHERE id = ?').get(req.params.id);
+  if (!thread) return res.status(404).json({ error: 'Thread not found' });
+
+  const messages = db.prepare(
+    `SELECT m.*, e.name as expert_name, e.avatar_url as expert_avatar
+     FROM messages m
+     LEFT JOIN experts e ON m.expert_id = e.id
+     WHERE m.thread_id = ?
+     ORDER BY m.created_at ASC`
+  ).all(thread.id);
+
+  const experts = db.prepare(
+    `SELECT e.id, e.name, e.llm_model, e.avatar_url FROM thread_experts te
+     JOIN experts e ON e.id = te.expert_id
+     WHERE te.thread_id = ? ORDER BY te.sort_order`
+  ).all(thread.id);
+
+  const exportModName = getModeratorName() || 'Moderator';
+
+  // Collect avatar files that exist
+  const avatarFiles = new Map();
+  for (const expert of experts) {
+    if (expert.avatar_url) {
+      const filename = path.basename(expert.avatar_url);
+      const filepath = path.join(avatarDir, filename);
+      if (fs.existsSync(filepath)) {
+        avatarFiles.set(expert.id, { filename, filepath });
+      }
+    }
+  }
+
+  function getInitials(name) {
+    if (!name) return '?';
+    return name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
+  }
+
+  function renderMessage(msg) {
+    if (msg.role === 'system') {
+      const isSummary = msg.content?.startsWith('## Discussion Summary');
+      if (isSummary) {
+        return `<div class="message-bubble summary"><div class="summary-message"><div class="message-content">${marked.parse(msg.content)}</div></div></div>`;
+      }
+      return `<div class="message-bubble system"><div class="system-message">${escapeHtml(msg.content)}</div></div>`;
+    }
+
+    const isUser = msg.role === 'user';
+    const authorName = isUser ? `${exportModName} (Moderator)` : (msg.expert_name || 'Unknown');
+    const avatarInfo = !isUser && msg.expert_id ? avatarFiles.get(msg.expert_id) : null;
+
+    let avatarHtml;
+    if (avatarInfo) {
+      avatarHtml = `<img src="avatars/${avatarInfo.filename}" alt="${escapeHtml(authorName)}" />`;
+    } else {
+      avatarHtml = `<div class="avatar-placeholder">${getInitials(authorName)}</div>`;
+    }
+
+    const modelHtml = msg.llm_model ? `<span class="message-model">${escapeHtml(msg.llm_model)}</span>` : '';
+    const time = msg.created_at ? new Date(msg.created_at + 'Z').toLocaleString('en-US', {
+      month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true
+    }) : '';
+
+    return `<div class="message-bubble ${msg.role}">
+      <div class="message-avatar">${avatarHtml}</div>
+      <div class="message-body">
+        <div class="message-header">
+          <span class="message-author">${escapeHtml(authorName)}</span>
+          <span class="message-time">${time}</span>
+        </div>
+        <div class="message-content">${marked.parse(msg.content || '')}</div>
+        ${modelHtml ? `<div class="message-footer">${modelHtml}</div>` : ''}
+      </div>
+    </div>`;
+  }
+
+  const messagesHtml = messages.map(renderMessage).join('\n');
+  const participantsList = experts.map(e => `${escapeHtml(e.name)} (${escapeHtml(e.llm_model)})`).join(', ');
+
+  const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>${escapeHtml(thread.title)} — Mastermind Group</title>
+<style>
+${getExportCss()}
+</style>
+</head>
+<body>
+<div class="page">
+  <header class="thread-header">
+    <h1>${escapeHtml(thread.title)}</h1>
+    <div class="thread-meta">
+      <span class="thread-topic">${escapeHtml(thread.topic)}</span>
+      <span class="meta-separator">·</span>
+      <span>${new Date(thread.created_at + 'Z').toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</span>
+      <span class="meta-separator">·</span>
+      <span>${thread.current_turn} turns</span>
+    </div>
+    <div class="participants">Participants: ${participantsList}</div>
+  </header>
+  <main class="messages">
+${messagesHtml}
+  </main>
+  <footer class="export-footer">
+    <div class="disclaimer">
+      <strong>Disclaimer:</strong> This is a simulated roundtable discussion generated by AI.
+      The participants are fictional personas powered by large language models.
+      Their statements do not represent the views of any real individuals and must not be
+      attributed to any actual persons, living or dead.
+    </div>
+    <div class="credit">
+      Created with <a href="https://github.com/JensRoland/mastermind-group">Mastermind Group</a> by Jens Roland
+    </div>
+  </footer>
+</div>
+</body>
+</html>`;
+
+  const slugFilename = thread.title.replace(/[^a-zA-Z0-9 ]/g, '').replace(/\s+/g, '-').toLowerCase();
+
+  res.setHeader('Content-Type', 'application/zip');
+  res.setHeader('Content-Disposition', `attachment; filename="${slugFilename}.zip"`);
+
+  const archive = archiver('zip', { zlib: { level: 9 } });
+  archive.on('error', (err) => {
+    console.error('Archive error:', err);
+    if (!res.headersSent) res.status(500).json({ error: 'Failed to create archive' });
+  });
+  archive.pipe(res);
+
+  archive.append(html, { name: `${slugFilename}/index.html` });
+
+  for (const [, { filename, filepath }] of avatarFiles) {
+    archive.file(filepath, { name: `${slugFilename}/avatars/${filename}` });
+  }
+
+  archive.finalize();
+});
+
+function escapeHtml(str) {
+  if (!str) return '';
+  return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+function getExportCss() {
+  return `
+:root {
+  --color-bg-primary: #1a1d21;
+  --color-bg-secondary: #222529;
+  --color-text-primary: #d1d2d3;
+  --color-text-secondary: #ababad;
+  --color-text-bright: #ffffff;
+  --color-text-muted: #8b8f97;
+  --color-accent: #192f40;
+  --color-yellow: #ecb22e;
+  --color-border: #393c41;
+  --radius: 6px;
+  --radius-sm: 4px;
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 12px;
+  --spacing-lg: 16px;
+  --spacing-xl: 24px;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--color-bg-primary);
+  color: var(--color-text-primary);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  font-size: 15px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+.page {
+  max-width: 820px;
+  margin: 0 auto;
+  padding: var(--spacing-xl);
+}
+
+.thread-header {
+  padding-bottom: var(--spacing-xl);
+  border-bottom: 1px solid var(--color-border);
+  margin-bottom: var(--spacing-xl);
+}
+
+.thread-header h1 {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--color-text-bright);
+  margin-bottom: var(--spacing-sm);
+}
+
+.thread-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--spacing-sm);
+  font-size: 13px;
+  color: var(--color-text-secondary);
+  margin-bottom: var(--spacing-sm);
+}
+
+.thread-topic { font-style: italic; }
+.meta-separator { color: var(--color-text-muted); }
+
+.participants {
+  font-size: 13px;
+  color: var(--color-text-muted);
+}
+
+/* Messages */
+.message-bubble {
+  display: flex;
+  gap: var(--spacing-md);
+  padding: var(--spacing-sm) 0;
+  margin-bottom: var(--spacing-sm);
+}
+
+.message-bubble + .message-bubble {
+  border-top: 1px solid rgba(255, 255, 255, 0.04);
+  padding-top: var(--spacing-md);
+}
+
+.message-avatar {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+}
+
+.message-avatar img {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius);
+  object-fit: cover;
+}
+
+.avatar-placeholder {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius);
+  background: var(--color-accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--color-text-bright);
+}
+
+.message-body { flex: 1; min-width: 0; }
+
+.message-header {
+  display: flex;
+  align-items: baseline;
+  gap: var(--spacing-sm);
+  margin-bottom: var(--spacing-xs);
+}
+
+.message-author {
+  font-weight: 700;
+  color: var(--color-text-bright);
+}
+
+.message-time {
+  font-size: 11px;
+  color: var(--color-text-muted);
+}
+
+.message-content {
+  color: var(--color-text-primary);
+  line-height: 1.6;
+  word-break: break-word;
+}
+
+.message-content p { margin-bottom: var(--spacing-sm); }
+.message-content p:last-child { margin-bottom: 0; }
+.message-content h1, .message-content h2, .message-content h3,
+.message-content h4, .message-content h5, .message-content h6 {
+  color: var(--color-text-bright);
+  margin-top: var(--spacing-lg);
+  margin-bottom: var(--spacing-sm);
+  line-height: 1.3;
+}
+.message-content h1 { font-size: 1.4em; }
+.message-content h2 { font-size: 1.25em; }
+.message-content h3 { font-size: 1.1em; }
+
+.message-content code {
+  font-family: 'SF Mono', SFMono-Regular, Consolas, 'Liberation Mono', Menlo, monospace;
+  font-size: 0.9em;
+  background: rgba(255, 255, 255, 0.06);
+  padding: 2px 6px;
+  border-radius: var(--radius-sm);
+}
+
+.message-content pre {
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: var(--radius);
+  padding: var(--spacing-md);
+  overflow-x: auto;
+  margin: var(--spacing-sm) 0;
+}
+
+.message-content pre code {
+  background: none;
+  padding: 0;
+  font-size: 0.85em;
+  line-height: 1.5;
+}
+
+.message-content blockquote {
+  border-left: 3px solid var(--color-accent);
+  padding-left: var(--spacing-md);
+  margin: var(--spacing-sm) 0;
+  color: var(--color-text-secondary);
+}
+
+.message-content ul, .message-content ol {
+  padding-left: var(--spacing-xl);
+  margin: var(--spacing-sm) 0;
+}
+
+.message-content li { margin-bottom: var(--spacing-xs); }
+
+.message-content a {
+  color: #4da6ff;
+  text-decoration: underline;
+}
+
+.message-content hr {
+  border: none;
+  border-top: 1px solid var(--color-border);
+  margin: var(--spacing-lg) 0;
+}
+
+.message-content table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: var(--spacing-sm) 0;
+}
+
+.message-content th, .message-content td {
+  border: 1px solid var(--color-border);
+  padding: var(--spacing-xs) var(--spacing-sm);
+  text-align: left;
+}
+
+.message-content th {
+  background: rgba(255, 255, 255, 0.04);
+  font-weight: 600;
+  color: var(--color-text-bright);
+}
+
+.message-content strong { color: var(--color-text-bright); }
+
+.message-footer {
+  margin-top: var(--spacing-xs);
+}
+
+.message-model {
+  font-size: 11px;
+  color: var(--color-text-muted);
+  opacity: 0.6;
+}
+
+/* System messages */
+.message-bubble.system {
+  justify-content: center;
+  padding: var(--spacing-md) 0;
+}
+
+.system-message {
+  text-align: center;
+  font-size: 13px;
+  color: var(--color-text-muted);
+  font-style: italic;
+  padding: var(--spacing-sm) var(--spacing-lg);
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: var(--radius);
+  max-width: 600px;
+}
+
+/* Summary messages */
+.message-bubble.summary {
+  justify-content: center;
+  padding: var(--spacing-lg) 0;
+}
+
+.summary-message {
+  width: 100%;
+  max-width: 720px;
+  margin: 0 auto;
+  padding: var(--spacing-lg);
+  background: rgba(255, 255, 255, 0.03);
+  border-left: 3px solid var(--color-accent);
+  border-radius: var(--radius);
+}
+
+.summary-message .message-content h2:first-child { margin-top: 0; }
+
+/* User (moderator) messages */
+.message-bubble.user .message-author { color: var(--color-yellow); }
+.message-bubble.user .avatar-placeholder {
+  background: var(--color-yellow);
+  color: var(--color-bg-primary);
+}
+
+/* Footer */
+.export-footer {
+  margin-top: var(--spacing-xl);
+  padding-top: var(--spacing-xl);
+  border-top: 1px solid var(--color-border);
+}
+
+.disclaimer {
+  font-size: 13px;
+  color: var(--color-text-muted);
+  background: rgba(255, 255, 255, 0.03);
+  padding: var(--spacing-lg);
+  border-radius: var(--radius);
+  margin-bottom: var(--spacing-lg);
+  line-height: 1.6;
+}
+
+.credit {
+  font-size: 13px;
+  color: var(--color-text-muted);
+  text-align: center;
+}
+
+.credit a {
+  color: #4da6ff;
+  text-decoration: underline;
+}
+
+@media (max-width: 600px) {
+  .page { padding: var(--spacing-md); }
+  .message-avatar { width: 28px; height: 28px; }
+  .message-avatar img { width: 28px; height: 28px; }
+  .avatar-placeholder { width: 28px; height: 28px; font-size: 11px; }
+  .message-bubble { gap: var(--spacing-sm); }
+}
+`;
+}
 
 // POST /api/threads/:id/rollback — rollback discussion to a specific message
 router.post('/:id/rollback', (req, res) => {

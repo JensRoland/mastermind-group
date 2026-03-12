@@ -8,6 +8,43 @@ import ConfirmDialog from './ConfirmDialog.jsx';
 import { formatDateTime } from '../timezone.js';
 import '../styles/thread.css';
 
+function ExportMenu(props) {
+  const [open, setOpen] = createSignal(false);
+  let menuRef;
+
+  const handleClickOutside = (e) => {
+    if (menuRef && !menuRef.contains(e.target)) setOpen(false);
+  };
+
+  createEffect(() => {
+    if (open()) {
+      document.addEventListener('click', handleClickOutside, true);
+    } else {
+      document.removeEventListener('click', handleClickOutside, true);
+    }
+  });
+
+  onCleanup(() => document.removeEventListener('click', handleClickOutside, true));
+
+  return (
+    <div class="export-menu" ref={menuRef}>
+      <button onClick={() => setOpen(!open())} title="Export session">
+        Export ▾
+      </button>
+      <Show when={open()}>
+        <div class="export-dropdown">
+          <button onClick={() => { api.exportThread(props.threadId); setOpen(false); }}>
+            Download as Markdown
+          </button>
+          <button onClick={() => { api.exportThreadHtml(props.threadId); setOpen(false); }}>
+            Download as HTML (ZIP)
+          </button>
+        </div>
+      </Show>
+    </div>
+  );
+}
+
 export default function ThreadView(props) {
   const [thread, setThread] = createSignal(null);
   const [messages, setMessages] = createSignal([]);
@@ -269,9 +306,7 @@ export default function ThreadView(props) {
             <button class="danger" onClick={handleWrapUp} disabled={!canInteract()}>
               Wrap It Up
             </button>
-            <button onClick={() => api.exportThread(props.threadId)} title="Download as Markdown">
-              Export
-            </button>
+            <ExportMenu threadId={props.threadId} />
           </div>
         </header>
 
