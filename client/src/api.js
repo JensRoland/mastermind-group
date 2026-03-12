@@ -58,6 +58,12 @@ export const api = {
     a.download = '';
     a.click();
   },
+  exportThreadHtml: (id) => {
+    const a = document.createElement('a');
+    a.href = `${BASE}/threads/${id}/export-html`;
+    a.download = '';
+    a.click();
+  },
 
   // Likes
   toggleLike: (messageId) => request(`/messages/${messageId}/like`, { method: 'POST' }),

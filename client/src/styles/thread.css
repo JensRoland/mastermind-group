@@ -97,6 +97,43 @@
   background: rgba(224, 30, 90, 0.1);
 }
 
+.export-menu {
+  position: relative;
+}
+
+.export-dropdown {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: var(--spacing-xs);
+  background: var(--color-bg-secondary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  padding: var(--spacing-xs) 0;
+  min-width: 200px;
+  z-index: 100;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+.export-dropdown button {
+  display: block;
+  width: 100%;
+  padding: var(--spacing-sm) var(--spacing-md) !important;
+  background: transparent !important;
+  border: none !important;
+  border-radius: 0 !important;
+  color: var(--color-text-primary) !important;
+  font-size: var(--font-size-small);
+  text-align: left;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.export-dropdown button:hover {
+  background: var(--color-bg-hover) !important;
+  color: var(--color-text-bright) !important;
+}
+
 .messages-container {
   flex: 1;
   overflow-y: auto;
