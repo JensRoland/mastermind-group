@@ -157,6 +157,26 @@ $logger?->info('Page view', [
 
 $siteTitle = 'Mastermind Group Debatter';
 $siteDescription = 'En samling af AI-drevne rundbordsdiskussioner, hvor syntetiske personaer debatterer og udforsker emner. <a href="/about">Lær mere</a>';
+$siteUrl = 'https://mastermind.jensroland.com';
+
+// --- OpenGraph metadata ------------------------------------------------------
+
+$ogTitle = $siteTitle;
+$ogDescription = strip_tags($siteDescription);
+$ogImage = $siteUrl . '/assets/og-default.webp';
+$ogUrl = $siteUrl . $requestUri;
+
+if ($activeSession) {
+    $ogTitle = $activeSession['title'] . ' — ' . $siteTitle;
+    $ogDescription = $activeSession['topic'];
+    // Use session-specific OG image if it exists, otherwise fall back to default
+    $sessionOgImage = $sessionsDir . '/' . $activeSlug . '/og-image.webp';
+    if (file_exists($sessionOgImage)) {
+        $ogImage = $siteUrl . '/sessions/' . $activeSlug . '/og-image.webp';
+    }
+} elseif ($isAboutPage) {
+    $ogTitle = 'Om — ' . $siteTitle;
+}
 
 // --- Compute base path (supports subdirectory installs) ----------------------
 
@@ -171,7 +191,19 @@ $basePath = rtrim(dirname($_SERVER['SCRIPT_NAME']), '/') . '/';
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <base href="<?= htmlspecialchars($basePath) ?>">
 <title><?= $activeSession ? htmlspecialchars($activeSession['title']) . ' — ' : ($isAboutPage ? 'Om — ' : '') ?><?= htmlspecialchars($siteTitle) ?></title>
-<meta name="description" content="<?= htmlspecialchars($activeSession ? $activeSession['topic'] : strip_tags($siteDescription)) ?>">
+<meta name="description" content="<?= htmlspecialchars($ogDescription) ?>">
+<!-- OpenGraph -->
+<meta property="og:type" content="website">
+<meta property="og:title" content="<?= htmlspecialchars($ogTitle) ?>">
+<meta property="og:description" content="<?= htmlspecialchars($ogDescription) ?>">
+<meta property="og:image" content="<?= htmlspecialchars($ogImage) ?>">
+<meta property="og:url" content="<?= htmlspecialchars($ogUrl) ?>">
+<meta property="og:site_name" content="<?= htmlspecialchars($siteTitle) ?>">
+<!-- Twitter/X Card -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="<?= htmlspecialchars($ogTitle) ?>">
+<meta name="twitter:description" content="<?= htmlspecialchars($ogDescription) ?>">
+<meta name="twitter:image" content="<?= htmlspecialchars($ogImage) ?>">
 <link rel="icon" href="assets/logomark.png" type="image/png">
 <link rel="stylesheet" href="assets/style.css">
 </head>
