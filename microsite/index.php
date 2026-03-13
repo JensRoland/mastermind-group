@@ -3,7 +3,8 @@
  * Mastermind Group — Session Microsite
  *
  * Drop exported session folders into /sessions and they appear automatically.
- * Clean URLs: /session-slug loads that session inline.
+ * Reads session.json for metadata and partial.html for inline content.
+ * Falls back to HTML parsing / iframe for legacy exports.
  */
 
 // Start session for tracking (used in logging)
@@ -35,6 +36,15 @@ $sessionsDir = $baseDir . '/sessions';
 
 // --- Scan sessions -----------------------------------------------------------
 
+function getInitials(string $name): string {
+    $words = preg_split('/\s+/', trim($name));
+    $initials = '';
+    foreach ($words as $w) {
+        if ($w !== '') $initials .= mb_strtoupper(mb_substr($w, 0, 1));
+    }
+    return mb_substr($initials, 0, 2) ?: '?';
+}
+
 function scanSessions(string $dir): array {
     $sessions = [];
     if (!is_dir($dir)) return $sessions;
@@ -42,69 +52,110 @@ function scanSessions(string $dir): array {
     foreach (scandir($dir) as $folder) {
         if ($folder[0] === '.') continue;
         $path = $dir . '/' . $folder;
-        $htmlFile = $path . '/index.html';
-        if (!is_dir($path) || !file_exists($htmlFile)) continue;
+        if (!is_dir($path)) continue;
 
-        $html = file_get_contents($htmlFile);
-        $title = $folder; // fallback
-        $topic = '';
-        $date = '';
+        $jsonFile = $path . '/session.json';
+        $hasPartial = file_exists($path . '/partial.html');
+        $hasIndex = file_exists($path . '/index.html');
 
-        // Extract title from <title> tag (strip " — Mastermind Group" suffix)
-        if (preg_match('/<title>(.+?)<\/title>/', $html, $m)) {
-            $title = html_entity_decode($m[1], ENT_QUOTES, 'UTF-8');
-            $title = preg_replace('/\s*[\x{2014}\x{2013}\-]\s*Mastermind Group$/u', '', $title);
-        }
+        if (!$hasPartial && !$hasIndex) continue;
 
-        // Extract topic from thread-topic span
-        if (preg_match('/<span class="thread-topic">(.+?)<\/span>/', $html, $m)) {
-            $topic = html_entity_decode($m[1], ENT_QUOTES, 'UTF-8');
-        }
+        $session = null;
 
-        // Extract date from thread-meta (the span after the first meta-separator)
-        if (preg_match_all('/<span class="meta-separator">·<\/span>\s*<span>(.+?)<\/span>/', $html, $m)) {
-            if (!empty($m[1][0])) {
-                $date = html_entity_decode($m[1][0], ENT_QUOTES, 'UTF-8');
-            }
-        }
-
-        // Extract participant names from footer list
-        $participants = [];
-        if (preg_match_all('/<li>([^<]+)\s*<span class="participant-model">/', $html, $m)) {
-            $participants = array_map('trim', $m[1]);
-        }
-
-        // Extract avatars from header-avatars div
-        $avatars = [];
-        if (preg_match('/<div class="header-avatars">(.*?)<\/div>/s', $html, $m)) {
-            $avatarBlock = $m[1];
-            // Image avatars: <img src="avatars/file" alt="Name" title="Name" />
-            if (preg_match_all('/<img\s+src="avatars\/([^"]+)"\s+alt="([^"]*)"/', $avatarBlock, $am)) {
-                foreach ($am[1] as $i => $file) {
-                    $avatars[] = ['type' => 'img', 'file' => $file, 'name' => html_entity_decode($am[2][$i], ENT_QUOTES, 'UTF-8')];
-                }
-            }
-            // Placeholder avatars: <div class="avatar-placeholder" title="Name">XX</div>
-            if (preg_match_all('/<div class="avatar-placeholder"[^>]*title="([^"]*)"[^>]*>([^<]+)<\/div>/', $avatarBlock, $am)) {
-                foreach ($am[1] as $i => $name) {
-                    $avatars[] = ['type' => 'placeholder', 'initials' => trim($am[2][$i]), 'name' => html_entity_decode($name, ENT_QUOTES, 'UTF-8')];
+        // Primary: read session.json
+        if (file_exists($jsonFile)) {
+            $json = json_decode(file_get_contents($jsonFile), true);
+            if ($json) {
+                $session = [
+                    'slug' => $folder,
+                    'title' => $json['title'] ?? $folder,
+                    'topic' => $json['topic'] ?? '',
+                    'date' => $json['dateFormatted'] ?? '',
+                    'dateRaw' => $json['date'] ?? '',
+                    'turns' => $json['turns'] ?? 0,
+                    'language' => $json['language'] ?? 'en',
+                    'disclaimerLabel' => $json['disclaimerLabel'] ?? '',
+                    'disclaimer' => $json['disclaimer'] ?? '',
+                    'credit' => $json['credit'] ?? '',
+                    'participants' => [],
+                    'avatars' => [],
+                    'hasPartial' => $hasPartial,
+                ];
+                foreach ($json['participants'] ?? [] as $p) {
+                    $session['participants'][] = $p['name'] ?? '';
+                    if (!empty($p['avatarFile'])) {
+                        $session['avatars'][] = ['type' => 'img', 'file' => $p['avatarFile'], 'name' => $p['name'] ?? ''];
+                    } else {
+                        $session['avatars'][] = ['type' => 'placeholder', 'initials' => getInitials($p['name'] ?? ''), 'name' => $p['name'] ?? ''];
+                    }
                 }
             }
         }
 
-        $sessions[] = [
-            'slug' => $folder,
-            'title' => $title,
-            'topic' => $topic,
-            'date' => $date,
-            'participants' => $participants,
-            'avatars' => $avatars,
-        ];
+        // Fallback: parse index.html (legacy exports without session.json)
+        if (!$session && $hasIndex) {
+            $html = file_get_contents($path . '/index.html');
+            $title = $folder;
+            $topic = '';
+            $date = '';
+
+            if (preg_match('/<title>(.+?)<\/title>/', $html, $m)) {
+                $title = html_entity_decode($m[1], ENT_QUOTES, 'UTF-8');
+                $title = preg_replace('/\s*[\x{2014}\x{2013}\-]\s*Mastermind Group$/u', '', $title);
+            }
+            if (preg_match('/<span class="thread-topic">(.+?)<\/span>/', $html, $m)) {
+                $topic = html_entity_decode($m[1], ENT_QUOTES, 'UTF-8');
+            }
+            if (preg_match_all('/<span class="meta-separator">·<\/span>\s*<span>(.+?)<\/span>/', $html, $m)) {
+                if (!empty($m[1][0])) {
+                    $date = html_entity_decode($m[1][0], ENT_QUOTES, 'UTF-8');
+                }
+            }
+
+            $participants = [];
+            if (preg_match_all('/<li>([^<]+)\s*<span class="participant-model">/', $html, $m)) {
+                $participants = array_map('trim', $m[1]);
+            }
+
+            $avatars = [];
+            if (preg_match('/<div class="header-avatars">(.*?)<\/div>/s', $html, $m)) {
+                $avatarBlock = $m[1];
+                if (preg_match_all('/<img\s+src="avatars\/([^"]+)"\s+alt="([^"]*)"/', $avatarBlock, $am)) {
+                    foreach ($am[1] as $i => $file) {
+                        $avatars[] = ['type' => 'img', 'file' => $file, 'name' => html_entity_decode($am[2][$i], ENT_QUOTES, 'UTF-8')];
+                    }
+                }
+                if (preg_match_all('/<div class="avatar-placeholder"[^>]*title="([^"]*)"[^>]*>([^<]+)<\/div>/', $avatarBlock, $am)) {
+                    foreach ($am[1] as $i => $name) {
+                        $avatars[] = ['type' => 'placeholder', 'initials' => trim($am[2][$i]), 'name' => html_entity_decode($name, ENT_QUOTES, 'UTF-8')];
+                    }
+                }
+            }
+
+            $session = [
+                'slug' => $folder,
+                'title' => $title,
+                'topic' => $topic,
+                'date' => $date,
+                'dateRaw' => '',
+                'turns' => 0,
+                'language' => 'en',
+                'disclaimerLabel' => '',
+                'disclaimer' => '',
+                'credit' => '',
+                'participants' => $participants,
+                'avatars' => $avatars,
+                'hasPartial' => $hasPartial,
+            ];
+        }
+
+        if ($session) $sessions[] = $session;
     }
 
     // Sort by date descending (newest first), falling back to title
     usort($sessions, function ($a, $b) {
-        return strcmp($b['date'], $a['date']) ?: strcmp($a['title'], $b['title']);
+        $cmp = strcmp($b['dateRaw'] ?: $b['date'], $a['dateRaw'] ?: $a['date']);
+        return $cmp ?: strcmp($a['title'], $b['title']);
     });
 
     return $sessions;
@@ -195,15 +246,15 @@ $basePath = rtrim(dirname($_SERVER['SCRIPT_NAME']), '/') . '/';
 // --- Render ------------------------------------------------------------------
 ?>
 <!DOCTYPE html>
-<html lang="en">
+<html lang="da">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <base href="<?= htmlspecialchars($basePath) ?>">
-<title><?= $activeSession ? htmlspecialchars($activeSession['title']) . ' — ' : ($isAboutPage ? 'Om — ' : '') ?><?= htmlspecialchars($siteTitle) ?></title>
+<title><?= htmlspecialchars($ogTitle) ?></title>
 <meta name="description" content="<?= htmlspecialchars($ogDescription) ?>">
 <!-- OpenGraph -->
-<meta property="og:type" content="website">
+<meta property="og:type" content="<?= $activeSession ? 'article' : 'website' ?>">
 <meta property="og:title" content="<?= htmlspecialchars($ogTitle) ?>">
 <meta property="og:description" content="<?= htmlspecialchars($ogDescription) ?>">
 <meta property="og:image" content="<?= htmlspecialchars($ogImage) ?>">
@@ -256,12 +307,58 @@ $basePath = rtrim(dirname($_SERVER['SCRIPT_NAME']), '/') . '/';
 
 <main class="content" id="content">
   <?php if ($activeSession): ?>
-    <iframe
-      src="sessions/<?= htmlspecialchars($activeSlug) ?>/index.html"
-      class="session-frame"
-      id="sessionFrame"
-      title="<?= htmlspecialchars($activeSession['title']) ?>"
-    ></iframe>
+    <div class="session-content">
+      <header class="thread-header">
+        <h1><?= htmlspecialchars($activeSession['title']) ?></h1>
+        <div class="thread-meta">
+          <span class="thread-topic"><?= htmlspecialchars($activeSession['topic']) ?></span>
+          <?php if ($activeSession['date']): ?>
+            <span class="meta-separator">&middot;</span>
+            <span><?= htmlspecialchars($activeSession['date']) ?></span>
+          <?php endif; ?>
+          <?php if ($activeSession['turns']): ?>
+            <span class="meta-separator">&middot;</span>
+            <span><?= (int)$activeSession['turns'] ?> ture</span>
+          <?php endif; ?>
+        </div>
+        <?php if ($activeSession['disclaimer']): ?>
+          <div class="disclaimer">
+            <?php if ($activeSession['disclaimerLabel']): ?>
+              <strong><?= htmlspecialchars($activeSession['disclaimerLabel']) ?>:</strong>
+            <?php endif; ?>
+            <?= htmlspecialchars($activeSession['disclaimer']) ?>
+          </div>
+        <?php endif; ?>
+        <?php if (!empty($activeSession['avatars'])): ?>
+          <div class="header-avatars">
+            <?php foreach ($activeSession['avatars'] as $av): ?>
+              <?php if ($av['type'] === 'img'): ?>
+                <img src="sessions/<?= htmlspecialchars($activeSlug) ?>/avatars/<?= htmlspecialchars($av['file']) ?>" alt="<?= htmlspecialchars($av['name']) ?>" title="<?= htmlspecialchars($av['name']) ?>">
+              <?php else: ?>
+                <div class="avatar-placeholder" title="<?= htmlspecialchars($av['name']) ?>"><?= htmlspecialchars($av['initials']) ?></div>
+              <?php endif; ?>
+            <?php endforeach; ?>
+          </div>
+        <?php endif; ?>
+      </header>
+
+      <?php
+      $partialFile = $sessionsDir . '/' . $activeSlug . '/partial.html';
+      if (file_exists($partialFile)):
+          // Rewrite relative avatar paths to point to the session folder
+          $partial = file_get_contents($partialFile);
+          $partial = str_replace('src="avatars/', 'src="sessions/' . htmlspecialchars($activeSlug) . '/avatars/', $partial);
+          echo $partial;
+      else:
+          // Legacy fallback: iframe for old exports without partial.html
+      ?>
+        <iframe
+          src="sessions/<?= htmlspecialchars($activeSlug) ?>/index.html"
+          class="session-frame"
+          title="<?= htmlspecialchars($activeSession['title']) ?>"
+        ></iframe>
+      <?php endif; ?>
+    </div>
   <?php elseif ($isAboutPage): ?>
     <div class="about-page">
       <img src="assets/logotype.png" alt="Mastermind Group" class="about-logo">
@@ -367,7 +464,6 @@ toggle.addEventListener('click', () => {
 
 overlay.addEventListener('click', closeSidebar);
 
-// Close sidebar when clicking outside on mobile (non-iframe pages)
 document.addEventListener('click', (e) => {
   if (sidebar.classList.contains('open') &&
       !sidebar.contains(e.target) &&
@@ -375,18 +471,6 @@ document.addEventListener('click', (e) => {
     closeSidebar();
   }
 });
-
-// On mobile, inject top margin into iframe header so hamburger doesn't overlap
-const frame = document.getElementById('sessionFrame');
-if (frame && window.matchMedia('(max-width: 768px)').matches) {
-  frame.addEventListener('load', () => {
-    try {
-      const style = frame.contentDocument.createElement('style');
-      style.textContent = '.thread-header { margin-top: 48px; }';
-      frame.contentDocument.head.appendChild(style);
-    } catch (e) { /* cross-origin fallback: do nothing */ }
-  });
-}
 </script>
 </body>
 </html>
