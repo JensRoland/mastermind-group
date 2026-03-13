@@ -492,6 +492,8 @@ router.get('/:id/export-html', (req, res) => {
     return `<div class="avatar-placeholder" title="${escapeHtml(e.name)}">${getInitials(e.name)}</div>`;
   }).join('\n');
 
+  const formattedDate = new Date(thread.created_at + 'Z').toLocaleDateString(lang.dateLocale, { year: 'numeric', month: 'long', day: 'numeric' });
+
   const html = `<!DOCTYPE html>
 <html lang="${lang.code}">
 <head>
@@ -509,7 +511,7 @@ ${getExportCss()}
     <div class="thread-meta">
       <span class="thread-topic">${escapeHtml(thread.topic)}</span>
       <span class="meta-separator">·</span>
-      <span>${new Date(thread.created_at + 'Z').toLocaleDateString(lang.dateLocale, { year: 'numeric', month: 'long', day: 'numeric' })}</span>
+      <span>${formattedDate}</span>
       <span class="meta-separator">·</span>
       <span>${thread.current_turn} ${lang.exportTurns}</span>
     </div>
@@ -536,6 +538,41 @@ ${messagesHtml}
 </body>
 </html>`;
 
+  // Partial HTML — body content only, for microsite embedding
+  const partialHtml = `<div class="session-messages">
+${messagesHtml}
+</div>
+<footer class="session-footer">
+  <div class="credit">
+    ${lang.exportCreatedBy}
+  </div>
+  <div class="participants">
+    <strong>${lang.exportParticipants}:</strong>
+    <ul>${participantsList}</ul>
+  </div>
+</footer>`;
+
+  // Session metadata JSON for microsite
+  const sessionJson = JSON.stringify({
+    title: thread.title,
+    topic: thread.topic,
+    date: thread.created_at.split(' ')[0],
+    dateFormatted: formattedDate,
+    turns: thread.current_turn,
+    language: lang.code,
+    disclaimerLabel: lang.exportDisclaimerLabel,
+    disclaimer: lang.exportDisclaimer,
+    credit: lang.exportCreatedBy,
+    participants: experts.map(e => {
+      const info = avatarFiles.get(e.id);
+      return {
+        name: e.name,
+        model: e.llm_model,
+        avatarFile: info ? info.filename : null,
+      };
+    }),
+  }, null, 2);
+
   const slugFilename = thread.title.replace(/[^a-zA-Z0-9 ]/g, '').replace(/\s+/g, '-').toLowerCase();
 
   res.setHeader('Content-Type', 'application/zip');
@@ -549,6 +586,8 @@ ${messagesHtml}
   archive.pipe(res);
 
   archive.append(html, { name: `${slugFilename}/index.html` });
+  archive.append(partialHtml, { name: `${slugFilename}/partial.html` });
+  archive.append(sessionJson, { name: `${slugFilename}/session.json` });
 
   for (const [, { filename, filepath }] of avatarFiles) {
     archive.file(filepath, { name: `${slugFilename}/avatars/${filename}` });
