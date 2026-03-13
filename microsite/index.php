@@ -6,6 +6,9 @@
  * Clean URLs: /session-slug loads that session inline.
  */
 
+// Start session for tracking (used in logging)
+session_start();
+
 // Optional: Better Stack logging (requires `composer install`)
 $logger = null;
 $autoload = __DIR__ . '/vendor/autoload.php';
@@ -143,7 +146,12 @@ if ($slug !== null && !$isAboutPage) {
     // 404 if slug doesn't match any session
     if ($activeSlug === null) {
         http_response_code(404);
-        $logger?->warning('404 Not Found', ['slug' => $slug, 'uri' => $_SERVER['REQUEST_URI']]);
+        $logger?->warning('404 Not Found', [
+            'slug' => $slug,
+            'uri' => $_SERVER['REQUEST_URI'],
+            'ip' => $_SERVER['HTTP_X_FORWARDED_FOR'] ?? $_SERVER['REMOTE_ADDR'] ?? null,
+            'session_id' => session_id() ?: null,
+        ]);
     }
 }
 
@@ -151,6 +159,8 @@ $logger?->info('Page view', [
     'path' => $requestUri,
     'slug' => $activeSlug,
     'status' => http_response_code(),
+    'ip' => $_SERVER['HTTP_X_FORWARDED_FOR'] ?? $_SERVER['REMOTE_ADDR'] ?? null,
+    'session_id' => session_id() ?: null,
 ]);
 
 // --- Site configuration (edit these) -----------------------------------------
