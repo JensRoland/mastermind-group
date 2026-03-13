@@ -3,6 +3,8 @@ data/
 .env
 dist/
 microsite/vendor/
+microsite/data/*
+!microsite/data/.gitkeep
 public/avatars/*.png
 public/avatars/*.jpg
 public/avatars/*.jpeg
