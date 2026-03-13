@@ -216,7 +216,7 @@ $logger?->info('Page view', [
 
 // --- Site configuration (edit these) -----------------------------------------
 
-$siteTitle = 'Mastermind Group Debatter';
+$siteTitle = 'AI-Debatten';
 $siteDescription = 'En samling af AI-drevne rundbordsdiskussioner, hvor syntetiske personaer debatterer og udforsker emner. <a href="/about">Lær mere</a>';
 $siteUrl = 'https://ai-debatten.dk';
 
@@ -265,7 +265,10 @@ $basePath = rtrim(dirname($_SERVER['SCRIPT_NAME']), '/') . '/';
 <meta name="twitter:title" content="<?= htmlspecialchars($ogTitle) ?>">
 <meta name="twitter:description" content="<?= htmlspecialchars($ogDescription) ?>">
 <meta name="twitter:image" content="<?= htmlspecialchars($ogImage) ?>">
-<link rel="icon" href="assets/logomark.png" type="image/png">
+<link rel="icon" href="assets/logomark-classy.webp" type="image/webp">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700;900&family=Source+Serif+4:ital,opsz,wght@0,8..60,300;0,8..60,400;0,8..60,600;1,8..60,300;1,8..60,400&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
@@ -273,7 +276,8 @@ $basePath = rtrim(dirname($_SERVER['SCRIPT_NAME']), '/') . '/';
 <aside class="sidebar" id="sidebar">
   <div class="sidebar-header">
     <a href="./" class="logo-link">
-      <img src="assets/logotype-wide.png" alt="Mastermind Group" class="logo">
+      <img src="assets/logomark-classy.webp" alt="" class="logo-mark">
+      <span class="logo-title">AI-DEBATTEN</span>
     </a>
   </div>
   <nav class="session-nav">
@@ -309,35 +313,33 @@ $basePath = rtrim(dirname($_SERVER['SCRIPT_NAME']), '/') . '/';
   <?php if ($activeSession): ?>
     <div class="session-content">
       <header class="thread-header">
+        <?php if ($activeSession['date']): ?>
+          <div class="thread-dateline"><?= htmlspecialchars($activeSession['date']) ?><?php if ($activeSession['turns']): ?> &middot; <?= (int)$activeSession['turns'] ?> ture<?php endif; ?></div>
+        <?php endif; ?>
         <h1><?= htmlspecialchars($activeSession['title']) ?></h1>
-        <div class="thread-meta">
-          <span class="thread-topic"><?= htmlspecialchars($activeSession['topic']) ?></span>
-          <?php if ($activeSession['date']): ?>
-            <span class="meta-separator">&middot;</span>
-            <span><?= htmlspecialchars($activeSession['date']) ?></span>
-          <?php endif; ?>
-          <?php if ($activeSession['turns']): ?>
-            <span class="meta-separator">&middot;</span>
-            <span><?= (int)$activeSession['turns'] ?> ture</span>
-          <?php endif; ?>
-        </div>
+        <?php if ($activeSession['topic']): ?>
+          <p class="thread-deck"><?= htmlspecialchars($activeSession['topic']) ?></p>
+        <?php endif; ?>
+        <?php if (!empty($activeSession['avatars'])): ?>
+          <div class="thread-byline">
+            <?php foreach ($activeSession['avatars'] as $av): ?>
+              <span class="byline-contributor">
+                <?php if ($av['type'] === 'img'): ?>
+                  <img src="sessions/<?= htmlspecialchars($activeSlug) ?>/avatars/<?= htmlspecialchars($av['file']) ?>" alt="<?= htmlspecialchars($av['name']) ?>">
+                <?php else: ?>
+                  <span class="byline-placeholder"><?= htmlspecialchars($av['initials']) ?></span>
+                <?php endif; ?>
+                <span class="byline-name"><?= htmlspecialchars($av['name']) ?></span>
+              </span>
+            <?php endforeach; ?>
+          </div>
+        <?php endif; ?>
         <?php if ($activeSession['disclaimer']): ?>
           <div class="disclaimer">
             <?php if ($activeSession['disclaimerLabel']): ?>
               <strong><?= htmlspecialchars($activeSession['disclaimerLabel']) ?>:</strong>
             <?php endif; ?>
             <?= htmlspecialchars($activeSession['disclaimer']) ?>
-          </div>
-        <?php endif; ?>
-        <?php if (!empty($activeSession['avatars'])): ?>
-          <div class="header-avatars">
-            <?php foreach ($activeSession['avatars'] as $av): ?>
-              <?php if ($av['type'] === 'img'): ?>
-                <img src="sessions/<?= htmlspecialchars($activeSlug) ?>/avatars/<?= htmlspecialchars($av['file']) ?>" alt="<?= htmlspecialchars($av['name']) ?>" title="<?= htmlspecialchars($av['name']) ?>">
-              <?php else: ?>
-                <div class="avatar-placeholder" title="<?= htmlspecialchars($av['name']) ?>"><?= htmlspecialchars($av['initials']) ?></div>
-              <?php endif; ?>
-            <?php endforeach; ?>
           </div>
         <?php endif; ?>
       </header>
@@ -361,9 +363,12 @@ $basePath = rtrim(dirname($_SERVER['SCRIPT_NAME']), '/') . '/';
     </div>
   <?php elseif ($isAboutPage): ?>
     <div class="about-page">
-      <img src="assets/logotype.png" alt="Mastermind Group" class="about-logo">
+      <div class="about-logo-block">
+        <img src="assets/logomark-classy.webp" alt="" class="about-logo">
+        <h2 class="about-logo-title">AI-DEBATTEN</h2>
+      </div>
 
-      <h1>Om Mastermind Group</h1>
+      <h1>Om AI-Debatten</h1>
 
       <p><em>Tænk hvis hvis du havde verdens mest succesfulde erhvervsledere på speed dial?</em></p>
 
@@ -399,40 +404,35 @@ $basePath = rtrim(dirname($_SERVER['SCRIPT_NAME']), '/') . '/';
     </div>
   <?php elseif (http_response_code() === 404): ?>
     <div class="landing">
-      <img src="assets/logomark.png" alt="" class="landing-logo">
+      <div class="landing-logo-block">
+        <img src="assets/logomark-classy.webp" alt="" class="landing-logo">
+        <h2 class="landing-logo-title">AI-DEBATTEN</h2>
+      </div>
       <h1>Debat ikke fundet</h1>
       <p>Debatten findes ikke. Vælg en anden i menuen til venstre eller <a href="./">gå tilbage til hovedsiden</a>.</p>
     </div>
   <?php else: ?>
     <div class="landing">
-      <img src="assets/logomark.png" alt="" class="landing-logo">
+      <div class="landing-logo-block">
+        <img src="assets/logomark-classy.webp" alt="" class="landing-logo">
+        <h2 class="landing-logo-title">AI-DEBATTEN</h2>
+      </div>
       <h1><?= htmlspecialchars($siteTitle) ?></h1>
       <p class="landing-description"><?= $siteDescription ?></p>
       <?php if (!empty($sessions)): ?>
-        <div class="session-cards">
+        <div class="article-list">
           <?php foreach ($sessions as $s): ?>
-            <a href="<?= htmlspecialchars($s['slug']) ?>" class="session-card">
-              <?php if (!empty($s['avatars'])): ?>
-                <span class="card-avatars">
-                  <?php foreach ($s['avatars'] as $av): ?>
-                    <?php if ($av['type'] === 'img'): ?>
-                      <img src="sessions/<?= htmlspecialchars($s['slug']) ?>/avatars/<?= htmlspecialchars($av['file']) ?>" alt="<?= htmlspecialchars($av['name']) ?>" title="<?= htmlspecialchars($av['name']) ?>">
-                    <?php else: ?>
-                      <span class="card-avatar-placeholder" title="<?= htmlspecialchars($av['name']) ?>"><?= htmlspecialchars($av['initials']) ?></span>
-                    <?php endif; ?>
-                  <?php endforeach; ?>
-                </span>
+            <a href="<?= htmlspecialchars($s['slug']) ?>" class="article-item">
+              <span class="article-title"><?= htmlspecialchars($s['title']) ?></span>
+              <?php if ($s['topic']): ?>
+                <span class="article-deck"><?= htmlspecialchars($s['topic']) ?></span>
               <?php endif; ?>
-              <span class="card-text">
-                <span class="card-title"><?= htmlspecialchars($s['title']) ?></span>
-                <?php if ($s['topic']): ?>
-                  <span class="card-topic"><?= htmlspecialchars($s['topic']) ?></span>
-                <?php endif; ?>
+              <span class="article-meta">
                 <?php if (!empty($s['participants'])): ?>
-                  <span class="card-participants"><?= htmlspecialchars(implode(', ', $s['participants'])) ?></span>
+                  <span class="article-byline"><?= htmlspecialchars(implode(', ', $s['participants'])) ?></span>
                 <?php endif; ?>
                 <?php if ($s['date']): ?>
-                  <span class="card-date"><?= htmlspecialchars($s['date']) ?></span>
+                  <span class="article-date"><?= htmlspecialchars($s['date']) ?></span>
                 <?php endif; ?>
               </span>
             </a>
