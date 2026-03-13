@@ -68,19 +68,10 @@ let clerkUser = null;
 let clerkInstance = null;
 
 async function initClerk() {
-  // Wait for Clerk SDK to load
   if (!window.Clerk) return;
 
   clerkInstance = window.Clerk;
-
-  // Wait for Clerk to be ready (it loads async)
-  await new Promise((resolve) => {
-    if (clerkInstance.loaded) { resolve(); return; }
-    // Poll until loaded (Clerk doesn't expose a ready promise in the CDN build)
-    const interval = setInterval(() => {
-      if (clerkInstance.loaded) { clearInterval(interval); resolve(); }
-    }, 100);
-  });
+  await clerkInstance.load();
 
   clerkUser = clerkInstance.user;
 
@@ -302,21 +293,12 @@ document.addEventListener('click', async (e) => {
 
 // --- Init --------------------------------------------------------------------
 
-// Start Clerk when SDK is loaded
+// The Clerk CDN script loads async. Wait for it, then initialize.
 if (window.Clerk) {
   initClerk();
 } else {
-  // SDK loads async — wait for it
-  const observer = new MutationObserver(() => {
-    if (window.Clerk) {
-      observer.disconnect();
-      initClerk();
-    }
-  });
-  observer.observe(document.head, { childList: true, subtree: true });
-  // Fallback: poll
-  const poll = setInterval(() => {
-    if (window.Clerk) { clearInterval(poll); initClerk(); }
-  }, 200);
-  setTimeout(() => clearInterval(poll), 10000);
+  const clerkScript = document.querySelector('script[data-clerk-publishable-key]');
+  if (clerkScript) {
+    clerkScript.addEventListener('load', () => initClerk());
+  }
 }

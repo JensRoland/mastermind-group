@@ -17,20 +17,13 @@ function getClerkJWKS(): array {
         }
     }
 
-    // Derive JWKS URL from publishable key (pk_test_xxx or pk_live_xxx)
-    // Clerk's Frontend API domain is embedded in the publishable key (base64 after the prefix)
-    $pubKey = $_ENV['CLERK_PUBLISHABLE_KEY'] ?? '';
-    $parts = explode('_', $pubKey, 3);
-    $frontendApi = '';
-    if (count($parts) === 3) {
-        $frontendApi = rtrim(base64_decode($parts[2]), '$');
-    }
-
-    if (!$frontendApi) {
+    // Use the FAPI domain derived in bootstrap.php
+    global $clerkFapiDomain;
+    if (!$clerkFapiDomain) {
         return [];
     }
 
-    $jwksUrl = 'https://' . $frontendApi . '/.well-known/jwks.json';
+    $jwksUrl = 'https://' . $clerkFapiDomain . '/.well-known/jwks.json';
     $ctx = stream_context_create(['http' => ['timeout' => 5]]);
     $jwksJson = @file_get_contents($jwksUrl, false, $ctx);
     if (!$jwksJson) return [];
