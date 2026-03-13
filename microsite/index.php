@@ -6,6 +6,27 @@
  * Clean URLs: /session-slug loads that session inline.
  */
 
+// Optional: Better Stack logging (requires `composer install`)
+$logger = null;
+$autoload = __DIR__ . '/vendor/autoload.php';
+if (file_exists($autoload)) {
+    require $autoload;
+
+    // Load .env if present
+    $dotenv = Dotenv\Dotenv::createImmutable(__DIR__);
+    $dotenv->safeLoad();
+
+    $sourceToken = $_ENV['BETTERSTACK_SOURCE_TOKEN'] ?? '';
+    $ingestingHost = $_ENV['BETTERSTACK_INGESTING_HOST'] ?? '';
+    if ($sourceToken && $ingestingHost) {
+        $logger = new Monolog\Logger('mastermind-microsite');
+        $handler = Logtail\Monolog\LogtailHandlerBuilder::withSourceToken($sourceToken)
+            ->withEndpoint('https://' . $ingestingHost)
+            ->build();
+        $logger->pushHandler($handler);
+    }
+}
+
 $baseDir = __DIR__;
 $sessionsDir = $baseDir . '/sessions';
 
@@ -122,8 +143,15 @@ if ($slug !== null && !$isAboutPage) {
     // 404 if slug doesn't match any session
     if ($activeSlug === null) {
         http_response_code(404);
+        $logger?->warning('404 Not Found', ['slug' => $slug, 'uri' => $_SERVER['REQUEST_URI']]);
     }
 }
+
+$logger?->info('Page view', [
+    'path' => $requestUri,
+    'slug' => $activeSlug,
+    'status' => http_response_code(),
+]);
 
 // --- Site configuration (edit these) -----------------------------------------
 

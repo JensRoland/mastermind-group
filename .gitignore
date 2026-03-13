@@ -2,6 +2,7 @@ node_modules/
 data/
 .env
 dist/
+microsite/vendor/
 public/avatars/*.png
 public/avatars/*.jpg
 public/avatars/*.jpeg

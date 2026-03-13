@@ -1,0 +1,14 @@
+{
+    "name": "mastermind-group/microsite",
+    "description": "Mastermind Group Session Microsite",
+    "authors": [
+        {
+            "name": "Jens Roland",
+            "email": "mail@jensroland.com"
+        }
+    ],
+    "require": {
+        "logtail/monolog-logtail": "^3.3",
+        "vlucas/phpdotenv": "^5.6"
+    }
+}
