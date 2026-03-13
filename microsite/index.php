@@ -167,7 +167,7 @@ $logger?->info('Page view', [
 
 $siteTitle = 'Mastermind Group Debatter';
 $siteDescription = 'En samling af AI-drevne rundbordsdiskussioner, hvor syntetiske personaer debatterer og udforsker emner. <a href="/about">Lær mere</a>';
-$siteUrl = 'https://mastermind.jensroland.com';
+$siteUrl = 'https://ai-debatten.dk';
 
 // --- OpenGraph metadata ------------------------------------------------------
 
