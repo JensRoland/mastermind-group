@@ -197,22 +197,32 @@ if ($slug !== null && !$isAboutPage) {
     // 404 if slug doesn't match any session
     if ($activeSlug === null) {
         http_response_code(404);
+    }
+}
+
+// Skip logging for bots/crawlers
+$isBot = preg_match('/bot|crawler|okhttp|spider|index|headless|facebook|bing|python|nessus|curl|http\.rb/i', $_SERVER['HTTP_USER_AGENT'] ?? '');
+
+if (!$isBot) {
+    if (http_response_code() === 404) {
         $logger?->warning('404 Not Found', [
             'slug' => $slug,
             'uri' => $_SERVER['REQUEST_URI'],
             'ip' => $_SERVER['HTTP_X_FORWARDED_FOR'] ?? $_SERVER['REMOTE_ADDR'] ?? null,
+            'ua' => $_SERVER['HTTP_USER_AGENT'] ?? null,
             'session_id' => session_id() ?: null,
         ]);
     }
-}
 
-$logger?->info('Page view', [
-    'path' => $requestUri,
-    'slug' => $activeSlug,
-    'status' => http_response_code(),
-    'ip' => $_SERVER['HTTP_X_FORWARDED_FOR'] ?? $_SERVER['REMOTE_ADDR'] ?? null,
-    'session_id' => session_id() ?: null,
-]);
+    $logger?->info('Page view', [
+        'path' => $requestUri,
+        'slug' => $activeSlug,
+        'status' => http_response_code(),
+        'ip' => $_SERVER['HTTP_X_FORWARDED_FOR'] ?? $_SERVER['REMOTE_ADDR'] ?? null,
+        'ua' => $_SERVER['HTTP_USER_AGENT'] ?? null,
+        'session_id' => session_id() ?: null,
+    ]);
+}
 
 // --- Site configuration (edit these) -----------------------------------------
 
