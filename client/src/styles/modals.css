@@ -355,7 +355,7 @@
 
 .expert-list {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(min(320px, 100%), 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(356px, 100%), 1fr));
   gap: var(--spacing-md);
 }
 
@@ -392,7 +392,7 @@
   font-weight: 700;
   color: var(--color-text-bright);
   font-size: var(--font-size-base);
-  padding-right: 72px;
+  padding-right: 108px;
 }
 
 .expert-card-specialty {

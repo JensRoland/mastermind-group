@@ -30,6 +30,7 @@ The prevailing AI narrative focuses on replacing entry- and mid-level workers �
 - **Real-time streaming** — Watch the conversation unfold live via WebSockets
 - **Moderator controls** — Interject with follow-up questions, request a wrap-up, extend turns, or pause/resume
 - **AI-generated summaries** — Structured wrap-up covering consensus, disagreements, key insights, and actionable recommendations
+- **Model auditions** — Test how well different LLMs embody an expert persona by running blind evaluations with control questions, then cast the best-performing model
 - **Model-agnostic** — Mix and match any models available on OpenRouter, from GPT 5.2 to Claude to Gemini to open-weight models
 - **Self-hosted** — Runs on a single Node.js server with SQLite; no external services beyond an OpenRouter API key
 

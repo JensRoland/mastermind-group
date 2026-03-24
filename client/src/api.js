@@ -36,6 +36,7 @@ export const api = {
   deleteExpert: (id) => request(`/experts/${id}`, { method: 'DELETE' }),
   generateDescription: (name, disambiguator) => request('/experts/generate-description', { method: 'POST', body: JSON.stringify({ name, disambiguator }) }),
   bulkUpdateSpecialty: (ids, specialty) => request('/experts/bulk-specialty', { method: 'PATCH', body: JSON.stringify({ ids, specialty }) }),
+  runAudition: (expertId, data) => request(`/experts/${expertId}/audition`, { method: 'POST', body: JSON.stringify(data) }),
 
   // Threads
   getLanguages: () => request('/threads/languages'),

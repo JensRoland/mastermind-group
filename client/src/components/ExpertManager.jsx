@@ -1,7 +1,9 @@
 import { createSignal, createMemo, onMount, onCleanup, For, Show } from 'solid-js';
 import { api } from '../api.js';
 import { onMessage } from '../ws.js';
+import { modelName } from '../models.js';
 import ExpertForm from './ExpertForm.jsx';
+import AuditionModal from './AuditionModal.jsx';
 import '../styles/modals.css';
 
 export default function ExpertManager() {
@@ -12,6 +14,7 @@ export default function ExpertManager() {
   const [bulkSpecialty, setBulkSpecialty] = createSignal('');
   const [bulkFocused, setBulkFocused] = createSignal(false);
   const [bulkSaving, setBulkSaving] = createSignal(false);
+  const [auditionExpert, setAuditionExpert] = createSignal(null);
 
   const existingSpecialties = createMemo(() => {
     const seen = new Set();
@@ -133,6 +136,11 @@ export default function ExpertManager() {
             {(expert) => (
               <div class="expert-card">
                 <div class="expert-card-actions">
+                  <button class="btn-icon" onClick={() => setAuditionExpert(expert)} title="Audition models">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M12 3v18"/><path d="M4 7l4 7H0l4-7z"/><path d="M20 7l4 7h-8l4-7z"/><path d="M4 7h16"/>
+                    </svg>
+                  </button>
                   <button class="btn-icon" onClick={() => handleEdit(expert)} title="Edit">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                       <path d="M17 3a2.85 2.85 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/>
@@ -171,7 +179,7 @@ export default function ExpertManager() {
                         {expert.total_likes}
                       </span>
                     </Show>
-                    <span class="expert-card-model">{(expert.llm_model || '').replace(/^[^/]+\//, '')}</span>
+                    <span class="expert-card-model">{modelName(expert.llm_model)}</span>
                   </div>
                 </div>
               </div>
@@ -230,6 +238,14 @@ export default function ExpertManager() {
           expert={editingExpert()}
           onSaved={handleSaved}
           onClose={() => { setShowForm(false); setEditingExpert(null); }}
+        />
+      </Show>
+
+      <Show when={auditionExpert()}>
+        <AuditionModal
+          expert={auditionExpert()}
+          onClose={() => setAuditionExpert(null)}
+          onModelChanged={() => loadExperts()}
         />
       </Show>
     </div>

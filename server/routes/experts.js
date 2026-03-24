@@ -5,6 +5,8 @@ import sharp from 'sharp';
 import { fileURLToPath } from 'url';
 import db from '../db.js';
 import { callLLM } from '../llm.js';
+import { buildAuditionPrompt } from '../prompts.js';
+import { broadcastGlobal } from '../ws.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const avatarDir = path.join(__dirname, '..', '..', 'public', 'avatars');
@@ -178,6 +180,152 @@ router.patch('/bulk-specialty', (req, res) => {
   ).all(...ids);
 
   res.json(updated);
+});
+
+// POST /api/experts/:id/audition
+let auditionCounter = 0;
+let activeAuditions = 0;
+router.post('/:id/audition', async (req, res) => {
+  if (activeAuditions >= 2) {
+    return res.status(429).json({ error: 'Too many auditions running. Please wait for the current one to finish.' });
+  }
+
+  const expert = db.prepare('SELECT * FROM experts WHERE id = ?').get(req.params.id);
+  if (!expert) return res.status(404).json({ error: 'Expert not found' });
+
+  const { questions, models, judgeModel, customCriteria } = req.body;
+  if (!Array.isArray(questions) || questions.length === 0) {
+    return res.status(400).json({ error: 'At least one question is required' });
+  }
+  if (!Array.isArray(models) || models.length < 2) {
+    return res.status(400).json({ error: 'At least two models are required' });
+  }
+  if (!judgeModel) {
+    return res.status(400).json({ error: 'Judge model is required' });
+  }
+
+  const auditionId = `audition_${++auditionCounter}_${Date.now()}`;
+  res.json({ auditionId });
+
+  const send = (data) => broadcastGlobal({ ...data, auditionId });
+
+  // Run audition async — progress is pushed via WebSocket
+  activeAuditions++;
+  (async () => {
+    try {
+      const systemPrompt = buildAuditionPrompt(expert);
+      const modelResults = {};
+      let completed = 0;
+
+      send({ type: 'audition_progress', stage: 'testing', current: 0, total: models.length });
+
+      await Promise.all(models.map(async (modelId) => {
+        const responses = await Promise.all(questions.map(async (q) => {
+          try {
+            const answer = await callLLM(modelId, [
+              { role: 'system', content: systemPrompt },
+              { role: 'user', content: q.text },
+            ]);
+            return { question: q.text, answer };
+          } catch (err) {
+            return { question: q.text, answer: `[Error: ${err.message}]` };
+          }
+        }));
+        modelResults[modelId] = responses;
+        completed++;
+        send({ type: 'audition_progress', stage: 'testing', current: completed, total: models.length });
+      }));
+
+      // Fisher-Yates shuffle for unbiased blind labeling
+      const shuffled = [...models];
+      for (let i = shuffled.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+      }
+      const labels = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+      const labelMap = {};
+      shuffled.forEach((modelId, i) => { labelMap[labels[i]] = modelId; });
+
+      // Build judge prompt
+      const questionsBlock = questions.map((q, i) => {
+        const expected = q.expectedAnswer?.trim()
+          ? `\n   Expected answer: ${q.expectedAnswer}`
+          : '';
+        return `${i + 1}. ${q.text}${expected}`;
+      }).join('\n');
+
+      const candidatesBlock = shuffled.map((modelId, i) => {
+        const label = labels[i];
+        const responses = modelResults[modelId];
+        const answersText = responses.map((r, j) =>
+          `Q${j + 1}: ${r.answer}`
+        ).join('\n\n');
+        return `=== Candidate ${label} ===\n${answersText}`;
+      }).join('\n\n');
+
+      const judgePrompt = `You are evaluating how well different candidates embody a specific expert persona in a roundtable discussion setting.
+
+The persona being evaluated:
+Name: ${expert.name}
+Description: ${expert.description}
+
+The following control questions were posed to each candidate, who was instructed to respond fully in character as ${expert.name}:
+
+Questions:
+${questionsBlock}
+
+Below are the responses from each candidate:
+
+${candidatesBlock}
+
+Evaluate each candidate holistically on:
+${customCriteria?.trim()
+  ? `The evaluator has specified these criteria:\n${customCriteria.trim()}\n\nUse these as your PRIMARY evaluation criteria. Additionally consider general persona authenticity and knowledge accuracy.`
+  : `1. Persona authenticity — How well do they capture this expert's voice, thinking style, rhetoric, and perspective?
+2. Knowledge accuracy — How well do their answers reflect this expert's known positions, frameworks, and expertise?
+3. Answer quality — Where expected answers are provided, how close are they? Where not, how convincing and insightful is the response?`}
+
+Rank all candidates from best to worst. For each, give a score from 1-10 and a concise explanation of strengths and weaknesses.
+
+Respond in this EXACT JSON format and nothing else:
+{"rankings":[{"candidate":"A","score":8.5,"reasoning":"..."},{"candidate":"B","score":7.2,"reasoning":"..."}]}`;
+
+      send({ type: 'audition_progress', stage: 'judging' });
+
+      const judgeResponse = await callLLM(judgeModel, [
+        { role: 'user', content: judgePrompt },
+      ]);
+
+      // Parse judge response — strip markdown fences, then parse JSON
+      let rankings;
+      try {
+        const cleaned = judgeResponse.replace(/```(?:json)?\s*/g, '').replace(/```/g, '').trim();
+        const parsed = JSON.parse(cleaned);
+        rankings = parsed.rankings;
+      } catch {
+        send({ type: 'audition_error', message: 'Failed to parse judge response.', raw: judgeResponse });
+        return;
+      }
+
+      // Map labels back to model IDs, filtering any hallucinated candidates
+      const results = rankings
+        .filter(r => labelMap[r.candidate])
+        .map(r => ({
+          candidate: r.candidate,
+          modelId: labelMap[r.candidate],
+          score: r.score,
+          reasoning: r.reasoning,
+          responses: modelResults[labelMap[r.candidate]],
+        }));
+
+      send({ type: 'audition_result', rankings: results });
+    } catch (err) {
+      console.error('Audition error:', err.message);
+      send({ type: 'audition_error', message: err.message });
+    } finally {
+      activeAuditions--;
+    }
+  })().catch(err => console.error('Audition IIFE unhandled:', err));
 });
 
 // DELETE /api/experts/:id
