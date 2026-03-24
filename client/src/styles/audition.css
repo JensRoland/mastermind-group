@@ -1,0 +1,532 @@
+/* Audition Modal — theatrical casting aesthetic */
+
+.audition-overlay {
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(4px);
+}
+
+.audition-modal {
+  background: var(--color-bg-secondary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  width: 720px;
+  max-width: 94vw;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* Header with expert info */
+.audition-header {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-lg);
+  padding: var(--spacing-xl);
+  border-bottom: 1px solid var(--color-border);
+  background:
+    radial-gradient(ellipse at 30% 0%, rgba(232, 145, 45, 0.06) 0%, transparent 60%),
+    var(--color-bg-secondary);
+}
+
+.audition-header img {
+  width: 56px;
+  height: 56px;
+  border-radius: var(--radius);
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.audition-header-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.audition-header-info h2 {
+  font-size: var(--font-size-large);
+  color: var(--color-text-bright);
+  margin-bottom: 2px;
+}
+
+.audition-header-info h2 span {
+  font-weight: 400;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-base);
+  margin-left: var(--spacing-sm);
+}
+
+.audition-header-info p {
+  font-size: var(--font-size-small);
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.audition-close {
+  flex-shrink: 0;
+  font-size: 18px;
+  line-height: 1;
+}
+
+/* Scrollable body */
+.audition-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--spacing-xl);
+}
+
+/* Section headings */
+.audition-section-label {
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: var(--spacing-md);
+}
+
+.audition-section-label:not(:first-child) {
+  margin-top: var(--spacing-xl);
+}
+
+/* Questions */
+.audition-question {
+  position: relative;
+  padding: var(--spacing-md);
+  background: var(--color-bg-primary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  margin-bottom: var(--spacing-sm);
+}
+
+.audition-question-row {
+  display: flex;
+  gap: var(--spacing-sm);
+  align-items: flex-start;
+}
+
+.audition-question-num {
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  color: var(--color-text-muted);
+  width: 20px;
+  flex-shrink: 0;
+  padding-top: 7px;
+  font-family: var(--font-mono);
+}
+
+.audition-question-fields {
+  flex: 1;
+  min-width: 0;
+}
+
+.audition-question-fields input,
+.audition-question-fields textarea {
+  width: 100%;
+  padding: var(--spacing-sm) var(--spacing-md);
+  background: var(--color-bg-input);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  color: var(--color-text-primary);
+  font-size: var(--font-size-small);
+  font-family: var(--font-family);
+}
+
+.audition-question-fields input:focus,
+.audition-question-fields textarea:focus {
+  outline: none;
+  border-color: var(--color-accent-hover);
+}
+
+.audition-question-fields textarea {
+  margin-top: var(--spacing-xs);
+  resize: vertical;
+  min-height: 36px;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+}
+
+.audition-question-remove {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  flex-shrink: 0;
+  font-size: 16px;
+  border-radius: var(--radius-sm);
+  transition: color 0.15s, background 0.15s;
+}
+
+.audition-question-remove:hover {
+  color: var(--color-red);
+  background: rgba(224, 30, 90, 0.1);
+}
+
+.audition-add-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  padding: var(--spacing-xs) var(--spacing-sm);
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  background: transparent;
+  border: 1px dashed var(--color-border);
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s;
+}
+
+.audition-add-btn:hover {
+  color: var(--color-text-primary);
+  border-color: var(--color-border-light);
+}
+
+/* Model grid */
+.audition-model-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(155px, 1fr));
+  gap: var(--spacing-sm);
+}
+
+.audition-model-chip {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-sm) var(--spacing-md);
+  background: var(--color-bg-primary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+  user-select: none;
+}
+
+.audition-model-chip:hover {
+  border-color: var(--color-border-light);
+  background: var(--color-bg-hover);
+}
+
+.audition-model-chip.selected {
+  border-color: var(--color-orange);
+  background: rgba(232, 145, 45, 0.08);
+}
+
+.audition-model-chip input[type="checkbox"] {
+  accent-color: var(--color-orange);
+  width: 14px;
+  height: 14px;
+  cursor: pointer;
+}
+
+.audition-model-chip-name {
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  color: var(--color-text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Judge selector */
+.audition-judge-row select {
+  max-width: 280px;
+}
+
+.audition-optional-label {
+  font-weight: 400;
+  text-transform: none;
+  letter-spacing: 0;
+  color: var(--color-text-muted);
+}
+
+/* Footer / actions */
+.audition-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--spacing-lg) var(--spacing-xl);
+  border-top: 1px solid var(--color-border);
+}
+
+.audition-footer-hint {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+}
+
+.audition-footer-actions {
+  display: flex;
+  gap: var(--spacing-sm);
+}
+
+.audition-footer-actions button {
+  padding: var(--spacing-sm) var(--spacing-lg);
+  border-radius: var(--radius);
+  font-size: var(--font-size-small);
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.btn-audition {
+  padding: var(--spacing-sm) var(--spacing-xl);
+  border-radius: var(--radius);
+  font-size: var(--font-size-small);
+  font-weight: 700;
+  cursor: pointer;
+  border: none;
+  color: #1a1d21;
+  background: linear-gradient(135deg, #e8912d 0%, #ecb22e 100%);
+  transition: opacity 0.15s, transform 0.1s;
+}
+
+.btn-audition:hover:not(:disabled) {
+  opacity: 0.9;
+  transform: translateY(-1px);
+}
+
+.btn-audition:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.btn-audition:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* Progress state */
+.audition-progress {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px var(--spacing-xl);
+  gap: var(--spacing-lg);
+  text-align: center;
+}
+
+.audition-progress-ring {
+  width: 48px;
+  height: 48px;
+  border: 3px solid var(--color-border);
+  border-top-color: var(--color-orange);
+  border-radius: 50%;
+  animation: audition-spin 0.8s linear infinite;
+}
+
+@keyframes audition-spin {
+  to { transform: rotate(360deg); }
+}
+
+.audition-progress-label {
+  font-size: var(--font-size-base);
+  color: var(--color-text-primary);
+  font-weight: 600;
+}
+
+.audition-progress-sub {
+  font-size: var(--font-size-small);
+  color: var(--color-text-muted);
+}
+
+.audition-progress-bar-track {
+  width: 240px;
+  height: 4px;
+  background: var(--color-border);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.audition-progress-bar-fill {
+  height: 100%;
+  background: var(--color-orange);
+  border-radius: 2px;
+  transition: width 0.3s ease;
+}
+
+/* Results */
+.audition-results {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.audition-result-card {
+  position: relative;
+  padding: var(--spacing-lg);
+  background: var(--color-bg-primary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  transition: border-color 0.15s;
+}
+
+.audition-result-card:first-child {
+  border-color: var(--color-orange);
+  background:
+    radial-gradient(ellipse at 0% 0%, rgba(232, 145, 45, 0.05) 0%, transparent 50%),
+    var(--color-bg-primary);
+}
+
+.audition-result-rank {
+  position: absolute;
+  top: var(--spacing-md);
+  right: var(--spacing-md);
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--font-size-xs);
+  font-weight: 800;
+  border-radius: 50%;
+  font-family: var(--font-mono);
+}
+
+.audition-result-card:first-child .audition-result-rank {
+  background: var(--color-orange);
+  color: #1a1d21;
+}
+
+.audition-result-card:not(:first-child) .audition-result-rank {
+  background: var(--color-border);
+  color: var(--color-text-secondary);
+}
+
+.audition-result-header {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-sm);
+}
+
+.audition-result-model {
+  font-size: var(--font-size-base);
+  font-weight: 700;
+  color: var(--color-text-bright);
+}
+
+.audition-result-score {
+  font-size: var(--font-size-small);
+  font-weight: 700;
+  color: var(--color-orange);
+  font-family: var(--font-mono);
+}
+
+.audition-result-reasoning {
+  font-size: var(--font-size-small);
+  color: var(--color-text-secondary);
+  line-height: 1.5;
+  margin-bottom: var(--spacing-md);
+}
+
+.audition-result-toggle {
+  display: block;
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  color: var(--color-text-muted);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  transition: color 0.15s;
+}
+
+.audition-result-toggle:hover {
+  color: var(--color-text-primary);
+}
+
+.audition-result-responses {
+  margin-top: var(--spacing-md);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.audition-response-item {
+  padding: var(--spacing-md);
+  background: var(--color-bg-secondary);
+  border-radius: var(--radius);
+  border-left: 2px solid var(--color-border);
+}
+
+.audition-response-q {
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  color: var(--color-text-muted);
+  margin-bottom: var(--spacing-xs);
+}
+
+.audition-response-a {
+  font-size: var(--font-size-small);
+  color: var(--color-text-primary);
+  line-height: 1.55;
+  white-space: pre-wrap;
+}
+
+/* Cast button on result card */
+.audition-cast-btn {
+  margin-top: var(--spacing-md);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  padding: var(--spacing-xs) var(--spacing-md);
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  cursor: pointer;
+  border-radius: var(--radius);
+  border: 1px solid var(--color-orange);
+  color: var(--color-orange);
+  background: transparent;
+  transition: background 0.15s, color 0.15s;
+}
+
+.audition-cast-btn:hover {
+  background: rgba(232, 145, 45, 0.1);
+}
+
+.audition-cast-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.audition-error {
+  padding: var(--spacing-md);
+  background: rgba(224, 30, 90, 0.08);
+  border: 1px solid var(--color-red);
+  border-radius: var(--radius);
+  font-size: var(--font-size-small);
+  color: var(--color-red);
+}
+
+@media (max-width: 768px) {
+  .audition-modal {
+    max-height: 100vh;
+    max-width: 100vw;
+    border-radius: 0;
+    height: 100vh;
+  }
+
+  .audition-model-grid {
+    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  }
+
+  .audition-header {
+    padding: var(--spacing-lg);
+  }
+
+  .audition-body {
+    padding: var(--spacing-lg);
+  }
+
+  .audition-question-fields input,
+  .audition-question-fields textarea,
+  .audition-judge-row select {
+    font-size: 16px;
+  }
+}

@@ -53,6 +53,10 @@ export function buildSummaryHistory(messages, moderatorName) {
   });
 }
 
+export function buildAuditionPrompt(expert) {
+  return `You are ${expert.name}. ${expert.description}\n\nStay fully in character. Respond as this person would — using their voice, worldview, and expertise. Do not break character or mention that you are an AI.`;
+}
+
 export function buildMessageHistory(messages, currentExpertId, moderatorName) {
   const modLabel = moderatorName || 'Moderator';
   return messages.map(msg => {
